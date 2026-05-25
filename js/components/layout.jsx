@@ -1,0 +1,285 @@
+// ============================================
+// Shared Layout Components
+// ============================================
+
+const { useState, useEffect } = React;
+const { Icon } = window;
+
+// ---------- Router (hash-based) ----------
+const useRoute = () => {
+  const [route, setRoute] = useState(window.location.hash.slice(1) || "/");
+  useEffect(() => {
+    const onChange = () => {
+      setRoute(window.location.hash.slice(1) || "/");
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("hashchange", onChange);
+    return () => window.removeEventListener("hashchange", onChange);
+  }, []);
+  return route;
+};
+
+const navigate = (path) => {
+  window.location.hash = path;
+};
+
+const Link = ({ to, children, className, style, onClick }) => (
+  <a
+    href={`#${to}`}
+    className={className}
+    style={style}
+    onClick={(e) => { if (onClick) onClick(e); }}
+  >
+    {children}
+  </a>
+);
+
+window.useRoute = useRoute;
+window.navigate = navigate;
+window.Link = Link;
+
+// ---------- Brand / Logo ----------
+const LabschoolLogo = ({ size = 36, showText = true, invert = false }) => (
+  <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+    <img
+      src="assets/logo-labschool.png"
+      alt="SMP Labschool Jakarta"
+      style={{ height: size, width: "auto", display: "block", filter: invert ? "brightness(0) invert(1)" : "none" }}
+    />
+    {showText && (
+      <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+        <span style={{ fontSize: 9, letterSpacing: "0.14em", fontWeight: 700, color: invert ? "rgba(255,255,255,0.6)" : "var(--ink-muted)" }}>
+          SISTEM INFORMATIKA • GENERASI MAHIR ARTIFISIAL
+        </span>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: invert ? "white" : "var(--navy-950)", marginTop: 3, letterSpacing: "-0.01em" }}>
+          SIGMA<span style={{ color: "var(--gold-500)" }}>.</span>
+        </span>
+      </div>
+    )}
+  </Link>
+);
+
+const BrandStrip = ({ variant = "light" }) => {
+  const invert = variant === "dark";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+      <img src="assets/logo-labschool.png" style={{ height: 28, filter: invert ? "brightness(0) invert(1)" : "none", opacity: 0.9 }} alt="Labschool"/>
+      <img src="assets/logo-maju.png" style={{ height: 26, opacity: invert ? 0.85 : 1 }} alt="MAJU"/>
+      <img src="assets/logo-pemudajuara.png" style={{ height: 26, opacity: invert ? 0.85 : 1 }} alt="Pemuda Juara"/>
+    </div>
+  );
+};
+
+window.LabschoolLogo = LabschoolLogo;
+window.BrandStrip = BrandStrip;
+
+// ---------- Navbar ----------
+const Navbar = ({ variant = "light" }) => {
+  const route = useRoute();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const dark = variant === "dark";
+
+  const links = [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: `/kelas/${window.USER.level}`, label: `Kelas ${window.USER.level}` },
+    { to: "/playground", label: "Playground" },
+    { to: "/login", label: "Profil" },
+  ];
+
+  const isActive = (to) => route === to || route.startsWith(to + "/") || (to === "/dashboard" && route === "/dashboard");
+
+  return (
+    <nav style={{
+      padding: "18px 32px",
+      background: dark ? "var(--navy-950)" : "var(--bg)",
+      borderBottom: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid var(--line)",
+      position: "sticky", top: 0, zIndex: 50,
+      backdropFilter: "blur(8px)",
+      backgroundColor: dark ? "rgba(11,22,51,0.95)" : "rgba(247,248,252,0.92)",
+    }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
+        <LabschoolLogo invert={dark} size={36}/>
+
+        <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {links.map(l => (
+            <Link key={l.to} to={l.to} style={{
+              padding: "8px 14px", borderRadius: "var(--r-full)",
+              fontSize: 14, fontWeight: 600,
+              color: isActive(l.to) ? (dark ? "var(--gold-400)" : "var(--navy-900)") : (dark ? "rgba(255,255,255,0.7)" : "var(--ink-muted)"),
+              background: isActive(l.to) ? (dark ? "rgba(245,197,24,0.14)" : "white") : "transparent",
+              border: isActive(l.to) && !dark ? "1.5px solid var(--line)" : "1.5px solid transparent",
+            }}>{l.label}</Link>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: dark ? "rgba(255,255,255,0.06)" : "white", borderRadius: "var(--r-full)", border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)" }}>
+            <Icon.Bolt width="15" height="15" style={{ color: "var(--gold-500)" }}/>
+            <span style={{ fontWeight: 800, fontSize: 13, color: dark ? "white" : "var(--navy-900)" }}>{window.USER.xp.toLocaleString()} XP</span>
+          </div>
+          <Link to="/login" title="Ganti profil siswa" style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
+            {window.USER.nickname[0]}
+          </Link>
+          <button
+            className="btn btn-sm mobile-menu-button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Buka menu"
+          ><Icon.Menu width="18" height="18"/></button>
+        </div>
+      </div>
+      {menuOpen && (
+        <div className="mobile-nav-panel">
+          {links.map(l => (
+            <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)} className={isActive(l.to) ? "mobile-nav-link active" : "mobile-nav-link"}>
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+};
+window.Navbar = Navbar;
+
+// ---------- Footer ----------
+const Footer = () => (
+  <footer style={{ padding: "40px 32px", background: "var(--navy-950)", color: "rgba(255,255,255,0.7)" }}>
+    <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
+        <LabschoolLogo invert={true}/>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 13 }}>
+        <div>© 2026 SMP Labschool Jakarta • Iman • Ilmu • Amal • by RJM (Ramli Jainal Muttaqin)</div>
+        <div style={{ display: "flex", gap: 20 }}>
+          <a style={{ opacity: 0.7 }}>Tentang</a>
+          <a style={{ opacity: 0.7 }}>Kebijakan Privasi</a>
+          <a style={{ opacity: 0.7 }}>Bantuan</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+);
+window.Footer = Footer;
+
+// ---------- Module Card (used everywhere) ----------
+const ModuleCard = ({ module: mod, progress = null, compact = false, locked = false, lockReason = "" }) => {
+  const subj = window.CURRICULUM.subjects[mod.subject];
+  const IconComp = Icon[subj.icon];
+  const cardStyle = {
+      padding: compact ? 18 : 22,
+      background: "white",
+      display: "block",
+      textDecoration: "none",
+      color: "inherit",
+      opacity: locked ? 0.72 : 1,
+      cursor: locked ? "not-allowed" : "pointer",
+      position: "relative",
+    };
+  const content = (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+        <div style={{
+          width: compact ? 44 : 50, height: compact ? 44 : 50,
+          borderRadius: 12,
+          background: subj.colorMid, color: "var(--navy-950)",
+          border: "2px solid var(--ink)",
+          display: "flex", alignItems: "center", justifyContent: "center"
+        }}>
+          <IconComp width={compact ? 22 : 26} height={compact ? 22 : 26}/>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+          <span className={`tag ${subj.tagClass}`}>Kelas {mod.level}</span>
+          {mod.status === "draft" && <span className="tag tag-gold">Draft</span>}
+          {locked && <span className="tag" style={{ background: "var(--line)", color: "var(--ink-muted)" }}><Icon.Lock width="11" height="11"/> Terkunci</span>}
+        </div>
+      </div>
+      <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: compact ? 18 : 20, lineHeight: 1.15, marginBottom: 6, color: "var(--navy-950)" }}>
+        {mod.title}
+      </div>
+      <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5, marginBottom: 14, minHeight: 36 }}>
+        {mod.tagline}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-subtle)", marginBottom: progress ? 10 : 0, textTransform: "uppercase", letterSpacing: "0.04em", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <Icon.Clock width="12" height="12"/> {mod.duration}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <Icon.Bolt width="12" height="12" style={{ color: "var(--gold-500)" }}/> {mod.xp} XP
+        </div>
+        <div>{mod.lessons} pelajaran</div>
+      </div>
+      {progress && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "var(--ink-muted)", marginBottom: 4 }}>
+            <span>Progress</span>
+            <span>{progress.percent}% • {progress.lessonsDone}/{progress.total}</span>
+          </div>
+          <div style={{ height: 6, background: "var(--line)", borderRadius: 10, overflow: "hidden" }}>
+            <div style={{ width: `${progress.percent}%`, height: "100%", background: subj.colorMid }}/>
+          </div>
+        </div>
+      )}
+      {locked && lockReason && (
+        <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, color: "var(--ink-muted)", fontWeight: 700, lineHeight: 1.45 }}>
+          {lockReason}
+        </div>
+      )}
+    </>
+  );
+  if (locked) {
+    return (
+      <div className="card" style={cardStyle}>
+        {content}
+      </div>
+    );
+  }
+  return (
+    <Link to={`/modul/${mod.id}`} className="card card-hover" style={cardStyle}>
+      {content}
+    </Link>
+  );
+};
+window.ModuleCard = ModuleCard;
+
+// ---------- Section header helper ----------
+const SectionHeader = ({ eyebrow, title, subtitle, accentColor = "var(--navy-950)" }) => (
+  <div style={{ marginBottom: 28 }}>
+    {eyebrow && (
+      <div style={{ display: "inline-block", fontSize: 12, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: accentColor, marginBottom: 10 }}>
+        {eyebrow}
+      </div>
+    )}
+    <h2 className="display" style={{ fontSize: 36, margin: 0, color: "var(--navy-950)" }}>{title}</h2>
+    {subtitle && <p style={{ fontSize: 15, color: "var(--ink-muted)", maxWidth: 640, marginTop: 10 }}>{subtitle}</p>}
+  </div>
+);
+window.SectionHeader = SectionHeader;
+
+// ---------- Breadcrumb ----------
+const Breadcrumb = ({ trail }) => (
+  <div style={{ fontSize: 13, color: "var(--ink-subtle)", marginBottom: 10, fontWeight: 600 }}>
+    {trail.map((t, i) => (
+      <React.Fragment key={i}>
+        {i > 0 && <span style={{ margin: "0 8px", color: "var(--line-strong)" }}>/</span>}
+        {t.to ? <Link to={t.to} style={{ color: "var(--ink-muted)" }}>{t.label}</Link> : <span style={{ color: "var(--ink)" }}>{t.label}</span>}
+      </React.Fragment>
+    ))}
+  </div>
+);
+window.Breadcrumb = Breadcrumb;
+
+// ---------- Empty state ----------
+const EmptyState = ({ icon = "Search", title, subtitle, action }) => {
+  const I = Icon[icon];
+  return (
+    <div style={{ padding: "60px 20px", textAlign: "center" }}>
+      <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--bg)", border: "2px solid var(--line-strong)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 18, color: "var(--ink-subtle)" }}>
+        <I width="32" height="32"/>
+      </div>
+      <div className="display" style={{ fontSize: 22, marginBottom: 6 }}>{title}</div>
+      {subtitle && <div style={{ fontSize: 14, color: "var(--ink-muted)", maxWidth: 360, margin: "0 auto" }}>{subtitle}</div>}
+      {action}
+    </div>
+  );
+};
+window.EmptyState = EmptyState;

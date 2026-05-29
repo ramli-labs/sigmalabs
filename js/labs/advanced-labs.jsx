@@ -8,6 +8,7 @@ const { useState, useEffect, useRef } = React;
 
 const NeuralLab = () => {
   // Very simple perceptron: classifies 2D points (AND, OR, XOR)
+  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("neural-playground"); }, []);
   const [dataset, setDataset] = useState("AND");
   const [weights, setWeights] = useState({ w1: 0.5, w2: 0.5, b: -0.7 });
   const [learningRate, setLearningRate] = useState(0.1);
@@ -76,6 +77,7 @@ const NeuralLab = () => {
       <Navbar/>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 32px 60px" }}>
         <Breadcrumb trail={[{ to: "/", label: "Beranda" }, { to: "/lab", label: "Lab Maya" }, { label: "Neural Playground" }]}/>
+        {(() => { const ref = sessionStorage.getItem("sigma_lab_referrer"); if (!ref?.includes("/modul/")) return null; const mod = window.CURRICULUM?.modules?.find(m => m.id === (ref.split("/modul/")[1]||"").split("?")[0]); return <button onClick={() => { sessionStorage.removeItem("sigma_lab_referrer"); navigate(ref); }} style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:12,background:"var(--gold-300)",border:"2px solid var(--ink)",fontWeight:800,fontSize:14,cursor:"pointer",marginBottom:20,color:"var(--navy-950)" }}>← Kembali ke {mod ? mod.title : "Pelajaran"}</button>; })()}
         <div style={{ marginTop: 12, marginBottom: 24 }}>
           <div className="tag tag-ai" style={{ marginBottom: 10 }}>LAB MAYA • KKA</div>
           <h1 className="display" style={{ fontSize: 44, margin: 0, color: "var(--navy-950)" }}>
@@ -199,6 +201,7 @@ window.NeuralLab = NeuralLab;
 // ============================================
 
 const ImageClassifierLab = () => {
+  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("image-classifier"); }, []);
   const canvasRef = React.useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [target, setTarget] = useState(null);
@@ -367,6 +370,7 @@ const ImageClassifierLab = () => {
       <Navbar/>
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 32px 60px" }}>
         <Breadcrumb trail={[{ to: "/", label: "Beranda" }, { to: "/lab", label: "Lab Maya" }, { label: "AI Image Classifier" }]}/>
+        {(() => { const ref = sessionStorage.getItem("sigma_lab_referrer"); if (!ref?.includes("/modul/")) return null; const mod = window.CURRICULUM?.modules?.find(m => m.id === (ref.split("/modul/")[1]||"").split("?")[0]); return <button onClick={() => { sessionStorage.removeItem("sigma_lab_referrer"); navigate(ref); }} style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:12,background:"var(--gold-300)",border:"2px solid var(--ink)",fontWeight:800,fontSize:14,cursor:"pointer",marginBottom:20,color:"var(--navy-950)" }}>← Kembali ke {mod ? mod.title : "Pelajaran"}</button>; })()}
         <div style={{ marginTop: 12, marginBottom: 24 }}>
           <div className="tag tag-ai" style={{ marginBottom: 10 }}>LAB MAYA • KKA</div>
           <h1 className="display" style={{ fontSize: 44, margin: 0, color: "var(--navy-950)" }}>
@@ -447,6 +451,7 @@ window.ImageClassifierLab = ImageClassifierLab;
 // ============================================
 
 const NetworkLab = () => {
+  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("network-sim"); }, []);
   const [sending, setSending] = useState(false);
   const [log, setLog] = useState([]);
   const [packetPos, setPacketPos] = useState(-1);
@@ -482,6 +487,7 @@ const NetworkLab = () => {
       <Navbar/>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 32px 60px" }}>
         <Breadcrumb trail={[{ to: "/", label: "Beranda" }, { to: "/lab", label: "Lab Maya" }, { label: "Simulasi Jaringan" }]}/>
+        {(() => { const ref = sessionStorage.getItem("sigma_lab_referrer"); if (!ref?.includes("/modul/")) return null; const mod = window.CURRICULUM?.modules?.find(m => m.id === (ref.split("/modul/")[1]||"").split("?")[0]); return <button onClick={() => { sessionStorage.removeItem("sigma_lab_referrer"); navigate(ref); }} style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:12,background:"var(--gold-300)",border:"2px solid var(--ink)",fontWeight:800,fontSize:14,cursor:"pointer",marginBottom:20,color:"var(--navy-950)" }}>← Kembali ke {mod ? mod.title : "Pelajaran"}</button>; })()}
         <div style={{ marginTop: 12, marginBottom: 24 }}>
           <div className="tag tag-info" style={{ marginBottom: 10 }}>LAB MAYA • INFORMATIKA</div>
           <h1 className="display" style={{ fontSize: 44, margin: 0, color: "var(--navy-950)" }}>

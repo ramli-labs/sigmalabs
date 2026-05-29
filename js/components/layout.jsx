@@ -283,3 +283,31 @@ const EmptyState = ({ icon = "Search", title, subtitle, action }) => {
   );
 };
 window.EmptyState = EmptyState;
+
+// ---------- Back to Lesson Button ----------
+const BackToLesson = () => {
+  const referrer = sessionStorage.getItem("sigma_lab_referrer");
+  if (!referrer || !referrer.includes("/modul/")) return null;
+  const modId = referrer.split("/modul/")[1]?.split("?")[0];
+  const mod = window.CURRICULUM?.modules?.find(m => m.id === modId);
+  const label = mod ? mod.title : "Pelajaran";
+  return (
+    <button
+      onClick={() => {
+        sessionStorage.removeItem("sigma_lab_referrer");
+        navigate(referrer);
+      }}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 8,
+        padding: "10px 18px", borderRadius: 12,
+        background: "var(--gold-300)", border: "2px solid var(--ink)",
+        fontWeight: 800, fontSize: 14, cursor: "pointer",
+        boxShadow: "var(--shadow-chunk-sm)", marginBottom: 20,
+        color: "var(--navy-950)",
+      }}
+    >
+      ← Kembali ke Modul: {label}
+    </button>
+  );
+};
+window.BackToLesson = BackToLesson;

@@ -638,6 +638,7 @@ const GameShell = ({ title, subject, gameId, stats, children }) => {
       <Navbar/>
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 32px 60px" }}>
         <Breadcrumb trail={[{ to: "/", label: "Beranda" }, { to: "/gim", label: "Gim Edukasi" }, { label: title }]}/>
+        {(() => { const ref = sessionStorage.getItem("sigma_lab_referrer"); if (!ref?.includes("/modul/")) return null; const mod = window.CURRICULUM?.modules?.find(m => m.id === (ref.split("/modul/")[1]||"").split("?")[0]); return <button onClick={() => { sessionStorage.removeItem("sigma_lab_referrer"); navigate(ref); }} style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:12,background:"var(--gold-300)",border:"2px solid var(--ink)",fontWeight:800,fontSize:14,cursor:"pointer",marginBottom:20,color:"var(--navy-950)" }}>← Kembali ke {mod ? mod.title : "Pelajaran"}</button>; })()}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 12, marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
           <div>
             <div className={`tag ${subj.tagClass}`} style={{ marginBottom: 8 }}>GIM EDUKASI</div>

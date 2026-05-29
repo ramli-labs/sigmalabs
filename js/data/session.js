@@ -95,7 +95,17 @@
   }
 
   function setActiveUser(user) {
-    window.USER = user || clone(defaultProfiles[0]);
+    const nextUser = user || clone(defaultProfiles[0]);
+    if (nextUser.progress && window.CURRICULUM) {
+      window.CURRICULUM.modules.forEach(mod => {
+        if (nextUser.progress[mod.id]) {
+          const p = nextUser.progress[mod.id];
+          p.total = mod.lessons;
+          p.percent = p.lessonsDone ? Math.round((p.lessonsDone / mod.lessons) * 100) : 0;
+        }
+      });
+    }
+    window.USER = nextUser;
   }
 
   function notify() {
@@ -339,6 +349,23 @@
     return user;
   }
 
+  function completeLab(labId) {
+    const user = clone(window.USER || getActiveUser());
+    const lab = window.CURRICULUM.labs.find(l => l.id === labId);
+    if (!lab) return user;
+    user.completedLabs = user.completedLabs || [];
+    if (!user.completedLabs.includes(labId)) {
+      user.completedLabs.push(labId);
+      user.xp += 50;
+      const badgeId = `lab-${labId}`;
+      if (!user.badges.some(b => b.id === badgeId)) {
+        user.badges.push({ id: badgeId, emoji: "🔬", label: `Lab ${lab.title}`, color: "var(--info-400)" });
+      }
+      saveActiveUser(user);
+    }
+    return user;
+  }
+
   function awardModuleCompletion(user, mod) {
     const moduleId = mod.id;
     user.progress[moduleId] = user.progress[moduleId] || { lessonsDone: mod.lessons, total: mod.lessons, percent: 100 };
@@ -386,6 +413,7 @@
     completeQuest,
     completeQuiz,
     completeGame,
+    completeLab,
     getPreviousModule,
     isModuleLearningComplete,
     isModuleSequenceUnlocked,

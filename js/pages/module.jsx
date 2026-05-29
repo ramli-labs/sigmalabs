@@ -313,9 +313,11 @@ const MateriTab = ({ mod, subject }) => {
 // ---------- Tab: Misi ----------
 const QuestTab = ({ mod, subject }) => {
   const progress = window.USER.progress[mod.id] || { lessonsDone: 0, total: mod.lessons, percent: 0 };
-  const startIndex = Math.min(progress.lessonsDone || 0, mod.lessons - 1);
+  const completedQuests = Object.values(window.USER.quests?.[mod.id] || {}).filter(q => q.completed).length;
+  const startIndex = Math.min(completedQuests, mod.lessons - 1);
   const [lessonIndex, setLessonIndex] = useState(startIndex);
   const [saved, setSaved] = useState(false);
+  const [activityScores, setActivityScores] = useState({});
   const quest = getQuestContent(mod, lessonIndex);
   const completed = !!window.USER.quests?.[mod.id]?.[lessonIndex]?.completed;
   const availableActivities = quest.activities.filter(a => {
@@ -324,8 +326,19 @@ const QuestTab = ({ mod, subject }) => {
     return true;
   });
 
+  const recordScore = (key, score) => {
+    setActivityScores(prev => ({ ...prev, [key]: Math.max(prev[key] || 0, score) }));
+  };
   const complete = (score = 0) => {
-    window.SIGMA_AUTH.completeQuest(mod.id, lessonIndex, score);
+    let best = Object.values(activityScores).reduce((m, s) => Math.max(m, s), score);
+    availableActivities.forEach(a => {
+      if (a.type === "lab" && (window.USER.completedLabs || []).includes(a.id)) best = Math.max(best, 80);
+      if (a.type === "game" && (window.USER.completedGames || []).includes(a.id)) {
+        const xp = window.USER.gameScores?.[a.id]?.bestXp || 0;
+        best = Math.max(best, xp > 0 ? Math.min(100, Math.round(xp / 2)) : 70);
+      }
+    });
+    window.SIGMA_AUTH.completeQuest(mod.id, lessonIndex, best);
     setSaved(true);
   };
 
@@ -358,9 +371,10 @@ const QuestTab = ({ mod, subject }) => {
         <section style={{ marginTop: 28 }}>
           <h3 className="display" style={{ fontSize: 24, margin: "0 0 14px" }}>Aktivitas Interaktif</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
-            {availableActivities.length > 0 ? availableActivities.map(a => (
-              <QuestActivity key={`${a.type}-${a.id || a.title}`} activity={a} onComplete={complete} done={completed || saved}/>
-            )) : (
+            {availableActivities.length > 0 ? availableActivities.map(a => {
+              const aKey = `${lessonIndex}-${a.type}-${a.id || a.title}`;
+              return <QuestActivity key={aKey} activity={a} onComplete={score => recordScore(aKey, score)} done={completed || saved}/>;
+            }) : (
               <div style={{ gridColumn: "1 / -1", padding: 18, borderRadius: 12, background: "var(--bg)", color: "var(--ink-muted)", fontSize: 14 }}>
                 Belum ada aktivitas tambahan untuk level kelas ini. Fokus pada misi dan refleksi dulu.
               </div>
@@ -385,7 +399,7 @@ const QuestTab = ({ mod, subject }) => {
             const label = mod.topics[i] || `Pengayaan ${i + 1}`;
             const done = !!window.USER.quests?.[mod.id]?.[i]?.completed;
             return (
-              <button key={i} onClick={() => { setLessonIndex(i); setSaved(false); }} style={{
+              <button key={i} onClick={() => { setLessonIndex(i); setSaved(false); setActivityScores({}); }} style={{
                 width: "100%",
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 12px", borderRadius: 10, marginBottom: 4,
@@ -420,29 +434,43 @@ const QuestActivity = ({ activity, onComplete, done }) => {
   if (!item) return null;
   const to = isLab ? `/lab/${item.id}` : `/gim/${item.id}`;
   const I = Icon[item.icon];
+  const isFinished = isLab
+    ? (window.USER.completedLabs || []).includes(item.id)
+    : (window.USER.completedGames || []).includes(item.id);
+  const saveReferrer = () => sessionStorage.setItem("sigma_lab_referrer", window.location.hash.slice(1));
   return (
-    <Link to={to} className="card card-hover" style={{ padding: 18, background: "white", textDecoration: "none", color: "inherit", display: "block" }}>
+    <Link to={to} onClick={saveReferrer} className="card card-hover" style={{ padding: 18, background: isFinished ? "#D1FAE5" : "white", textDecoration: "none", color: "inherit", display: "block", border: isFinished ? "1.5px solid var(--green-500)" : undefined }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 12, background: item.color, border: "2px solid var(--ink)", color: item.color === "var(--gold-500)" || item.color === "var(--info-400)" ? "var(--navy-950)" : "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <I width="22" height="22"/>
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: isFinished ? "var(--green-500)" : item.color, border: "2px solid var(--ink)", color: "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {isFinished ? <Icon.Check width="22" height="22"/> : <I width="22" height="22"/>}
         </div>
         <div>
-          <div className="tag" style={{ background: isLab ? "var(--info-100)" : "var(--ai-100)", color: isLab ? "var(--info-500)" : "var(--ai-500)", marginBottom: 4 }}>{isLab ? "Eksperimen" : "Tantangan"}</div>
+          <div className="tag" style={{ background: isFinished ? "#D1FAE5" : isLab ? "var(--info-100)" : "var(--ai-100)", color: isFinished ? "var(--green-500)" : isLab ? "var(--info-500)" : "var(--ai-500)", marginBottom: 4 }}>
+            {isFinished ? "Sudah Dikerjakan ✓" : isLab ? "Eksperimen" : "Tantangan"}
+          </div>
           <div style={{ fontWeight: 900, fontSize: 14 }}>{item.title}</div>
         </div>
       </div>
       <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5 }}>{activity.reason}</div>
+      {isFinished && (
+        <div style={{ marginTop: 8, fontSize: 12, fontWeight: 800, color: "var(--green-500)" }}>
+          Klik untuk mengulang, atau tekan "Tandai Misi Selesai" di bawah.
+        </div>
+      )}
     </Link>
   );
 };
 
 const InteractiveQuestCard = ({ activity, onComplete, done }) => {
   const [values, setValues] = useState({});
+  const [selfDone, setSelfDone] = useState(false);
   const [revising, setRevising] = useState(false);
-  const locked = done && !revising;
+  const isDone = done || selfDone;
+  const locked = isDone && !revising;
   const set = (key, value) => setValues(v => ({ ...v, [key]: value }));
   const mark = () => {
     onComplete(feedback.score);
+    setSelfDone(true);
     setRevising(false);
   };
   const feedback = getInteractionFeedback(activity, values, locked);
@@ -482,8 +510,8 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
           <Icon.Refresh width="14" height="14"/> Revisi Jawaban
         </button>
       ) : (
-        <button className={`btn btn-sm ${done ? "btn-success" : "btn-primary"}`} onClick={mark} style={{ marginTop: 12, width: "100%" }}>
-          <Icon.Check width="14" height="14"/> {done ? "Klaim Ulang" : feedback.score >= 80 ? "Klaim Misi" : "Simpan Misi"}
+        <button className={`btn btn-sm ${isDone ? "btn-success" : "btn-primary"}`} onClick={mark} style={{ marginTop: 12, width: "100%" }}>
+          <Icon.Check width="14" height="14"/> {isDone ? "Klaim Ulang" : feedback.score >= 80 ? "Klaim Misi" : "Simpan Misi"}
         </button>
       )}
     </div>
@@ -1231,13 +1259,13 @@ function getLessonContent(mod, index) {
         printGuide: "Baca bagian modul cetak tentang abstraksi. Perhatikan contoh pemilihan informasi penting, lalu coba tentukan detail penting di aktivitas SIGMA.",
         checks: ["Apa tujuan masalahnya?", "Detail apa yang penting?", "Detail apa yang bisa diabaikan?", "Apakah modelnya lebih sederhana?"],
       },
-      "Algoritma": {
-        intro: "Algoritma adalah urutan langkah yang jelas untuk menyelesaikan masalah. Dalam BK, algoritma tidak harus berupa kode program; resep, instruksi, dan prosedur juga bisa menjadi algoritma.",
-        example: "Langkah meminjam buku: cari buku, cek ketersediaan, bawa ke petugas, pindai kartu, lalu catat tanggal pengembalian.",
-        activity: "Susun 5-7 langkah untuk menyelesaikan satu tugas harian. Pastikan urutannya jelas dan bisa dilakukan orang lain.",
-        prompt: "Apa yang terjadi jika langkah solusi benar, tetapi urutannya salah?",
-        printGuide: "Baca bagian modul cetak tentang algoritma. Cocokkan contoh urutan langkah di modul dengan latihan menyusun langkah di SIGMA.",
-        checks: ["Apakah langkahnya berurutan?", "Apakah instruksinya jelas?", "Apakah ada kondisi jika/maka?", "Apakah ada akhir proses?"],
+      "Algoritma & Flowchart": {
+        intro: "Algoritma adalah urutan langkah yang jelas untuk menyelesaikan masalah. Flowchart adalah representasi visual dari algoritma menggunakan simbol — oval (mulai/selesai), persegi panjang (proses), dan belah ketupat (keputusan).",
+        example: "Langkah meminjam buku: cari buku → cek ketersediaan → [tersedia?] → ya: bawa ke petugas, pindai kartu, catat tanggal kembali → tidak: cari buku lain.",
+        activity: "Susun 5-7 langkah untuk menyelesaikan satu tugas harian, lalu gambarkan flowchart sederhananya menggunakan simbol dasar. Pastikan ada minimal satu keputusan jika/maka.",
+        prompt: "Mengapa flowchart membantu menemukan kesalahan logika yang tidak terlihat saat menulis langkah dalam bentuk teks?",
+        printGuide: "Baca bagian modul cetak tentang algoritma dan flowchart. Cocokkan contoh simbol flowchart di modul dengan latihan menyusun langkah di SIGMA.",
+        checks: ["Apa simbol oval, persegi, dan belah ketupat dalam flowchart?", "Apakah langkahnya berurutan?", "Di mana letak percabangan jika/maka?", "Apakah ada akhir proses?"],
       },
       "Evaluasi Solusi": {
         intro: "Evaluasi solusi berarti memeriksa apakah langkah yang dibuat benar-benar menyelesaikan masalah. Solusi yang baik perlu jelas, efisien, bisa diuji, dan dapat diperbaiki.",
@@ -1246,6 +1274,14 @@ function getLessonContent(mod, index) {
         prompt: "Mengapa solusi perlu diuji walaupun terlihat sudah benar?",
         printGuide: "Baca bagian modul cetak tentang evaluasi solusi. Gunakan kriteria di modul sebagai acuan untuk menilai jawabanmu di SIGMA.",
         checks: ["Apakah solusi menyelesaikan masalah?", "Apakah ada langkah yang membingungkan?", "Apa bukti solusi berhasil?", "Apa yang perlu diperbaiki?"],
+      },
+      "Proyek LKPD Komputasional": {
+        intro: "Proyek LKPD Komputasional menggabungkan semua elemen berpikir komputasional — dekomposisi, pengenalan pola, abstraksi, algoritma, dan evaluasi — dalam satu tantangan nyata yang kamu rancang sendiri.",
+        example: "Contoh proyek: sistem pengaturan antrean UKS sekolah. Dekomposisi: siapa yang terlibat, waktu ramai, prosedur. Pola: waktu puncak. Abstraksi: fokus pada data penting. Algoritma: urutan langkah pendaftaran. Evaluasi: apakah antrean lebih adil?",
+        activity: "Pilih satu masalah nyata di sekolah. Terapkan kelima langkah BK: pecah masalah, cari pola, pilih detail penting, susun langkah solusi, lalu evaluasi apakah solusinya layak dijalankan.",
+        prompt: "Bagaimana menggabungkan dekomposisi, pola, abstraksi, algoritma, dan evaluasi dalam satu proyek secara terpadu — bukan terpisah-pisah?",
+        printGuide: "Baca bagian LKPD proyek di modul cetak. Gunakan panduan proyek sebagai kerangka, lalu lengkapi tiap elemen BK menggunakan SIGMA sebagai alat bantu.",
+        checks: ["Apakah masalahnya sudah didekomposisi?", "Pola apa yang ditemukan?", "Detail apa yang diabaikan (abstraksi)?", "Apakah algoritma dan flowchart sudah ada?"],
       },
     };
     const item = bk[topic] || bk["Dekomposisi"];
@@ -1266,48 +1302,56 @@ function getLessonContent(mod, index) {
 
   if (mod.id === "inf9-1") {
     const pythonAdv = {
-      "Fungsi": {
-        intro: "Fungsi (def) adalah blok kode bernama yang bisa dipanggil berulang kali. Fungsi membuat program lebih rapi, menghindari pengulangan kode, dan mudah diuji secara terpisah.",
-        example: "def sambut(nama):\n    return f'Halo, {nama}!'\n\nprint(sambut('Rizky'))  # Halo, Rizky!\n\ndef hitung_rerata(data):\n    return sum(data) / len(data)\n\nprint(hitung_rerata([80, 90, 75]))  # 81.67",
-        activity: "Buat fungsi Python bernama hitung_rerata yang menerima list angka dan mengembalikan rata-ratanya. Uji dengan nilai [80, 90, 75].",
-        prompt: "Mengapa lebih baik menulis satu fungsi yang dipanggil 10 kali daripada menulis kode yang sama 10 kali?",
-        printGuide: "Baca bagian modul cetak tentang fungsi Python. Tandai contoh def, parameter, dan return, lalu uji di Playground SIGMA.",
-        checks: ["Apa itu def?", "Apa perbedaan parameter dan argumen?", "Kapan pakai return?", "Apa itu scope variabel?"],
+      "Fungsi Lanjutan & Parameter": {
+        intro: "Fungsi lanjutan Python memungkinkan parameter dengan nilai default, argumen kata kunci (keyword argument), dan nilai kembalian kompleks. Ini membuat fungsi lebih fleksibel dan dapat dipakai ulang tanpa menulis ulang kode.",
+        example: "def sambut(nama, sapaan='Halo'):\n    return f'{sapaan}, {nama}!'\n\nprint(sambut('Rizky'))                  # Halo, Rizky!\nprint(sambut('Aisha', 'Selamat pagi'))  # Selamat pagi, Aisha!\n\ndef rerata(*angka):\n    return sum(angka) / len(angka) if angka else 0\n\nprint(rerata(80, 90, 75))  # 81.67",
+        activity: "Buat fungsi hitung_luas(panjang, lebar=1) yang mengembalikan luas persegi panjang. Uji dengan satu argumen (persegi) dan dua argumen (persegi panjang).",
+        prompt: "Kapan parameter default lebih berguna daripada selalu menulis semua argumen secara eksplisit?",
+        printGuide: "Baca bagian modul cetak tentang fungsi lanjutan Python. Tandai contoh parameter default dan keyword argument, lalu uji di Playground SIGMA.",
+        checks: ["Apa itu parameter default?", "Apa beda argumen posisi dan keyword?", "Kapan pakai *args?", "Mengapa return lebih fleksibel dari print?"],
       },
-      "Modularisasi": {
-        intro: "Modularisasi berarti memecah program menjadi bagian-bagian kecil yang bisa dipakai ulang. Di Python, modul adalah file .py yang berisi fungsi dan variabel, lalu diimpor ke program lain.",
-        example: "import math\nimport random\n\nprint(math.sqrt(16))        # 4.0\nprint(math.pi)              # 3.14159...\nprint(random.randint(1, 10)) # angka acak 1-10\nprint(random.choice(['A','B','C']))  # pilihan acak",
-        activity: "Gunakan import math untuk menghitung luas lingkaran dengan math.pi * r**2, lalu coba random.choice(['apel','mangga','jeruk']) tiga kali.",
-        prompt: "Apa keuntungan memakai modul yang sudah dibuat orang lain daripada menulis semua kode dari nol?",
-        printGuide: "Baca bagian modul cetak tentang import dan modul Python. Cocokkan contoh penggunaan library dengan latihan di Playground SIGMA.",
-        checks: ["Apa itu import?", "Modul apa yang paling sering dipakai?", "Apa perbedaan import math vs from math import sqrt?", "Kapan perlu membuat modul sendiri?"],
+      "Dictionary & Struktur Data": {
+        intro: "Dictionary Python menyimpan data sebagai pasangan kunci-nilai (key-value). Berbeda dengan list yang diakses via indeks angka, dictionary diakses via kunci — lebih deskriptif dan efisien untuk data terstruktur.",
+        example: "siswa = {\n    'nama': 'Rizky',\n    'kelas': '9A',\n    'nilai': [85, 90, 78]\n}\n\nprint(siswa['nama'])            # Rizky\nsiswa['xp'] = 500               # tambah key baru\nfor k, v in siswa.items():      # iterasi semua key-value\n    print(k, ':', v)",
+        activity: "Buat dictionary untuk tiga buku favoritmu (key: judul, penulis, tahun). Tambahkan key 'rating', lalu cetak semua pasangan key-value menggunakan for loop.",
+        prompt: "Kapan lebih baik memakai dictionary daripada list untuk menyimpan data?",
+        printGuide: "Baca bagian modul cetak tentang Dictionary Python. Tandai contoh pembuatan, akses, dan iterasi dictionary, lalu praktikkan di Playground SIGMA.",
+        checks: ["Apa bedanya dictionary dengan list?", "Bagaimana menambah key baru?", "Apa itu .keys(), .values(), .items()?", "Kapan dictionary lebih efisien dari list?"],
       },
-      "OOP Dasar": {
-        intro: "OOP (Object-Oriented Programming) mengorganisir kode berdasarkan objek. Setiap objek punya atribut (data) dan metode (aksi). Di Python, objek dibuat dari class.",
-        example: "class Siswa:\n    def __init__(self, nama, kelas):\n        self.nama = nama\n        self.kelas = kelas\n    def salam(self):\n        return f'Halo, saya {self.nama} dari kelas {self.kelas}'\n\nbudi = Siswa('Budi', '9A')\nprint(budi.salam())  # Halo, saya Budi dari kelas 9A",
-        activity: "Buat class Buku dengan atribut judul, penulis, dan tahun. Tambahkan metode info() yang mengembalikan string berisi semua atributnya.",
-        prompt: "Bagaimana cara berpikir OOP berbeda dari cara menulis kode satu per satu dari atas ke bawah?",
-        printGuide: "Baca bagian modul cetak tentang class dan objek. Identifikasi atribut dan metode dari contoh class, lalu coba buat class baru di Playground.",
-        checks: ["Apa itu class?", "Apa fungsi __init__?", "Apa itu self?", "Kapan lebih baik memakai OOP?"],
+      "Modul Python: random, math, string": {
+        intro: "Modul standar Python menyediakan fungsi siap pakai yang memperluas kemampuan program. Tiga modul paling sering dipakai: math untuk matematika, random untuk nilai acak, dan string method untuk manipulasi teks.",
+        example: "import math\nimport random\n\nprint(math.sqrt(16))             # 4.0\nprint(math.pi)                   # 3.14159...\nprint(random.randint(1, 100))    # angka acak 1-100\nprint(random.choice(['A','B','C']))  # pilih acak\n\nkata = 'halo dunia'\nprint(kata.upper())              # HALO DUNIA\nprint(kata.split())              # ['halo', 'dunia']",
+        activity: "Gunakan random untuk membuat soal kuis matematika: angka acak 1-20, operasi acak (+/-), minta input jawaban, lalu cek kebenarannya dengan if/else.",
+        prompt: "Mengapa lebih efisien memakai modul standar daripada menulis fungsi matematika atau pengacak dari nol?",
+        printGuide: "Baca bagian modul cetak tentang modul Python. Coba minimal 3 fungsi dari math dan 2 dari random, lalu catat hasilnya.",
+        checks: ["Apa fungsi math.sqrt dan math.pi?", "Bagaimana random.randint berbeda dari random.choice?", "Apa itu .upper() dan .split()?", "Kapan from math import sqrt vs import math?"],
       },
-      "Library Python": {
-        intro: "Library Python adalah kumpulan modul siap pakai yang memperluas kemampuan program. Ada library bawaan (math, random, datetime) dan library eksternal (pandas, matplotlib) yang perlu diinstal.",
-        example: "from datetime import datetime\nimport math\n\nhari_ini = datetime.now().strftime('%d/%m/%Y')\nprint('Hari ini:', hari_ini)\nprint('Akar 2:', round(math.sqrt(2), 4))  # 1.4142\nprint('Keliling:', 2 * math.pi * 5)       # 31.4159",
-        activity: "Gunakan library datetime untuk menampilkan hari dan tanggal hari ini. Lalu gunakan math untuk menghitung volume bola dengan rumus (4/3)*math.pi*r**3.",
-        prompt: "Jika library pandas bisa mengolah data besar dalam satu baris kode, kapan kita perlu belajar cara membuat fungsi pengolah data sendiri?",
-        printGuide: "Baca bagian modul cetak tentang library Python. Coba setidaknya dua library bawaan dan pahami apa fungsi utama tiap library.",
-        checks: ["Library apa yang sudah kamu pakai?", "Apa perbedaan import dan from...import?", "Bagaimana tahu library apa yang tersedia?", "Apa itu pip?"],
+      "Bubble Sort": {
+        intro: "Bubble Sort adalah algoritma pengurutan yang membandingkan dua elemen berdekatan dan menukar posisinya jika tidak berurutan. Proses ini diulang sampai seluruh list terurut dari kecil ke besar.",
+        example: "def bubble_sort(data):\n    n = len(data)\n    for i in range(n):\n        for j in range(0, n-i-1):\n            if data[j] > data[j+1]:             # bandingkan\n                data[j], data[j+1] = data[j+1], data[j]  # tukar\n    return data\n\nnilai = [64, 34, 25, 12, 22, 11, 90]\nprint(bubble_sort(nilai))  # [11, 12, 22, 25, 34, 64, 90]",
+        activity: "Implementasikan Bubble Sort lalu tambahkan counter untuk menghitung total swap pada list [5, 3, 8, 1, 9, 2]. Berapa swap yang terjadi?",
+        prompt: "Mengapa Bubble Sort disebut 'bubble'? Bagaimana elemen besar 'mengapung' ke posisinya?",
+        printGuide: "Baca bagian modul cetak tentang Bubble Sort. Ikuti trace manual langkah demi langkah, lalu implementasikan di Playground SIGMA.",
+        checks: ["Berapa loop yang dibutuhkan Bubble Sort?", "Apa kondisi pertukaran dua elemen?", "Mengapa loop dalam berhenti di n-i-1?", "Kapan Bubble Sort paling lambat?"],
       },
-      "Mini Project": {
-        intro: "Mini project Python menggabungkan fungsi, class, dan library dalam program nyata yang menyelesaikan masalah sederhana. Proyek kecil ini adalah latihan sebelum proyek akhir.",
-        example: "Program 'Nilai Siswa': class Siswa menyimpan nama dan list nilai, metode tambah_nilai() menambahkan ke list, metode rerata() menghitung rata-rata dengan sum()/len(). Cukup 20 baris kode, sudah punya OOP + fungsi + data.",
-        activity: "Pilih satu mini project: (a) kalkulator BMI dengan class Orang, (b) pengacak soal kuis dengan random, atau (c) pencatat tugas harian dengan datetime dan list.",
-        prompt: "Bagaimana memilih antara menggunakan fungsi, class, atau library untuk menyelesaikan satu bagian proyek?",
-        printGuide: "Baca bagian modul cetak tentang mini project Python. Identifikasi komponen yang membutuhkan fungsi, class, dan library, lalu kerjakan di Playground SIGMA.",
-        checks: ["Apa masalah yang diselesaikan?", "Fungsi apa yang dibuat?", "Class apa yang diperlukan?", "Library mana yang digunakan?"],
+      "Linear & Binary Search": {
+        intro: "Linear Search memeriksa elemen satu per satu dari awal hingga menemukan target — cocok untuk data tidak terurut. Binary Search membelah data terurut menjadi dua setiap langkah — jauh lebih cepat untuk data besar.",
+        example: "def linear_search(data, target):\n    for i, item in enumerate(data):\n        if item == target:\n            return i\n    return -1\n\ndef binary_search(data, target):\n    kiri, kanan = 0, len(data) - 1\n    while kiri <= kanan:\n        tengah = (kiri + kanan) // 2\n        if data[tengah] == target: return tengah\n        elif data[tengah] < target: kiri = tengah + 1\n        else: kanan = tengah - 1\n    return -1\n\ndata = [11, 12, 22, 25, 34, 64, 90]\nprint(binary_search(data, 25))  # 3",
+        activity: "Implementasikan kedua algoritma. Uji pada list 10 elemen, hitung berapa langkah yang dibutuhkan masing-masing untuk menemukan angka yang sama.",
+        prompt: "Mengapa Binary Search hanya bekerja pada data terurut, sedangkan Linear Search bisa pada data acak?",
+        printGuide: "Baca bagian modul cetak tentang algoritma pencarian. Trace manual Binary Search pada contoh list, lalu implementasikan di Playground SIGMA.",
+        checks: ["Apa kompleksitas O(n) vs O(log n)?", "Mengapa Binary Search butuh data terurut?", "Apa yang terjadi jika target tidak ada di list?", "Kapan pilih Linear vs Binary Search?"],
+      },
+      "Problem Solving Integratif": {
+        intro: "Problem Solving Integratif menggabungkan fungsi, dictionary, modul Python, Bubble Sort, dan algoritma searching untuk menyelesaikan satu masalah nyata secara terpadu dalam satu program.",
+        example: "import random\n\ndef buat_data(n):\n    return [{'nama': f'Siswa{i}', 'nilai': random.randint(60,100)} for i in range(1, n+1)]\n\ndef cari_siswa(data, nama):\n    for s in data:             # linear search\n        if s['nama'] == nama:\n            return s['nilai']\n    return None\n\ndef urut_nilai(data):\n    return sorted(data, key=lambda s: s['nilai'], reverse=True)\n\ndata = buat_data(10)\nprint('Peringkat 1:', urut_nilai(data)[0])",
+        activity: "Buat program Python yang mengintegrasikan: (1) fungsi untuk generate data, (2) dictionary untuk tiap record, (3) sorting untuk mengurutkan, (4) searching untuk mencari data. Tema bebas.",
+        prompt: "Bagaimana kamu memilih struktur data (list vs dictionary) dan algoritma (sorting/searching) yang paling tepat untuk satu masalah?",
+        printGuide: "Baca bagian proyek integratif di modul cetak. Identifikasi komponen Python yang paling cocok untuk setiap bagian masalah, lalu kerjakan di Playground.",
+        checks: ["Kapan pakai list vs dictionary?", "Bagaimana sorted() berbeda dari bubble_sort buatan sendiri?", "Fungsi apa yang perlu dibuat?", "Bagaimana menguji setiap bagian secara terpisah?"],
       },
     };
-    const item = pythonAdv[topic] || pythonAdv["Fungsi"];
+    const item = pythonAdv[topic] || pythonAdv["Fungsi Lanjutan & Parameter"];
     return {
       title: `${topic}: Python Lanjutan`,
       intro: item.intro,
@@ -1434,9 +1478,9 @@ function getQuestContent(mod, index) {
           { type: "interactive", kind: "abstraction", title: "Pilah Detail Penting", reason: "Tentukan detail mana yang perlu dipakai dalam model solusi.", items: ["Titik awal", "Arah belok", "Warna tas siswa", "Nama ruang yang dilewati", "Cuaca hari ini"], answer: { "Titik awal": "Penting", "Arah belok": "Penting", "Warna tas siswa": "Bisa diabaikan", "Nama ruang yang dilewati": "Penting", "Cuaca hari ini": "Bisa diabaikan" } },
         ],
       },
-      "Algoritma": {
-        mission: "Susun urutan langkah yang jelas untuk meminjam buku di perpustakaan sekolah.",
-        concepts: ["Input", "Langkah", "Urutan", "Output"],
+      "Algoritma & Flowchart": {
+        mission: "Susun urutan langkah yang jelas untuk meminjam buku di perpustakaan sekolah, lalu identifikasi bagian mana yang membutuhkan percabangan jika/maka.",
+        concepts: ["Input", "Langkah", "Percabangan", "Output", "Flowchart"],
         activities: [
           { type: "interactive", kind: "sequence", title: "Susun Langkah Solusi", reason: "Klik langkah dalam urutan yang menurutmu paling masuk akal.", steps: ["Cari buku", "Cek ketersediaan", "Bawa ke petugas", "Pindai kartu", "Catat tanggal kembali"], answer: ["Cari buku", "Cek ketersediaan", "Bawa ke petugas", "Pindai kartu", "Catat tanggal kembali"] },
           { type: "game", id: "bug-hunter", reason: "Melatih membaca urutan instruksi dan menemukan langkah yang tidak tepat." },
@@ -1450,6 +1494,14 @@ function getQuestContent(mod, index) {
           { type: "game", id: "sort-race", reason: "Melatih evaluasi urutan dan efisiensi langkah." },
         ],
       },
+      "Proyek LKPD Komputasional": {
+        mission: "Pilih satu masalah nyata di sekolah dan terapkan seluruh elemen BK (dekomposisi, pola, abstraksi, algoritma, evaluasi) dalam satu rancangan solusi.",
+        concepts: ["Masalah", "BK Lengkap", "Solusi", "Evaluasi", "Proyek"],
+        activities: [
+          { type: "interactive", kind: "decompose", title: "Pecah Masalah Proyek", reason: "Pilih komponen yang perlu dianalisis dalam proyekmu menggunakan BK.", items: ["Siapa yang terlibat", "Data yang dibutuhkan", "Pola yang ditemukan", "Detail yang penting", "Langkah solusi"] },
+          { type: "interactive", kind: "evaluate", title: "Evaluasi Proyek BK", reason: "Pastikan proyekmu memenuhi semua elemen berpikir komputasional.", items: ["Dekomposisi sudah dilakukan", "Pola ditemukan dari data", "Abstraksi menyederhanakan masalah", "Algoritma/flowchart sudah dirancang", "Solusi sudah dievaluasi dan bisa diuji"] },
+        ],
+      },
     };
     return {
       title: `Misi BK: ${topic}`,
@@ -1459,54 +1511,62 @@ function getQuestContent(mod, index) {
 
   if (mod.id === "inf9-1") {
     const pythonQuest = {
-      "Fungsi": {
-        mission: "Tulis dan uji fungsi Python untuk menyelesaikan satu kebutuhan sederhana dalam program.",
-        concepts: ["def", "Parameter", "Return", "Panggil"],
+      "Fungsi Lanjutan & Parameter": {
+        mission: "Tulis fungsi Python dengan parameter default dan keyword argument, lalu uji dengan berbagai kombinasi argumen.",
+        concepts: ["def", "Parameter Default", "Keyword Arg", "Return"],
         activities: [
-          { type: "interactive", kind: "sequence", title: "Alur Membuat Fungsi", reason: "Susun urutan langkah mendefinisikan dan memakai fungsi Python.", steps: ["Tulis def nama_fungsi(parameter)", "Isi badan fungsi", "Tambahkan return", "Panggil fungsi dengan argumen", "Cetak hasilnya"], answer: ["Tulis def nama_fungsi(parameter)", "Isi badan fungsi", "Tambahkan return", "Panggil fungsi dengan argumen", "Cetak hasilnya"] },
-          { type: "game", id: "bug-hunter", reason: "Berlatih membaca kode Python dan menemukan kesalahan logika fungsi." },
+          { type: "interactive", kind: "sequence", title: "Alur Membuat Fungsi Lanjutan", reason: "Susun urutan langkah mendefinisikan fungsi Python dengan parameter default.", steps: ["Tulis def nama(param, default=nilai)", "Isi badan fungsi", "Tambahkan return", "Panggil tanpa argumen opsional", "Panggil dengan argumen eksplisit"], answer: ["Tulis def nama(param, default=nilai)", "Isi badan fungsi", "Tambahkan return", "Panggil tanpa argumen opsional", "Panggil dengan argumen eksplisit"] },
+          { type: "game", id: "bug-hunter", reason: "Berlatih membaca kode Python dan menemukan kesalahan pada definisi atau pemanggilan fungsi." },
         ],
       },
-      "Modularisasi": {
-        mission: "Gunakan minimal dua modul Python bawaan untuk menyelesaikan satu tugas sederhana.",
-        concepts: ["import", "Modul", "Fungsi Modul", "Reusability"],
+      "Dictionary & Struktur Data": {
+        mission: "Buat dan manipulasi dictionary Python untuk menyimpan data terstruktur — tambah, akses, update, dan iterasi key-value.",
+        concepts: ["Key-Value", "Akses", "Iterasi", "Update"],
         activities: [
-          { type: "interactive", kind: "classify", title: "Cocokkan Library Python", reason: "Tentukan library yang tepat untuk setiap kebutuhan.", choices: ["math", "random", "datetime", "os"], items: ["Hitung akar kuadrat", "Pilih item acak dari list", "Tampilkan tanggal hari ini", "Baca isi direktori"], answer: { "Hitung akar kuadrat": "math", "Pilih item acak dari list": "random", "Tampilkan tanggal hari ini": "datetime", "Baca isi direktori": "os" } },
-          { type: "game", id: "bug-hunter", reason: "Berlatih memperbaiki program Python yang menggunakan import." },
+          { type: "interactive", kind: "classify", title: "List atau Dictionary?", reason: "Tentukan struktur data yang paling cocok untuk setiap kebutuhan.", choices: ["List", "Dictionary", "Keduanya bisa"], items: ["Daftar nama siswa berurutan", "Profil siswa: nama, kelas, nilai", "Urutan langkah algoritma", "Pemetaan kode kelas ke wali kelas"], answer: { "Daftar nama siswa berurutan": "List", "Profil siswa: nama, kelas, nilai": "Dictionary", "Urutan langkah algoritma": "List", "Pemetaan kode kelas ke wali kelas": "Dictionary" } },
+          { type: "game", id: "bug-hunter", reason: "Berlatih menemukan kesalahan sintaks saat mengakses atau mengupdate dictionary Python." },
         ],
       },
-      "OOP Dasar": {
-        mission: "Rancang sebuah class Python yang merepresentasikan objek dari dunia nyata.",
-        concepts: ["Class", "Atribut", "Metode", "Objek"],
+      "Modul Python: random, math, string": {
+        mission: "Gunakan minimal dua modul Python bawaan untuk menyelesaikan satu program nyata yang berguna.",
+        concepts: ["import", "math", "random", "string method"],
         activities: [
-          { type: "interactive", kind: "decompose", title: "Rancang Class Python", reason: "Pilih komponen yang harus ada dalam class Python yang baik.", items: ["Nama class yang deskriptif", "Atribut dalam __init__", "Metode aksi", "Nilai default", "Docstring penjelasan"] },
-          { type: "interactive", kind: "classify", title: "Atribut atau Metode?", reason: "Kelompokkan elemen class Python dengan benar.", choices: ["Atribut", "Metode"], items: ["self.nama", "self.nilai = 0", "def hitung(self):", "def __init__(self, nama):"], answer: { "self.nama": "Atribut", "self.nilai = 0": "Atribut", "def hitung(self):": "Metode", "def __init__(self, nama):": "Metode" } },
+          { type: "interactive", kind: "classify", title: "Cocokkan Modul Python", reason: "Tentukan modul yang tepat untuk setiap kebutuhan.", choices: ["math", "random", "string method"], items: ["Hitung akar kuadrat", "Pilih satu item dari list secara acak", "Ubah teks jadi huruf besar", "Hitung nilai π"], answer: { "Hitung akar kuadrat": "math", "Pilih satu item dari list secara acak": "random", "Ubah teks jadi huruf besar": "string method", "Hitung nilai π": "math" } },
+          { type: "game", id: "bug-hunter", reason: "Berlatih memperbaiki program Python yang menggunakan import modul." },
         ],
       },
-      "Library Python": {
-        mission: "Eksplorasi dua library Python bawaan dan demonstrasikan penggunaannya untuk satu tugas nyata.",
-        concepts: ["import", "Library", "Fungsi Bawaan", "Efisiensi"],
+      "Bubble Sort": {
+        mission: "Implementasikan Bubble Sort dan trace eksekusinya langkah demi langkah untuk memahami perbandingan dan pertukaran.",
+        concepts: ["Bandingkan", "Tukar", "Loop Bersarang", "Iterasi"],
         activities: [
-          { type: "interactive", kind: "evaluate", title: "Cek Pemahaman Library", reason: "Centang pernyataan yang benar tentang library Python.", items: ["import ditulis di awal program", "math menyediakan fungsi matematika seperti sqrt dan pi", "random.choice() memilih satu item dari list secara acak", "datetime.now() mengembalikan tanggal dan waktu saat ini"] },
-          { type: "game", id: "bug-hunter", reason: "Berlatih membaca program Python yang menggunakan library dan menemukan errornya." },
+          { type: "interactive", kind: "sequence", title: "Trace Bubble Sort", reason: "Susun urutan operasi Bubble Sort yang benar.", steps: ["Mulai dari elemen pertama", "Bandingkan dengan elemen berikutnya", "Tukar jika tidak berurutan", "Lanjutkan ke pasangan berikutnya", "Ulangi dari awal sampai tidak ada pertukaran"], answer: ["Mulai dari elemen pertama", "Bandingkan dengan elemen berikutnya", "Tukar jika tidak berurutan", "Lanjutkan ke pasangan berikutnya", "Ulangi dari awal sampai tidak ada pertukaran"] },
+          { type: "lab", id: "sorting", reason: "Visualisasi Bubble Sort bergerak — lihat bagaimana perbandingan dan pertukaran terjadi secara real-time." },
         ],
       },
-      "Mini Project": {
-        mission: "Rencanakan satu mini project Python menggunakan fungsi, class, dan library secara terpadu.",
-        concepts: ["Masalah", "Desain", "Komponen", "Implementasi"],
+      "Linear & Binary Search": {
+        mission: "Implementasikan kedua algoritma pencarian dan bandingkan jumlah langkah yang dibutuhkan pada dataset yang sama.",
+        concepts: ["Linear O(n)", "Binary O(log n)", "Data Terurut", "Efisiensi"],
         activities: [
-          { type: "interactive", kind: "sequence", title: "Alur Mini Project Python", reason: "Susun urutan pengerjaan mini project Python.", steps: ["Pilih masalah dan tujuan", "Rancang class dan fungsi", "Pilih library yang dibutuhkan", "Implementasi bertahap", "Uji dan debug"], answer: ["Pilih masalah dan tujuan", "Rancang class dan fungsi", "Pilih library yang dibutuhkan", "Implementasi bertahap", "Uji dan debug"] },
-          { type: "game", id: "bug-hunter", reason: "Berlatih debug Python sebelum mengerjakan mini project sendiri." },
+          { type: "interactive", kind: "classify", title: "Linear atau Binary Search?", reason: "Pilih algoritma pencarian yang paling tepat untuk setiap situasi.", choices: ["Linear Search", "Binary Search", "Keduanya bisa"], items: ["Data tidak terurut, cari nama siswa", "Data terurut, cari nilai ujian", "List kecil 5 elemen", "List 10.000 elemen sudah diurutkan"], answer: { "Data tidak terurut, cari nama siswa": "Linear Search", "Data terurut, cari nilai ujian": "Binary Search", "List kecil 5 elemen": "Keduanya bisa", "List 10.000 elemen sudah diurutkan": "Binary Search" } },
+          { type: "game", id: "bug-hunter", reason: "Berlatih menemukan kesalahan dalam implementasi algoritma pencarian Python." },
+        ],
+      },
+      "Problem Solving Integratif": {
+        mission: "Rencanakan dan implementasikan program Python yang mengintegrasikan fungsi, dictionary, modul, sorting, dan searching dalam satu solusi nyata.",
+        concepts: ["Integrasi", "Fungsi", "Dictionary", "Sorting", "Searching"],
+        activities: [
+          { type: "interactive", kind: "sequence", title: "Alur Problem Solving Python", reason: "Susun urutan yang tepat untuk menyelesaikan masalah dengan Python secara integratif.", steps: ["Definisikan masalah dan output yang diinginkan", "Pilih struktur data (list/dictionary)", "Rancang fungsi yang dibutuhkan", "Pilih modul Python yang relevan", "Implementasi dan uji tiap fungsi", "Integrasikan dan uji program lengkap"], answer: ["Definisikan masalah dan output yang diinginkan", "Pilih struktur data (list/dictionary)", "Rancang fungsi yang dibutuhkan", "Pilih modul Python yang relevan", "Implementasi dan uji tiap fungsi", "Integrasikan dan uji program lengkap"] },
+          { type: "game", id: "bug-hunter", reason: "Berlatih debug program Python yang kompleks sebelum integrasi final." },
         ],
       },
     };
     return {
       title: `Misi Python: ${topic}`,
-      ...(pythonQuest[topic] || pythonQuest["Fungsi"]),
+      ...(pythonQuest[topic] || pythonQuest["Fungsi Lanjutan & Parameter"]),
     };
   }
 
-  const curatedQuest = getCuratedModuleQuest(mod, topic);
+  const curatedQuest = getCuratedModuleQuest(mod, topic, index);
   if (curatedQuest) return curatedQuest;
 
   if (topicLower.includes("data") || topicLower.includes("atribut") || topicLower.includes("tabel") || topicLower.includes("filter") || topicLower.includes("sortir") || topicLower.includes("grafik")) {
@@ -2083,15 +2143,63 @@ function getCuratedModuleLesson(mod, topic) {
   };
 }
 
-function getCuratedModuleQuest(mod, topic) {
+function getCuratedModuleQuest(mod, topic, topicIndex) {
   const profile = MODULE_PROFILES[mod.id];
   if (!profile) return null;
   const quest = profile.quest(topic);
+  const idx = topicIndex || 0;
+  const concepts = profile.concepts || [];
+  const topicLower = topic.toLowerCase();
+
+  // 6 rotating interactive activity types — each lesson looks distinct
+  const topicShort = topic.split(":")[0].split("&")[0].trim();
+  const interactiveVariants = [
+    { kind: "classify",
+      title: `Klasifikasi: ${topic}`,
+      reason: `Kelompokkan konsep ke dalam kategori yang tepat sesuai ${topicLower}.`,
+      choices: ["Inti dari topik ini", "Pendukung", "Tidak langsung relevan"],
+      items: concepts.slice(0, 4).length >= 2 ? concepts.slice(0, 4) : [`Konsep inti ${topicShort}`, "Pendekatan lain", "Contoh penerapan", "Konsep terkait"],
+    },
+    { kind: "sequence",
+      title: `Alur Pemahaman: ${topic}`,
+      reason: `Susun langkah yang logis untuk memahami dan menerapkan ${topicLower}.`,
+      steps: [`Kenali konsep ${topicShort}`, "Temukan contoh nyata di sekitar", "Analisis keterkaitan dengan kehidupan", "Terapkan dalam situasi baru", "Refleksikan apa yang dipahami"],
+    },
+    { kind: "decompose",
+      title: `Komponen: ${topic}`,
+      reason: `Pilih elemen kunci yang membentuk ${topicLower}.`,
+      items: concepts.slice(0, 5).length >= 3 ? concepts.slice(0, 5) : ["Tujuan", "Proses", "Hasil", "Dampak", "Evaluasi"],
+    },
+    { kind: "evaluate",
+      title: `Evaluasi Diri: ${topic}`,
+      reason: `Centang hal-hal tentang ${topicLower} yang sudah kamu kuasai.`,
+      items: ["Saya memahami konsep dasarnya", "Saya bisa memberi contoh nyata", "Saya tahu dampak dan risikonya", "Saya bisa menjelaskan ke teman"],
+      fixes: ["Baca ulang materi di modul", "Coba contoh di kehidupan nyata", "Tanya AI Tutor", "Diskusi dengan guru"],
+    },
+    { kind: "checklist",
+      title: `Cek Pemahaman: ${topic}`,
+      reason: `Tandai konsep penting dari ${topicLower} yang sudah kamu pelajari.`,
+      items: concepts.slice(0, 4).length >= 2 ? concepts.slice(0, 4) : ["Konsep dipahami", "Contoh ditemukan", "Dampak dianalisis", "Tindakan dipilih"],
+    },
+    { kind: "note",
+      title: `Refleksi: ${topic}`,
+      reason: `Pilih aspek ${topicLower} yang paling menarik atau relevan dengan pengalamanmu.`,
+      choices: concepts.slice(0, 4).length >= 2 ? concepts.slice(0, 4) : ["Contoh nyata", "Dampak sehari-hari", "Cara kerja teknisnya", "Penerapan praktis"],
+    },
+  ];
+
+  // Primary activity rotates by topic index; secondary offset by 3 for variety
+  const primary = { type: "interactive", ...interactiveVariants[idx % 6] };
+  const secondary = { type: "interactive", ...interactiveVariants[(idx + 3) % 6] };
+
+  // Keep any lab/game from the original quest
+  const extras = (quest.activities || []).filter(a => a.type === "lab" || a.type === "game");
+
   return {
     title: `Misi: ${topic}`,
     mission: quest.mission,
     concepts: quest.concepts || profile.concepts,
-    activities: quest.activities,
+    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 1) : [secondary])],
   };
 }
 
@@ -2679,9 +2787,9 @@ function getQuizQuestions(id) {
         options: ["Menggunakan fungsi acak bawaan Python seperti random.randint dan random.choice", "Membuat variabel bernama random", "Menghapus data secara acak", "Mempercepat program Python"],
         correct: 0, explain: "import memuat modul ke dalam program agar fungsinya bisa digunakan." },
       { difficulty: "Mudah",
-        q: "Dalam class Python, __init__ berfungsi untuk...",
-        options: ["Menginisialisasi atribut saat objek dibuat", "Menghapus objek dari memori", "Mencetak semua atribut objek", "Menghitung jumlah objek yang dibuat"],
-        correct: 0, explain: "__init__ adalah konstruktor yang dijalankan otomatis saat objek baru dibuat dari class." },
+        q: "Cara mengakses nilai dengan kunci 'nama' pada dictionary siswa = {'nama': 'Rizky', 'kelas': '9A'} adalah...",
+        options: ["siswa['nama']", "siswa.nama", "siswa[0]", "siswa.get(0)"],
+        correct: 0, explain: "Dictionary diakses menggunakan kunci dalam tanda kurung siku: dict['kunci']." },
       { difficulty: "Sedang",
         q: "Perhatikan kode: def kuadrat(x): return x * x. Hasil dari print(kuadrat(5)) adalah...",
         options: ["25", "10", "5", "Error"],
@@ -2695,13 +2803,13 @@ function getQuizQuestions(id) {
         options: ["import math, lalu gunakan math.pi", "Mengetik 3.14 secara langsung", "pi = 'tiga koma empat belas'", "Tidak bisa dilakukan di Python"],
         correct: 0, explain: "Library math menyediakan konstanta math.pi dengan presisi tinggi." },
       { difficulty: "Sulit",
-        q: "Sebuah class Siswa memiliki atribut self.nilai = []. Metode tambah(v) berisi self.nilai.append(v). Setelah s = Siswa() dan s.tambah(90), nilai s.nilai adalah...",
-        options: ["[90]", "90", "[]", "Error"],
-        correct: 0, explain: "append() menambahkan elemen ke list. List kosong menjadi [90] setelah satu elemen ditambahkan." },
+        q: "Pada Bubble Sort, list [3, 1, 2] membutuhkan berapa kali pertukaran (swap) untuk menjadi terurut [1, 2, 3]?",
+        options: ["2 swap", "1 swap", "3 swap", "0 swap"],
+        correct: 0, explain: "Pass 1: [3,1,2] → [1,3,2] (swap 3&1) → [1,2,3] (swap 3&2). Total 2 swap." },
       { difficulty: "HOTS",
-        q: "Kapan penggunaan class (OOP) lebih tepat dibanding hanya menggunakan fungsi biasa?",
-        options: ["Saat ada banyak objek yang punya data dan perilaku serupa, seperti ratusan siswa dengan atribut dan metode yang sama", "Saat program hanya berisi 5 baris kode", "Saat tidak ingin memakai parameter di fungsi", "Saat program tidak perlu diuji"],
-        correct: 0, explain: "OOP paling bermanfaat saat banyak entitas memiliki struktur yang sama — class memungkinkan kita membuat template sekali, lalu buat banyak objek." },
+        q: "Mengapa Binary Search tidak bisa digunakan langsung pada list acak tanpa proses tambahan?",
+        options: ["Binary Search hanya bekerja pada data yang sudah terurut karena ia membelah data di titik tengah dan mengasumsikan posisi relatif elemen", "Binary Search terlalu lambat untuk data acak", "Binary Search hanya bekerja pada angka genap", "Binary Search membutuhkan koneksi internet"],
+        correct: 0, explain: "Binary Search membelah data di tengah. Jika data tidak terurut, perbandingan 'kiri atau kanan' tidak bermakna dan hasilnya salah." },
     ],
     "kka9-1": [
       { q: "Pivot table pada spreadsheet berguna untuk...",

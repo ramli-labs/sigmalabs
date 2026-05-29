@@ -8,7 +8,6 @@ const { useState, useEffect, useRef } = React;
 
 const NeuralLab = () => {
   // Very simple perceptron: classifies 2D points (AND, OR, XOR)
-  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("neural-playground"); }, []);
   const [dataset, setDataset] = useState("AND");
   const [weights, setWeights] = useState({ w1: 0.5, w2: 0.5, b: -0.7 });
   const [learningRate, setLearningRate] = useState(0.1);
@@ -52,6 +51,7 @@ const NeuralLab = () => {
       if (allCorrect) break;
     }
     setTraining(false);
+    window.SIGMA_AUTH?.completeLab?.("neural-playground");
   };
 
   const reset = () => {
@@ -88,7 +88,7 @@ const NeuralLab = () => {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div className="lab-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
           <div className="card" style={{ padding: 24, background: "white" }}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", color: "var(--ai-500)", textTransform: "uppercase", marginBottom: 10 }}>Visualisasi</div>
             <svg viewBox={`0 0 ${size} ${size}`} style={{ width: "100%", border: "2px solid var(--ink)", borderRadius: 12, background: "#fafbff" }}>
@@ -152,7 +152,7 @@ const NeuralLab = () => {
 
             <div className="card" style={{ padding: 22, background: "var(--navy-950)", color: "white" }}>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", color: "var(--gold-400)", textTransform: "uppercase", marginBottom: 10 }}>Parameter Neuron</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontFamily: "var(--font-mono)", fontSize: 13 }}>
+              <div className="responsive-stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontFamily: "var(--font-mono)", fontSize: 13 }}>
                 <ParamBox label="w₁" value={weights.w1.toFixed(3)}/>
                 <ParamBox label="w₂" value={weights.w2.toFixed(3)}/>
                 <ParamBox label="b (bias)" value={weights.b.toFixed(3)}/>
@@ -201,7 +201,6 @@ window.NeuralLab = NeuralLab;
 // ============================================
 
 const ImageClassifierLab = () => {
-  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("image-classifier"); }, []);
   const canvasRef = React.useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [target, setTarget] = useState(null);
@@ -360,6 +359,7 @@ const ImageClassifierLab = () => {
     const total = Object.values(scores).reduce((a, b) => a + b, 0);
     const conf = total ? Math.min(0.95, best[1] / total + 0.3) : 0.4;
     setResult({ label: best[0], confidence: conf });
+    window.SIGMA_AUTH?.completeLab?.("image-classifier");
     setLoading(false);
   };
 
@@ -381,7 +381,7 @@ const ImageClassifierLab = () => {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
+        <div className="lab-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
           <div className="card" style={{ padding: 24, background: "white" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div>
@@ -451,7 +451,6 @@ window.ImageClassifierLab = ImageClassifierLab;
 // ============================================
 
 const NetworkLab = () => {
-  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("network-sim"); }, []);
   const [sending, setSending] = useState(false);
   const [log, setLog] = useState([]);
   const [packetPos, setPacketPos] = useState(-1);
@@ -480,6 +479,7 @@ const NetworkLab = () => {
     }
     setPacketPos(-1);
     setSending(false);
+    window.SIGMA_AUTH?.completeLab?.("network-sim");
   };
 
   return (
@@ -542,7 +542,7 @@ const NetworkLab = () => {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginTop: 20 }}>
+        <div className="responsive-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginTop: 20 }}>
           <InfoBox title="Latency" desc="Waktu total perjalanan paket. Internet yang bagus < 50ms, gaming online butuh < 30ms."/>
           <InfoBox title="Packet Loss" desc="Paket kadang hilang di jalan — TCP akan otomatis kirim ulang, UDP tidak (makanya video streaming kadang nge-freeze)."/>
           <InfoBox title="Routing" desc="Tiap router pilih jalur tercepat. Kalau ada kabel putus, paket otomatis cari rute alternatif."/>

@@ -39,12 +39,12 @@ const Dashboard = () => {
   return (
     <div className="page" style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar/>
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 60px" }}>
+      <div className="dashboard-shell" style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 60px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 32, flexWrap: "wrap", gap: 16 }}>
           <div>
             <div style={{ fontSize: 13, color: "var(--ink-subtle)", fontWeight: 600, textTransform: "capitalize" }}>{today}</div>
-            <h1 className="display" style={{ fontSize: 48, margin: "4px 0 0", color: "var(--navy-950)" }}>
+            <h1 className="display mobile-safe-title" style={{ fontSize: 48, margin: "4px 0 0", color: "var(--navy-950)" }}>
               Halo, <span style={{ color: "var(--ai-500)" }}>{user.nickname}!</span> 👋
             </h1>
             <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 6, margin: 0 }}>
@@ -65,7 +65,7 @@ const Dashboard = () => {
             <div style={{ position: "absolute", top: -60, right: -40, width: 220, height: 220, borderRadius: "50%", background: "var(--ai-400)", opacity: 0.3, filter: "blur(20px)" }}/>
             <div style={{ position: "absolute", bottom: -30, left: -20, width: 140, height: 140, borderRadius: "50%", background: "var(--gold-400)", opacity: 0.15, filter: "blur(12px)" }}/>
             <div className="tag" style={{ background: "rgba(38,211,234,0.18)", color: "var(--info-300)", marginBottom: 14, position: "relative" }}>{continueSubject.name} • KELAS {continueModule?.level || user.level} • LANJUTKAN</div>
-            <h2 className="display" style={{ fontSize: 38, margin: 0, lineHeight: 1.05, position: "relative" }}>{continueModule?.title || "Mulai Modul Pertama"}</h2>
+            <h2 className="display mobile-safe-title" style={{ fontSize: 38, margin: 0, lineHeight: 1.05, position: "relative" }}>{continueModule?.title || "Mulai Modul Pertama"}</h2>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 12, maxWidth: 460, position: "relative" }}>
               {continueProgress.lessonsDone > 0
                 ? `Kamu sudah selesai ${continueProgress.lessonsDone} dari ${continueProgress.total} pelajaran. Lanjutkan sampai tuntas untuk dapat XP dan badge.`
@@ -88,7 +88,7 @@ const Dashboard = () => {
               <div style={{ fontWeight: 800, fontSize: 16 }}>Badge Pemuda Juara</div>
               <span style={{ fontSize: 12, color: "var(--ink-subtle)", fontWeight: 600 }}>{user.badges.length} / 24</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+            <div className="dashboard-badge-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
               {user.badges.map((b, i) => (
                 <div key={i} title={b.label} style={{
                   aspectRatio: 1, borderRadius: 14,
@@ -139,9 +139,9 @@ const Dashboard = () => {
             items={["Misi", "Peta Konsep", "Mini Interaksi"]}
           />
           <QuickShortcut
-            title="Portofolio"
-            subtitle="Segera"
-            description="Nantinya refleksi, misi selesai, kuis, XP, badge, dan proyek mini siswa terkumpul di satu tempat."
+            title="Ringkasan Belajar"
+            subtitle="Tersimpan lokal"
+            description="Refleksi, misi selesai, kuis, XP, dan badge siswa tersimpan di browser perangkat ini."
             to="/dashboard" bg="var(--ai-100)" icon="Book"
             items={["Refleksi", "Misi", "Badge"]}
           />

@@ -94,4 +94,42 @@ const App = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+class SigmaErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error, info) {
+    window.SIGMA_LAST_ERROR = { error, info };
+    console.error("SIGMA render error", error, info);
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div className="card" style={{ maxWidth: 560, padding: 28, background: "white" }}>
+          <div className="tag tag-red" style={{ marginBottom: 14 }}>Terjadi Gangguan</div>
+          <h1 className="display" style={{ fontSize: 30, margin: "0 0 10px", color: "var(--navy-950)" }}>SIGMA perlu dimuat ulang</h1>
+          <p style={{ color: "var(--ink-muted)", lineHeight: 1.6, margin: "0 0 20px" }}>
+            Ada bagian halaman yang gagal dimuat. Data belajar lokal tetap aman; coba muat ulang halaman ini.
+          </p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>
+            <Icon.Refresh width="16" height="16"/> Muat Ulang
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(
+  <SigmaErrorBoundary>
+    <App/>
+  </SigmaErrorBoundary>
+);

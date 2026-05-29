@@ -8,7 +8,6 @@ const { useState, useEffect, useRef } = React;
 
 const BinaryLab = () => {
   const [bits, setBits] = useState([0, 0, 0, 0, 1, 0, 1, 0]); // 10 decimal default
-  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("binary"); }, []);
 
   const toggle = (i) => {
     const next = [...bits];
@@ -23,6 +22,10 @@ const BinaryLab = () => {
   // Challenge: convert a random number
   const [targetDecimal, setTargetDecimal] = useState(42);
   const correct = decimal === targetDecimal;
+
+  useEffect(() => {
+    if (correct) window.SIGMA_AUTH?.completeLab?.("binary");
+  }, [correct]);
 
   const newChallenge = () => {
     const n = Math.floor(Math.random() * 255) + 1;
@@ -55,7 +58,7 @@ const BinaryLab = () => {
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", color: "var(--ink-subtle)", textTransform: "uppercase", marginBottom: 14, textAlign: "center" }}>
             Klik bit untuk toggle
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 10, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, minmax(34px, 1fr))", gap: 10, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }}>
             {bits.map((b, i) => (
               <div key={i}>
                 <div style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-subtle)", marginBottom: 4 }}>2^{7 - i}</div>
@@ -79,7 +82,7 @@ const BinaryLab = () => {
               </div>
             ))}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginTop: 24 }}>
+          <div className="binary-result-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginTop: 24 }}>
             <ResultBox label="Biner" value={binStr} mono color="var(--navy-950)"/>
             <ResultBox label="Desimal" value={decimal} color="var(--info-500)" bigger/>
             <ResultBox label="Heksadesimal" value={`0x${hex}`} mono color="var(--ai-500)"/>
@@ -109,7 +112,7 @@ const BinaryLab = () => {
         </div>
 
         {/* Info */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div className="lab-info-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           <div className="card" style={{ padding: 22, background: "white" }}>
             <div className="display" style={{ fontSize: 22, margin: "0 0 12px" }}>Gimana cara kerjanya?</div>
             <p style={{ fontSize: 14, color: "var(--ink-muted)", lineHeight: 1.7, margin: 0 }}>

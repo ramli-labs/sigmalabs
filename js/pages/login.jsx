@@ -1,5 +1,5 @@
 // ============================================
-// Login Simulation — localStorage profiles
+// Local student profiles — stored on this browser
 // ============================================
 
 const { Icon, Navbar, Footer, Link, navigate } = window;
@@ -24,7 +24,7 @@ const LoginPage = () => {
   };
 
   const reset = () => {
-    window.SIGMA_AUTH.resetDemo();
+    window.SIGMA_AUTH.resetLocalData();
     setProfiles(window.SIGMA_AUTH.getProfiles());
   };
 
@@ -34,12 +34,12 @@ const LoginPage = () => {
       <main style={{ maxWidth: 1120, margin: "0 auto", padding: "36px 32px 70px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 28, alignItems: "start" }} className="login-grid">
           <section>
-            <div className="tag tag-gold" style={{ marginBottom: 14 }}>SIMULASI LOGIN LOKAL</div>
+            <div className="tag tag-gold" style={{ marginBottom: 14 }}>PROFIL SISWA LOKAL</div>
             <h1 className="display" style={{ fontSize: 56, margin: 0, color: "var(--navy-950)" }}>
               Masuk sebagai siswa
             </h1>
             <p style={{ fontSize: 16, color: "var(--ink-muted)", lineHeight: 1.6, maxWidth: 620, marginTop: 14 }}>
-              Pilih profil demo atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini.
+              Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini.
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16, marginTop: 28 }} className="profile-grid">
@@ -74,7 +74,7 @@ const LoginPage = () => {
               </div>
               <div>
                 <div style={{ fontWeight: 900 }}>Buat profil siswa</div>
-                <div style={{ fontSize: 12, color: "var(--ink-muted)" }}>Untuk simulasi lokal</div>
+                <div style={{ fontSize: 12, color: "var(--ink-muted)" }}>Tersimpan di perangkat ini</div>
               </div>
             </div>
 
@@ -105,7 +105,7 @@ const LoginPage = () => {
                 <Icon.Play width="16" height="16"/> Buat & Masuk
               </button>
               <button className="btn" type="button" onClick={reset}>
-                <Icon.Refresh width="16" height="16"/> Reset Demo
+                <Icon.Refresh width="16" height="16"/> Reset Data Lokal
               </button>
             </form>
           </aside>

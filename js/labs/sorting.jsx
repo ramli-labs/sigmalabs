@@ -24,8 +24,6 @@ const SortingLab = () => {
   };
 
   useEffect(() => { generate(); }, [size]);
-  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("sorting"); }, []);
-
   const delay = (ms) => new Promise(r => setTimeout(r, ms));
   const effectiveDelay = () => Math.max(5, 200 - speed * 2);
 
@@ -154,6 +152,7 @@ const SortingLab = () => {
     else if (algo === "selection") await selectionSort(array);
     else if (algo === "insertion") await insertionSort(array);
     else if (algo === "quick") await quickSort(array);
+    if (!cancelRef.current) window.SIGMA_AUTH?.completeLab?.("sorting");
     setRunning(false);
   };
 
@@ -190,7 +189,7 @@ const SortingLab = () => {
 
         {/* Controls */}
         <div className="card" style={{ padding: 20, background: "white", marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr) auto", gap: 16, alignItems: "end" }}>
+          <div className="responsive-tool-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr) auto", gap: 16, alignItems: "end" }}>
             <ControlField label="Algoritma">
               <select value={algo} onChange={e => setAlgo(e.target.value)} disabled={running} className="input" style={{ padding: "8px 12px" }}>
                 <option value="bubble">Bubble Sort</option>
@@ -254,7 +253,7 @@ const SortingLab = () => {
         </div>
 
         {/* Algo info */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div className="lab-info-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           <div className="card" style={{ padding: 22, background: "white" }}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", color: "var(--info-500)", textTransform: "uppercase", marginBottom: 8 }}>Algoritma Aktif</div>
             <h3 className="display" style={{ fontSize: 24, margin: "0 0 4px" }}>{algoInfo[algo].name}</h3>
@@ -278,12 +277,4 @@ const SortingLab = () => {
   );
 };
 
-const ControlField = ({ label, children }) => (
-  <div>
-    <label style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-subtle)", marginBottom: 6 }}>{label}</label>
-    {children}
-  </div>
-);
-
 window.SortingLab = SortingLab;
-window.ControlField = ControlField;

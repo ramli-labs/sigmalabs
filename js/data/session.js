@@ -77,17 +77,44 @@
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
+  function normalizeProfile(profile) {
+    const safe = profile && typeof profile === "object" ? profile : {};
+    const level = Number(safe.level || 7);
+    const name = String(safe.name || "Siswa").trim() || "Siswa";
+    const nickname = String(safe.nickname || name.split(" ")[0] || "Siswa").trim() || "Siswa";
+    return {
+      id: safe.id || `${nickname.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`,
+      name,
+      nickname,
+      level,
+      class: String(safe.class || `${level}A`).trim() || `${level}A`,
+      xp: Number(safe.xp || 0),
+      streak: Number(safe.streak || 1),
+      badges: Array.isArray(safe.badges) ? safe.badges : [],
+      progress: safe.progress && typeof safe.progress === "object" ? safe.progress : {},
+      completedLabs: Array.isArray(safe.completedLabs) ? safe.completedLabs : [],
+      completedGames: Array.isArray(safe.completedGames) ? safe.completedGames : [],
+      quests: safe.quests && typeof safe.quests === "object" ? safe.quests : {},
+      quizzes: safe.quizzes && typeof safe.quizzes === "object" ? safe.quizzes : {},
+      reflections: safe.reflections && typeof safe.reflections === "object" ? safe.reflections : {},
+      gameScores: safe.gameScores && typeof safe.gameScores === "object" ? safe.gameScores : {},
+    };
+  }
+
   function readProfiles() {
     try {
       const raw = localStorage.getItem(PROFILE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed.map(normalizeProfile);
+      }
     } catch (e) {}
     localStorage.setItem(PROFILE_KEY, JSON.stringify(defaultProfiles));
     return clone(defaultProfiles);
   }
 
   function writeProfiles(profiles) {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles));
+    localStorage.setItem(PROFILE_KEY, JSON.stringify((profiles || []).map(normalizeProfile)));
   }
 
   function getActiveId() {
@@ -95,7 +122,7 @@
   }
 
   function setActiveUser(user) {
-    const nextUser = user || clone(defaultProfiles[0]);
+    const nextUser = normalizeProfile(user || clone(defaultProfiles[0]));
     if (nextUser.progress && window.CURRICULUM) {
       window.CURRICULUM.modules.forEach(mod => {
         if (nextUser.progress[mod.id]) {
@@ -392,7 +419,7 @@
     return Math.max(0, Number(score || 0) * 2);
   }
 
-  function resetDemo() {
+  function resetLocalData() {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(defaultProfiles));
     localStorage.setItem(ACTIVE_KEY, defaultProfiles[0].id);
     setActiveUser(clone(defaultProfiles[0]));
@@ -419,6 +446,7 @@
     isModuleSequenceUnlocked,
     getModuleSequenceStatus,
     getLearningStepStatus,
-    resetDemo,
+    resetLocalData,
+    resetDemo: resetLocalData,
   };
 })();

@@ -18,7 +18,7 @@ const Landing = () => {
         <div style={{ position: "absolute", bottom: -60, left: 200, width: 180, height: 180, borderRadius: "50%", background: "var(--info-300)", opacity: 0.45 }}/>
         <div style={{ position: "absolute", top: 140, left: -40, width: 140, height: 140, borderRadius: 40, background: "var(--ai-300)", opacity: 0.38, transform: "rotate(20deg)" }}/>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 48, alignItems: "center", maxWidth: 1200, margin: "0 auto", position: "relative" }}>
+        <div className="landing-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 48, alignItems: "center", maxWidth: 1200, margin: "0 auto", position: "relative" }}>
           <div className="fade-in-up">
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: "var(--r-full)", background: "white", border: "2px solid var(--ink)", boxShadow: "var(--shadow-chunk-sm)", fontSize: 13, fontWeight: 700, marginBottom: 28 }}>
               <span style={{ width: 8, height: 8, background: "var(--green-500)", borderRadius: "50%" }} className="pulse"/>
@@ -114,9 +114,9 @@ const Landing = () => {
         <SectionHeader
           eyebrow="DUA MATA PELAJARAN"
           title="Pilih mau belajar yang mana"
-          subtitle="Informatika sudah memakai acuan modul 2627. Jalur KKA/AI disiapkan sebagai slot pengayaan berikutnya saat modul final tersedia."
+          subtitle="Informatika dan Koding & AI disusun sebagai jalur belajar berurutan dengan materi, misi, kuis, lab, dan gim edukasi."
         />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginTop: 30 }}>
+        <div className="landing-feature-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginTop: 30 }}>
           <Link to={kelasSaya} className="card card-hover" style={{ padding: 36, background: "linear-gradient(135deg, var(--info-100) 0%, white 100%)", position: "relative", overflow: "hidden", textDecoration: "none", color: "inherit" }}>
             <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "var(--info-400)", opacity: 0.2 }}/>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, position: "relative" }}>
@@ -145,11 +145,11 @@ const Landing = () => {
               <div style={{ width: 64, height: 64, borderRadius: 18, background: "var(--ai-500)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", border: "3px solid var(--ink)", boxShadow: "var(--shadow-chunk-sm)" }}>
                 <Icon.Brain width="36" height="36"/>
               </div>
-              <span className="tag tag-ai">18 Slot</span>
+              <span className="tag tag-ai">18 Unit</span>
             </div>
             <h3 className="display" style={{ fontSize: 40, margin: "12px 0 8px", color: "var(--navy-950)" }}>Koding & AI</h3>
             <p style={{ color: "var(--ink-muted)", fontSize: 15, lineHeight: 1.55, margin: 0 }}>
-              Jalur KKA/AI sedang disiapkan. Struktur SIGMA sudah menyediakan slot modul, lab, gim, kuis, dan proyek mini.
+              Koding, kecerdasan artifisial, pengolahan data, produksi konten digital, etika, dan proyek mini berbasis tantangan.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 20 }}>
               {["Koding", "AI", "Data", "Proyek Mini", "Eksperimen", "Etika"].map(t => (
@@ -170,7 +170,7 @@ const Landing = () => {
           title="3 cara seru belajar"
           subtitle="Bukan cuma baca teori — kamu nyoba, ngulik, dan bikin karya."
         />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginTop: 30 }}>
+        <div className="responsive-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginTop: 30 }}>
           <FeatureCard
             title="Modul Interaktif"
             subtitle={`${window.CURRICULUM.modules.length} modul`}
@@ -196,7 +196,7 @@ const Landing = () => {
       <section style={{ padding: "80px 32px", background: "var(--navy-950)", color: "white", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 40, right: 60, width: 180, height: 180, borderRadius: "50%", background: "var(--gold-400)", opacity: 0.1 }}/>
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: 48, alignItems: "start" }}>
+          <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: 48, alignItems: "start" }}>
             <div>
               <div className="tag" style={{ background: "rgba(255,255,255,0.1)", color: "var(--gold-400)", marginBottom: 16 }}>FITUR</div>
               <h2 className="display" style={{ fontSize: 52, margin: 0, lineHeight: 1 }}>
@@ -206,10 +206,10 @@ const Landing = () => {
                 Setiap modul dirancang supaya kamu ngulik, mencoba, dan bikin karya — bukan cuma baca teori.
               </p>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               {[
                 { icon: "Puzzle", title: "Drag & Drop Block", desc: "Rakit algoritma lewat block coding — tanpa typo.", color: "var(--gold-400)" },
-                { icon: "Sparkles", title: "Playground AI", desc: "Demo chatbot, klasifikasi gambar & teks langsung.", color: "var(--ai-400)" },
+                { icon: "Sparkles", title: "Playground AI", desc: "Chatbot mini, klasifikasi gambar & teks langsung.", color: "var(--ai-400)" },
                 { icon: "Chart", title: "Simulasi Visual", desc: "Animasi sorting, searching, dan proses jaringan.", color: "var(--info-400)" },
                 { icon: "Trophy", title: "Badge & Leaderboard", desc: "Koleksi lencana Pemuda Juara, kompetisi antar kelas.", color: "var(--red-500)" },
               ].map((f, i) => {
@@ -231,7 +231,7 @@ const Landing = () => {
 
       {/* STATS */}
       <section style={{ padding: "60px 32px", background: "var(--bg-cream)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
+        <div className="responsive-grid-4" style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
           {[
             { n: window.CURRICULUM.modules.length, l: "Modul Pembelajaran", s: "Informatika & KKA" },
             { n: window.CURRICULUM.labs.length + window.CURRICULUM.games.length, l: "Aktivitas Misi", s: "Lab/gim kontekstual" },

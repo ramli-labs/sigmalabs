@@ -105,7 +105,7 @@ const BugHunterGame = () => {
             </div>
           ))}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${c.options.length}, 1fr)`, gap: 10 }}>
+        <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: `repeat(${c.options.length}, 1fr)`, gap: 10 }}>
           {c.options.map((opt, i) => {
             const isThisRight = c.correctIdx !== undefined ? i === c.correctIdx : opt === c.bugLine;
             const picked = selected === opt;
@@ -508,7 +508,7 @@ const PatternQuizGame = () => {
             ?
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, maxWidth: 500, margin: "0 auto" }}>
+        <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, maxWidth: 500, margin: "0 auto" }}>
           {p.options.map(opt => {
             const isPicked = selected === opt;
             const isCorrect = opt === p.next;
@@ -683,7 +683,7 @@ const GameEndScreen = ({ gameId, correct, total, time, xp, extra }) => {
           <div className="display" style={{ fontSize: 38, margin: "0 0 10px", color: "var(--navy-950)" }}>Selesai!</div>
           <div style={{ fontSize: 16, color: "var(--ink-muted)", marginBottom: 24 }}>{game.title}</div>
 
-          <div style={{ display: "grid", gridTemplateColumns: time !== undefined ? "1fr 1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
+          <div className="responsive-stats-grid" style={{ display: "grid", gridTemplateColumns: time !== undefined ? "1fr 1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
             <ResultStat label="Skor" value={`${correct}/${total}`} color="var(--navy-950)"/>
             {time !== undefined && <ResultStat label="Waktu" value={`${time}s`} color="var(--orange-500)"/>}
             <ResultStat label="XP Diraih" value={`+${xp}`} color="var(--gold-500)"/>

@@ -180,7 +180,7 @@ const MateriTab = ({ mod, subject }) => {
       <div className="card" style={{ padding: 36, background: "white" }}>
         {mod.status === "draft" && (
           <div style={{ padding: "14px 18px", background: "var(--gold-300)", border: "2px solid var(--ink)", borderRadius: 12, marginBottom: 22, fontSize: 14, fontWeight: 700, lineHeight: 1.5 }}>
-            Modul KKA/AI ini masih berupa slot pengembangan. Struktur pengayaan, kuis, lab, dan progress sudah disiapkan untuk materi final.
+            Modul ini dalam finalisasi konten untuk pembelajaran kelas. Struktur materi, misi, kuis, lab, dan progress sudah tersedia.
           </div>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, fontWeight: 800, color: "var(--ink-subtle)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>
@@ -370,7 +370,7 @@ const QuestTab = ({ mod, subject }) => {
 
         <section style={{ marginTop: 28 }}>
           <h3 className="display" style={{ fontSize: 24, margin: "0 0 14px" }}>Aktivitas Interaktif</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
+          <div className="quest-activity-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
             {availableActivities.length > 0 ? availableActivities.map(a => {
               const aKey = `${lessonIndex}-${a.type}-${a.id || a.title}`;
               return <QuestActivity key={aKey} activity={a} onComplete={score => recordScore(aKey, score)} done={completed || saved}/>;
@@ -820,7 +820,7 @@ const KuisTab = ({ mod, subject }) => {
   const percent = questions.length ? Math.round((score / questions.length) * 100) : 0;
   const quizRecord = window.USER.quizzes?.[mod.id];
   const quizLocked = !!quizRecord && !submitted;
-  const potentialXp = getQuizXpPreview(score);
+  const potentialXp = getQuizXpAward(score);
   const currentQuestion = questions[currentIndex];
   const currentAnswered = answers[currentIndex] !== undefined;
   const quizGuardProps = started && !submitted ? {
@@ -978,7 +978,7 @@ const KuisTab = ({ mod, subject }) => {
             <div style={{ fontSize: 20, fontWeight: 900, color: "var(--navy-950)", lineHeight: 1.45, marginBottom: 18 }}>
               {currentQuestion.q}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+            <div className="quiz-options-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
               {currentQuestion.options.map((opt, j) => {
                 const selected = answers[currentIndex] === j;
                 return (
@@ -2253,11 +2253,11 @@ function getQuizQuestions(id) {
   if (mod?.status === "draft") {
     const draftQuestions = [
       { q: "Apa arti status Draft pada modul KKA/AI?",
-        options: ["Modul sudah final", "Slot materi sedang disiapkan", "Modul rusak", "Modul tidak akan dipakai"],
+        options: ["Modul sudah final", "Konten sedang difinalkan", "Modul rusak", "Modul tidak akan dipakai"],
         correct: 1, explain: "Draft berarti struktur modul sudah ada, tetapi isi final masih menunggu modul KKA/AI selesai." },
-      { q: "Apa tujuan SIGMA menyiapkan slot KKA/AI sejak awal?",
-        options: ["Agar mudah diisi materi final nanti", "Agar katalog terlihat kosong", "Agar siswa tidak bisa belajar", "Agar lab dihapus"],
-        correct: 0, explain: "Slot membuat jalur KKA/AI siap menerima materi, kuis, lab, gim, dan proyek tanpa bongkar struktur." },
+      { q: "Apa tujuan SIGMA menyiapkan jalur KKA/AI sejak awal?",
+        options: ["Agar materi, kuis, lab, dan gim bisa tersusun rapi", "Agar katalog terlihat kosong", "Agar siswa tidak bisa belajar", "Agar lab dihapus"],
+        correct: 0, explain: "Jalur KKA/AI membuat materi, kuis, lab, gim, dan proyek tersusun konsisten." },
     ];
     return expandQuizQuestions(mod, draftQuestions);
   }

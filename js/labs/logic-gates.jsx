@@ -10,7 +10,7 @@ const LogicGatesLab = () => {
   const [a, setA] = useState(false);
   const [b, setB] = useState(false);
   const [selectedGate, setSelectedGate] = useState("AND");
-  useEffect(() => { window.SIGMA_AUTH?.completeLab?.("logic-gates"); }, []);
+  const markExplored = () => window.SIGMA_AUTH?.completeLab?.("logic-gates");
 
   const gates = {
     AND: { fn: (a, b) => a && b, desc: "Output 1 jika A DAN B dua-duanya 1. Kalau salah satu 0, output 0." },
@@ -52,7 +52,7 @@ const LogicGatesLab = () => {
         {/* Gate picker */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
           {Object.keys(gates).map(g => (
-            <button key={g} onClick={() => setSelectedGate(g)} className="btn btn-sm"
+            <button key={g} onClick={() => { setSelectedGate(g); markExplored(); }} className="btn btn-sm"
               style={{
                 background: g === selectedGate ? "var(--navy-900)" : "white",
                 color: g === selectedGate ? "white" : "var(--ink)",
@@ -65,8 +65,8 @@ const LogicGatesLab = () => {
         <div className="card" style={{ padding: 40, background: "white", marginBottom: 20 }}>
           <svg viewBox="0 0 600 260" style={{ width: "100%", maxWidth: 600, margin: "0 auto", display: "block" }}>
             {/* Input A */}
-            <InputSwitch x={40} y={selectedGate === "NOT" ? 130 : 70} label="A" value={a} onChange={() => setA(!a)}/>
-            {selectedGate !== "NOT" && <InputSwitch x={40} y={190} label="B" value={b} onChange={() => setB(!b)}/>}
+            <InputSwitch x={40} y={selectedGate === "NOT" ? 130 : 70} label="A" value={a} onChange={() => { setA(!a); markExplored(); }}/>
+            {selectedGate !== "NOT" && <InputSwitch x={40} y={190} label="B" value={b} onChange={() => { setB(!b); markExplored(); }}/>}
 
             {/* Wires into gate */}
             <line x1={90} y1={selectedGate === "NOT" ? 130 : 70} x2={240} y2={selectedGate === "NOT" ? 130 : 90}
@@ -100,7 +100,7 @@ const LogicGatesLab = () => {
         </div>
 
         {/* Description + Truth table */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div className="lab-info-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           <div className="card" style={{ padding: 24, background: "white" }}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", color: "var(--info-500)", textTransform: "uppercase", marginBottom: 8 }}>Gerbang {selectedGate}</div>
             <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--ink)", margin: 0 }}>{current.desc}</p>

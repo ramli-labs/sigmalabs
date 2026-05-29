@@ -18,7 +18,7 @@ const LabList = () => {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 60px" }}>
         <Breadcrumb trail={[{ to: "/", label: "Beranda" }, { label: "Lab Maya" }]}/>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 40, alignItems: "center", margin: "16px 0 40px" }}>
+        <div className="list-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 40, alignItems: "center", margin: "16px 0 40px" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", background: "var(--info-300)", border: "2px solid var(--ink)", borderRadius: "var(--r-full)", fontSize: 12, fontWeight: 800, marginBottom: 18, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               <Icon.Beaker width="14" height="14"/> {labs.length} Eksperimen Interaktif
@@ -61,7 +61,7 @@ const LabList = () => {
         </div>
 
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+        <div className="list-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {filtered.map((lab, i) => (
             <LabCard key={lab.id} lab={lab} delay={i * 0.06}/>
           ))}

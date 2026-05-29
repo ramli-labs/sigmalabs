@@ -40,15 +40,15 @@ window.Link = Link;
 
 // ---------- Brand / Logo ----------
 const LabschoolLogo = ({ size = 36, showText = true, invert = false }) => (
-  <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+  <Link to="/" className="brand-logo" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
     <img
       src="assets/logo-labschool.png"
       alt="SMP Labschool Jakarta"
       style={{ height: size, width: "auto", display: "block", filter: invert ? "brightness(0) invert(1)" : "none" }}
     />
     {showText && (
-      <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-        <span style={{ fontSize: 9, letterSpacing: "0.14em", fontWeight: 700, color: invert ? "rgba(255,255,255,0.6)" : "var(--ink-muted)" }}>
+      <div className="brand-logo-text" style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+        <span className="brand-logo-kicker" style={{ fontSize: 9, letterSpacing: "0.14em", fontWeight: 700, color: invert ? "rgba(255,255,255,0.6)" : "var(--ink-muted)" }}>
           SISTEM INFORMATIKA • GENERASI MAHIR ARTIFISIAL
         </span>
         <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: invert ? "white" : "var(--navy-950)", marginTop: 3, letterSpacing: "-0.01em" }}>
@@ -89,7 +89,7 @@ const Navbar = ({ variant = "light" }) => {
   const isActive = (to) => route === to || route.startsWith(to + "/") || (to === "/dashboard" && route === "/dashboard");
 
   return (
-    <nav style={{
+    <nav className="site-nav" style={{
       padding: "18px 32px",
       background: dark ? "var(--navy-950)" : "var(--bg)",
       borderBottom: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid var(--line)",
@@ -97,7 +97,7 @@ const Navbar = ({ variant = "light" }) => {
       backdropFilter: "blur(8px)",
       backgroundColor: dark ? "rgba(11,22,51,0.95)" : "rgba(247,248,252,0.92)",
     }}>
-      <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
+      <div className="site-nav-inner" style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
         <LabschoolLogo invert={dark} size={36}/>
 
         <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -112,12 +112,12 @@ const Navbar = ({ variant = "light" }) => {
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="site-nav-actions" style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: dark ? "rgba(255,255,255,0.06)" : "white", borderRadius: "var(--r-full)", border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)" }}>
             <Icon.Bolt width="15" height="15" style={{ color: "var(--gold-500)" }}/>
             <span style={{ fontWeight: 800, fontSize: 13, color: dark ? "white" : "var(--navy-900)" }}>{window.USER.xp.toLocaleString()} XP</span>
           </div>
-          <Link to="/login" title="Ganti profil siswa" style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
+          <Link to="/login" className="profile-avatar" title="Ganti profil siswa" style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
             {window.USER.nickname[0]}
           </Link>
           <button
@@ -311,3 +311,12 @@ const BackToLesson = () => {
   );
 };
 window.BackToLesson = BackToLesson;
+
+// ---------- Form control helper ----------
+const ControlField = ({ label, children }) => (
+  <div>
+    <label style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-subtle)", marginBottom: 6 }}>{label}</label>
+    {children}
+  </div>
+);
+window.ControlField = ControlField;

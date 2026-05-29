@@ -23,6 +23,14 @@ Lalu buka: **http://localhost:8000**
 
 > ⚠️ Jangan buka `index.html` langsung (double-click file). Browser akan blokir script karena CORS. Harus pakai HTTP server.
 
+Kalau mengubah file `.jsx`, rebuild bundle browser sebelum dipakai siswa:
+
+```bash
+node scripts/build-jsx-bundle.js
+```
+
+File produksi yang dimuat browser adalah `js/bundle/app.bundle.js`.
+
 ---
 
 ## Struktur Folder
@@ -33,12 +41,16 @@ sigma/
 ├── css/tokens.css          ← design system (warna, font, shadows)
 ├── assets/                 ← logo Labschool, MAJU, Pemuda Juara
 ├── js/
-│   ├── data/curriculum.js  ← 18 modul Informatika + 18 slot KKA/AI + 6 lab + 6 gim
+│   ├── data/curriculum.js  ← 18 modul Informatika + 18 modul KKA/AI + 6 lab + 6 gim
 │   ├── components/         ← Icon set, Navbar, Footer, ModuleCard
 │   ├── pages/              ← Landing, Dashboard, Catalog, Module, Playground
 │   ├── labs/               ← 6 Lab Maya interaktif
 │   ├── games/games.jsx     ← 6 Gim Edukasi
+│   ├── bundle/app.bundle.js ← bundle produksi hasil build JSX
+│   ├── vendor/             ← React/ReactDOM/Babel lokal
 │   └── app.jsx             ← Router
+└── scripts/
+    └── build-jsx-bundle.js ← build JSX menjadi bundle browser
 ```
 
 ---
@@ -95,10 +107,11 @@ Lab dan gim tidak ditampilkan sebagai menu utama. Keduanya muncul kontekstual di
 
 ## Status Pengembangan
 
-Ini **versi 1.0 dari prototype fungsional** — belum versi produksi. Yang sudah jalan:
+Ini **versi 1.0 menuju siap dipakai siswa**. Yang sudah jalan:
 - ✅ Routing hash-based (semua halaman navigasi)
 - ✅ Simulasi login lokal dengan beberapa profil siswa
-- ✅ Progress modul, XP, dan badge demo tersimpan di `localStorage`
+- ✅ Progress modul, XP, dan badge tersimpan di `localStorage`
+- ✅ Bundle browser lokal tanpa CDN runtime untuk React/Babel
 - ✅ 6 lab + 6 gim fully playable
 - ✅ Python simulator (subset: print, for, if/else, list, sum, len, +, -, *, /, %, //)
 - ✅ AI Tutor dengan fallback simulator
@@ -107,14 +120,14 @@ Yang belum:
 - ❌ Autentikasi real berbasis server
 - ❌ Backend cloud untuk sinkronisasi antar perangkat
 - ❌ Dashboard Guru (variant di design asli belum di-port)
-- ❌ Mobile-responsive optimal (layout desktop-first)
+- ❌ QA visual final di perangkat siswa sebelum 5 Juni
 
 ---
 
 ## Customisasi
 
-### Ganti / reset data user demo
-Buka `#/login` untuk memilih profil, membuat siswa baru, atau reset data demo. Data simulasi disimpan di `localStorage`.
+### Ganti / reset data siswa lokal
+Buka `#/login` untuk memilih profil, membuat siswa baru, atau reset data lokal. Data siswa tersimpan di `localStorage` perangkat/browser yang dipakai.
 
 ### Tambah modul baru
 Edit `window.CURRICULUM.modules` di file yang sama — tambahkan object dengan `id`, `subject`, `level`, `unit`, `title`, dll.

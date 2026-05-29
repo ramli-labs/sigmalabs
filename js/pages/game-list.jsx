@@ -10,6 +10,7 @@ const GameList = () => {
   const games = window.CURRICULUM.games.filter(g => g.level.includes(window.USER.level));
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? games : games.filter(g => g.subject === filter);
+  const dailyDone = Math.min(window.USER.completedGames.length, 3);
 
   return (
     <div className="page" style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -17,12 +18,12 @@ const GameList = () => {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 60px" }}>
         <Breadcrumb trail={[{ to: "/", label: "Beranda" }, { label: "Gim Edukasi" }]}/>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 40, alignItems: "center", margin: "16px 0 40px" }}>
+        <div className="list-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 40, alignItems: "center", margin: "16px 0 40px" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", background: "var(--ai-300)", border: "2px solid var(--ink)", borderRadius: "var(--r-full)", fontSize: 12, fontWeight: 800, marginBottom: 18, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               <Icon.GamePad width="14" height="14"/> {games.length} Gim Seru
             </div>
-            <h1 className="display" style={{ fontSize: 56, margin: 0, lineHeight: 1, color: "var(--navy-950)" }}>
+            <h1 className="display mobile-safe-title" style={{ fontSize: 56, margin: 0, lineHeight: 1, color: "var(--navy-950)" }}>
               Gim <span style={{ color: "var(--ai-500)", fontStyle: "italic" }}>Edukasi</span>
             </h1>
             <p style={{ fontSize: 16, color: "var(--ink-muted)", marginTop: 18, maxWidth: 520, lineHeight: 1.55 }}>
@@ -37,11 +38,11 @@ const GameList = () => {
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 16 }}>Bonus 100 XP + badge Streak Player jika berhasil</div>
               <div style={{ display: "flex", gap: 6 }}>
                 {[0, 1, 2].map(i => {
-                  const filled = i < window.USER.completedGames.length;
+                  const filled = i < dailyDone;
                   return <div key={i} style={{ flex: 1, height: 10, borderRadius: 6, background: filled ? "var(--gold-400)" : "rgba(255,255,255,0.15)" }}/>;
                 })}
               </div>
-              <div style={{ fontSize: 12, fontWeight: 700, marginTop: 10, color: "rgba(255,255,255,0.8)" }}>{window.USER.completedGames.length}/3 selesai</div>
+              <div style={{ fontSize: 12, fontWeight: 700, marginTop: 10, color: "rgba(255,255,255,0.8)" }}>{dailyDone}/3 selesai</div>
             </div>
           </div>
         </div>
@@ -59,7 +60,7 @@ const GameList = () => {
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+        <div className="list-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {filtered.map((g, i) => (
             <GameCard key={g.id} game={g} delay={i * 0.06}/>
           ))}

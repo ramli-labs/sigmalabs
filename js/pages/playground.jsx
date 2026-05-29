@@ -109,7 +109,7 @@ const Playground = () => {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "260px 1fr 340px", gap: 16, height: 600 }}>
+        <div className="playground-grid" style={{ display: "grid", gridTemplateColumns: "260px 1fr 340px", gap: 16, height: 600 }}>
           {/* Challenges list */}
           <div className="card" style={{ padding: 16, background: "white", overflowY: "auto" }}>
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.1em", color: "var(--ink-subtle)", textTransform: "uppercase", marginBottom: 10 }}>Tantangan</div>

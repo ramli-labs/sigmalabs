@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:drive.google.com)",
+      "WebFetch(domain:docs.google.com)",
+      "WebFetch(domain:drive.usercontent.google.com)",
+      "Bash(cp webfetch-1779698165608-1jj1x0.bin modul1.docx)",
+      "Bash(cp webfetch-1779698167070-fp8gbb.bin modul2.docx)",
+      "Bash(mkdir -p modul1_extracted modul2_extracted)",
+      "Bash(unzip -o modul1.docx -d modul1_extracted/)",
+      "Bash(unzip -o modul2.docx -d modul2_extracted/)",
+      "Bash(python3 -c ' *)",
+      "Bash(cp webfetch-1779698206347-9b58v4.bin modul3.docx)",
+      "Bash(cp webfetch-1779698208076-x2z2j9.bin modul4.docx)",
+      "Bash(cp webfetch-1779698210644-e31h3p.bin modul5.docx)",
+      "Bash(cp webfetch-1779698211988-ze8ap3.bin modul6.docx)"
+    ]
+  }
+}

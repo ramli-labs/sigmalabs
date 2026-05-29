@@ -25,9 +25,11 @@
         "inf8-1": { percent: 80, lessonsDone: 4, total: 5 },
         "inf8-2": { percent: 60, lessonsDone: 3, total: 5 },
         "inf8-5": { percent: 40, lessonsDone: 2, total: 5 },
+        "kka8-1": { percent: 100, lessonsDone: 4, total: 4 },
+        "kka8-2": { percent: 50, lessonsDone: 2, total: 4 },
       },
-      completedLabs: ["binary"],
-      completedGames: ["sort-race", "typing-binary"],
+      completedLabs: ["binary", "sorting"],
+      completedGames: ["sort-race", "typing-binary", "bug-hunter"],
     },
     {
       id: "aisha-7b",
@@ -43,9 +45,11 @@
       progress: {
         "inf7-1": { percent: 40, lessonsDone: 2, total: 5 },
         "inf7-3": { percent: 20, lessonsDone: 1, total: 5 },
+        "kka7-1": { percent: 100, lessonsDone: 4, total: 4 },
+        "kka7-2": { percent: 25, lessonsDone: 1, total: 4 },
       },
-      completedLabs: [],
-      completedGames: ["pattern-quiz"],
+      completedLabs: ["image-classifier"],
+      completedGames: ["pattern-quiz", "sort-race"],
     },
     {
       id: "bima-9c",
@@ -62,9 +66,12 @@
       progress: {
         "inf9-1": { percent: 60, lessonsDone: 3, total: 5 },
         "inf9-4": { percent: 20, lessonsDone: 1, total: 5 },
+        "kka9-1": { percent: 100, lessonsDone: 5, total: 5 },
+        "kka9-2": { percent: 60, lessonsDone: 3, total: 5 },
+        "kka9-5": { percent: 20, lessonsDone: 1, total: 5 },
       },
-      completedLabs: ["logic-gates"],
-      completedGames: ["caesar-cipher"],
+      completedLabs: ["logic-gates", "neural-playground"],
+      completedGames: ["caesar-cipher", "ai-ethics"],
     },
   ];
 

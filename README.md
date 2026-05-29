@@ -46,11 +46,14 @@ sigma/
 ## Isi Konten
 
 ### Modul Pembelajaran
-- **Informatika:** 18 modul aktif sesuai acuan folder "MODUL PEMBELAJARAN 2627" (6 modul per kelas).
-- **KKA/AI:** 18 slot modul disiapkan sebagai placeholder sampai modul final selesai.
+- **Informatika:** 18 modul aktif (6 per kelas), sesuai acuan folder "MODUL PEMBELAJARAN 2627".
+- **KKA/AI:** 18 modul aktif (6 per kelas), konten disesuaikan dari dokumen kurikulum KKA resmi.
 - **Kelas 7 Informatika:** BK Dasar, Komputer dan Cara Kerjanya, Jaringan Komputer dan Internet, Mesin Pencari dan Kualitas Informasi, Fakta/Opini/Hoaks/Media Digital, Ruang Publik Virtual dan Etika Digital.
+- **Kelas 7 KKA:** Pengelolaan Data & BK Dasar, Pemecahan Masalah Sistematis & Instruksi, Konten Digital Dasar: Slide & Infografis, Etika Digital & Diseminasi Konten, Literasi & Etika Kecerdasan Artifisial, Pemanfaatan KA Sederhana.
 - **Kelas 8 Informatika:** Himpunan Data Terstruktur I-II, Lembar Kerja Pengolah Data, Dokumen dan Presentasi, Produksi Konten Digital, Keamanan Digital.
-- **Kelas 9 Informatika:** Penerapan BK dan Data Terstruktur, Pseudocode dan Visual Programming, Rekam Jejak Digital dan Perundungan Siber, Identitas dan Data Pribadi, Mindfulness Digital, Projek Akhir Integrasi Fase D.
+- **Kelas 8 KKA:** Pengolahan Data dengan Spreadsheet, Instruksi Kompleks & Pemrograman Visual, Produksi Konten Audio & Video, Etika/Hak Cipta & Diseminasi Konten, Literasi & Etika Kecerdasan Artifisial, Eksperimen Data Latih & Klasifikasi KA.
+- **Kelas 9 Informatika:** Python Lanjutan, Pseudocode dan Visual Programming, Rekam Jejak Digital dan Perundungan Siber, Identitas dan Data Pribadi, Mindfulness Digital, Projek Akhir Integrasi Fase D.
+- **Kelas 9 KKA:** Spreadsheet & Analisis Data Lanjutan, Algoritma & Program Visual Lanjutan, Produksi Konten Digital Lanjutan, Strategi Diseminasi & Advokasi Literasi Digital, Literasi KA: Keamanan Data & DeepFake, Proyek Akhir Fase D.
 
 Setiap modul punya 4 tab: **Materi**, **Misi**, **Kuis** (interaktif, auto-grade), **AI Tutor** (chat — pakai `window.claude.complete` kalau ada, fallback ke simulator).
 

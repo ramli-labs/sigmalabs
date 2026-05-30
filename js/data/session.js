@@ -4,76 +4,28 @@
 // ============================================
 
 (function () {
-  const PROFILE_KEY = "sigma_profiles_v1";
-  const ACTIVE_KEY = "sigma_active_profile_v1";
+  const PROFILE_KEY = "sigma_profiles_v2";
+  const ACTIVE_KEY = "sigma_active_profile_v2";
 
-  const defaultProfiles = [
-    {
-      id: "rizky-8a",
-      name: "Rizky Pratama",
-      nickname: "Rizky",
-      level: 8,
-      class: "8A",
-      xp: 1280,
-      streak: 7,
-      badges: [
-        { id: "juara1", emoji: "🏆", label: "Juara 1 Kuis", color: "var(--gold-400)" },
-        { id: "streak7", emoji: "🔥", label: "Streak 7 hari", color: "var(--red-500)" },
-        { id: "digital", emoji: "💻", label: "Juara Digital", color: "var(--info-400)" },
-      ],
-      progress: {
-        "inf8-1": { percent: 67, lessonsDone: 4, total: 6 },
-        "inf8-2": { percent: 50, lessonsDone: 3, total: 6 },
-        "inf8-5": { percent: 33, lessonsDone: 2, total: 6 },
-        "kka8-1": { percent: 67, lessonsDone: 4, total: 6 },
-        "kka8-2": { percent: 33, lessonsDone: 2, total: 6 },
-      },
-      completedLabs: ["binary", "sorting"],
-      completedGames: ["sort-race", "typing-binary", "bug-hunter"],
-    },
-    {
-      id: "aisha-7b",
-      name: "Aisha Kamila",
-      nickname: "Aisha",
-      level: 7,
-      class: "7B",
-      xp: 540,
-      streak: 3,
-      badges: [
-        { id: "starter", emoji: "✨", label: "Mulai Belajar", color: "var(--ai-400)" },
-      ],
-      progress: {
-        "inf7-1": { percent: 33, lessonsDone: 2, total: 6 },
-        "inf7-3": { percent: 17, lessonsDone: 1, total: 6 },
-        "kka7-1": { percent: 67, lessonsDone: 4, total: 6 },
-        "kka7-2": { percent: 17, lessonsDone: 1, total: 6 },
-      },
-      completedLabs: ["image-classifier"],
-      completedGames: ["pattern-quiz", "sort-race"],
-    },
-    {
-      id: "bima-9c",
-      name: "Bima Saputra",
-      nickname: "Bima",
-      level: 9,
-      class: "9C",
-      xp: 920,
-      streak: 5,
-      badges: [
-        { id: "project", emoji: "🚀", label: "Siap Projek", color: "var(--gold-400)" },
-        { id: "secure", emoji: "🔐", label: "Aman Digital", color: "var(--green-500)" },
-      ],
-      progress: {
-        "inf9-1": { percent: 50, lessonsDone: 3, total: 6 },
-        "inf9-4": { percent: 17, lessonsDone: 1, total: 6 },
-        "kka9-1": { percent: 83, lessonsDone: 5, total: 6 },
-        "kka9-2": { percent: 50, lessonsDone: 3, total: 6 },
-        "kka9-5": { percent: 17, lessonsDone: 1, total: 6 },
-      },
-      completedLabs: ["logic-gates", "neural-playground"],
-      completedGames: ["caesar-cipher", "ai-ethics"],
-    },
-  ];
+  const defaultProfiles = [];
+  const guestProfile = {
+    id: "guest",
+    name: "Siswa",
+    nickname: "Siswa",
+    level: 7,
+    class: "7A",
+    xp: 0,
+    streak: 0,
+    badges: [],
+    progress: {},
+    completedLabs: [],
+    completedGames: [],
+    quests: {},
+    quizzes: {},
+    reflections: {},
+    gameScores: {},
+    isGuest: true,
+  };
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -115,6 +67,7 @@
       quizzes: safe.quizzes && typeof safe.quizzes === "object" ? safe.quizzes : {},
       reflections: safe.reflections && typeof safe.reflections === "object" ? safe.reflections : {},
       gameScores: safe.gameScores && typeof safe.gameScores === "object" ? safe.gameScores : {},
+      isGuest: safe.isGuest === true,
     };
   }
 
@@ -126,7 +79,6 @@
         if (Array.isArray(parsed) && parsed.length) return parsed.map(normalizeProfile);
       }
     } catch (e) {}
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(defaultProfiles));
     return clone(defaultProfiles);
   }
 
@@ -135,11 +87,11 @@
   }
 
   function getActiveId() {
-    return localStorage.getItem(ACTIVE_KEY) || readProfiles()[0]?.id;
+    return localStorage.getItem(ACTIVE_KEY) || readProfiles()[0]?.id || null;
   }
 
   function setActiveUser(user) {
-    const nextUser = normalizeProfile(user || clone(defaultProfiles[0]));
+    const nextUser = normalizeProfile(user || clone(guestProfile));
     if (nextUser.progress && window.CURRICULUM) {
       window.CURRICULUM.modules.forEach(mod => {
         if (nextUser.progress[mod.id]) {
@@ -160,10 +112,18 @@
     return readProfiles();
   }
 
+  function hasProfiles() {
+    return readProfiles().length > 0;
+  }
+
   function getActiveUser() {
     const profiles = readProfiles();
-    const active = profiles.find(p => p.id === getActiveId()) || profiles[0];
-    if (active) localStorage.setItem(ACTIVE_KEY, active.id);
+    const active = profiles.find(p => p.id === getActiveId()) || profiles[0] || null;
+    if (!active) {
+      localStorage.removeItem(ACTIVE_KEY);
+      return clone(guestProfile);
+    }
+    localStorage.setItem(ACTIVE_KEY, active.id);
     return active;
   }
 
@@ -437,9 +397,9 @@
   }
 
   function resetLocalData() {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(defaultProfiles));
-    localStorage.setItem(ACTIVE_KEY, defaultProfiles[0].id);
-    setActiveUser(clone(defaultProfiles[0]));
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(ACTIVE_KEY);
+    setActiveUser(clone(guestProfile));
     notify();
   }
 
@@ -448,6 +408,7 @@
 
   window.SIGMA_AUTH = {
     getProfiles,
+    hasProfiles,
     getActiveUser,
     login,
     createProfile,

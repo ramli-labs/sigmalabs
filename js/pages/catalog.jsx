@@ -35,7 +35,7 @@ const Catalog = ({ level }) => {
   return (
     <div className="page" style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar/>
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 60px" }}>
+      <div className="catalog-shell" style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 60px" }}>
         <Breadcrumb trail={[
           { to: "/", label: "Beranda" },
           { to: "/dashboard", label: "Dashboard" },
@@ -62,8 +62,8 @@ const Catalog = ({ level }) => {
         </div>
 
         {/* Tabs / filter */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "inline-flex", background: "white", border: "2px solid var(--ink)", borderRadius: "var(--r-full)", padding: 4, boxShadow: "var(--shadow-chunk-sm)" }}>
+        <div className="catalog-filter-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+          <div className="catalog-filter-tabs" style={{ display: "inline-flex", background: "white", border: "2px solid var(--ink)", borderRadius: "var(--r-full)", padding: 4, boxShadow: "var(--shadow-chunk-sm)" }}>
             {[
               { id: "all", label: `Semua (${modules.length})` },
               { id: "informatika", label: `Informatika (${countInf})`, color: "var(--info-500)" },

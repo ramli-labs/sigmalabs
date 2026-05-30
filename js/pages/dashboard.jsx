@@ -54,7 +54,35 @@ const Dashboard = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <StatPill icon="Bolt" label="XP" value={user.xp.toLocaleString()} color="var(--gold-500)"/>
             <StatPill icon="Fire" label="Streak" value={`${user.streak} hari`} color="var(--orange-500)"/>
-            <StatPill icon="Trophy" label="Badge" value={`${user.badges.length}/24`} color="var(--ai-500)"/>
+            <StatPill icon="Trophy" label="Badge" value={`${user.badges.length}`} color="var(--ai-500)"/>
+          </div>
+        </div>
+
+        <div className="card learning-guide-card" style={{ padding: 22, background: "white", marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 14 }}>
+            <div>
+              <div className="tag tag-gold" style={{ marginBottom: 8 }}>CARA PAKAI SINGKAT</div>
+              <h2 className="display" style={{ fontSize: 28, margin: 0 }}>Alur belajar di SIGMA</h2>
+            </div>
+            <Link to={`/modul/${continueModule?.id || "inf7-1"}`} className="btn btn-sm">
+              <Icon.Play width="14" height="14"/> Mulai dari modul aktif
+            </Link>
+          </div>
+          <div className="learning-guide-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+            {[
+              { n: "1", t: "Baca Materi", d: "Gunakan web ini sebagai penguat modul cetak." },
+              { n: "2", t: "Isi Refleksi", d: "Tulis pemahaman singkat agar tidak asal klik." },
+              { n: "3", t: "Selesaikan Misi", d: "Latihan kecil terbuka setelah materi selesai." },
+              { n: "4", t: "Kerjakan Kuis", d: "Kuis menjadi cek akhir pemahaman modul." },
+            ].map(item => (
+              <div key={item.n} style={{ padding: 14, borderRadius: 14, background: "var(--bg)", border: "1.5px solid var(--line)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--navy-950)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 12 }}>{item.n}</div>
+                  <div style={{ fontWeight: 900, fontSize: 13 }}>{item.t}</div>
+                </div>
+                <div style={{ color: "var(--ink-muted)", fontSize: 12, lineHeight: 1.45, marginTop: 8 }}>{item.d}</div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -86,7 +114,7 @@ const Dashboard = () => {
           <div className="card" style={{ padding: 22, background: "white" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ fontWeight: 800, fontSize: 16 }}>Badge Pemuda Juara</div>
-              <span style={{ fontSize: 12, color: "var(--ink-subtle)", fontWeight: 600 }}>{user.badges.length} / 24</span>
+              <span style={{ fontSize: 12, color: "var(--ink-subtle)", fontWeight: 600 }}>{user.badges.length} badge</span>
             </div>
             <div className="dashboard-badge-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
               {user.badges.map((b, i) => (
@@ -178,7 +206,7 @@ const Dashboard = () => {
           <div className="card" style={{ padding: 22, background: "var(--navy-950)", color: "white" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ fontWeight: 800, fontSize: 16 }}>🏆 Top 5 Kelas {user.class}</div>
-              <span style={{ fontSize: 12, color: "var(--gold-400)", fontWeight: 600 }}>Minggu ini</span>
+              <span style={{ fontSize: 12, color: "var(--gold-400)", fontWeight: 600 }}>Contoh</span>
             </div>
             {[
               { r: 1, n: "Aisha K.", xp: 2140 },
@@ -193,6 +221,9 @@ const Dashboard = () => {
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{p.xp} XP</div>
               </div>
             ))}
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 12, lineHeight: 1.45 }}>
+              Papan peringkat ini masih contoh (data simulasi). Peringkat antar-siswa yang nyata menyusul saat sinkronisasi server aktif.
+            </div>
           </div>
         </div>
       </div>

@@ -82,6 +82,8 @@ const Navbar = ({ variant = "light" }) => {
   const links = [
     { to: "/dashboard", label: "Dashboard" },
     { to: `/kelas/${window.USER.level}`, label: `Kelas ${window.USER.level}` },
+    { to: "/lab", label: "Lab Maya" },
+    { to: "/gim", label: "Gim" },
     { to: "/playground", label: "Playground" },
     { to: "/login", label: "Profil" },
   ];

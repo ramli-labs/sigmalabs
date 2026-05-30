@@ -24,9 +24,16 @@ const App = () => {
     return () => window.removeEventListener("sigma:userchange", onUserChange);
   }, []);
 
+  useEffect(() => {
+    if (route !== "/" && route !== "/login" && !window.SIGMA_AUTH.hasProfiles()) {
+      navigate("/login");
+    }
+  }, [route]);
+
   // Parse route
   if (route === "/" || route === "") return <Landing/>;
   if (route === "/login") return <LoginPage/>;
+  if (!window.SIGMA_AUTH.hasProfiles()) return <LoginPage/>;
   if (route === "/dashboard") return <Dashboard/>;
   if (route === "/playground") return <Playground/>;
 
@@ -53,13 +60,19 @@ const App = () => {
       />
     </div>
   );
+  // Jika lab/gim dibuka dari dalam modul (sebagai pengayaan misi), izinkan
+  // walau level default-nya beda — guru sengaja menautkannya ke pelajaran itu.
+  const cameFromModule = () => {
+    try { return (sessionStorage.getItem("sigma_lab_referrer") || "").includes("/modul/"); }
+    catch (e) { return false; }
+  };
   const canOpenLab = (id) => {
     const lab = window.CURRICULUM.labs.find(l => l.id === id);
-    return !lab || lab.level.includes(window.USER.level) ? null : lockedResource("Lab", lab.level);
+    return !lab || lab.level.includes(window.USER.level) || cameFromModule() ? null : lockedResource("Lab", lab.level);
   };
   const canOpenGame = (id) => {
     const game = window.CURRICULUM.games.find(g => g.id === id);
-    return !game || game.level.includes(window.USER.level) ? null : lockedResource("Gim", game.level);
+    return !game || game.level.includes(window.USER.level) || cameFromModule() ? null : lockedResource("Gim", game.level);
   };
 
   if (route === "/lab/sorting") return canOpenLab("sorting") || <SortingLab/>;

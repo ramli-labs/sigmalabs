@@ -185,6 +185,7 @@ const SortingLab = () => {
           <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 10, maxWidth: 680 }}>
             Lihat algoritma bekerja langkah-demi-langkah. <strong>Biru muda</strong> = sedang dibandingkan, <strong>kuning</strong> = sedang ditukar, <strong>hijau</strong> = sudah di tempat.
           </p>
+          {window.ResourceModuleLinks && <window.ResourceModuleLinks item={window.CURRICULUM.labs.find(l => l.id === "sorting")}/>}
         </div>
 
         {/* Controls */}

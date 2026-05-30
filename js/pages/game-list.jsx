@@ -10,7 +10,11 @@ const GameList = () => {
   const games = window.CURRICULUM.games.filter(g => g.level.includes(window.USER.level));
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? games : games.filter(g => g.subject === filter);
-  const dailyDone = Math.min(window.USER.completedGames.length, 3);
+  const todayStr = new Date().toDateString();
+  const dailyDone = Math.min(
+    Object.values(window.USER.gameScores || {}).filter(g => g.updatedAt && new Date(g.updatedAt).toDateString() === todayStr).length,
+    3
+  );
 
   return (
     <div className="page" style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -35,7 +39,7 @@ const GameList = () => {
             <div style={{ position: "relative" }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: "var(--gold-400)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Misi Harian</div>
               <div className="display" style={{ fontSize: 22, lineHeight: 1.2, marginBottom: 8 }}>Main 3 gim hari ini</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 16 }}>Bonus 100 XP + badge Streak Player jika berhasil</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 16 }}>Target pemanasan: pilih gim yang sesuai modul, lalu ulangi sampai konsepnya terasa.</div>
               <div style={{ display: "flex", gap: 6 }}>
                 {[0, 1, 2].map(i => {
                   const filled = i < dailyDone;
@@ -76,7 +80,7 @@ const GameCard = ({ game, delay = 0 }) => {
   const I = Icon[game.icon];
   const done = window.USER.completedGames.includes(game.id);
   return (
-    <Link to={`/gim/${game.id}`} className="card card-hover fade-in-up" style={{
+    <Link to={`/gim/${game.id}`} onClick={() => { try { sessionStorage.removeItem("sigma_lab_referrer"); } catch (e) {} }} className="card card-hover fade-in-up" style={{
       padding: 22, background: "white", textDecoration: "none", color: "inherit", display: "block",
       animationDelay: `${delay}s`, position: "relative", overflow: "hidden",
     }}>
@@ -96,6 +100,7 @@ const GameCard = ({ game, delay = 0 }) => {
       </div>
       <div className="display" style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.2, marginBottom: 6 }}>{game.title}</div>
       <div style={{ fontSize: 13, color: "var(--ink-muted)", marginBottom: 14, lineHeight: 1.5, minHeight: 40 }}>{game.tagline}</div>
+      {window.ResourceModuleLinks && <window.ResourceModuleLinks item={game} compact/>}
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "var(--ink-subtle)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         <span><Icon.Clock width="12" height="12" style={{ verticalAlign: "-2px" }}/> {game.duration}</span>
         <span style={{ color: "var(--gold-500)" }}><Icon.Bolt width="12" height="12" style={{ verticalAlign: "-2px" }}/> +{game.xpReward} XP</span>

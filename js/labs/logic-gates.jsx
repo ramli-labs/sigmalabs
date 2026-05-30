@@ -47,6 +47,7 @@ const LogicGatesLab = () => {
           <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 10, maxWidth: 680 }}>
             Gerbang logika adalah "atom" dari semua komputer. Setiap operasi di CPU, dari hitung 1+1 sampai render video 4K, dibangun dari jutaan gerbang ini.
           </p>
+          {window.ResourceModuleLinks && <window.ResourceModuleLinks item={window.CURRICULUM.labs.find(l => l.id === "logic-gates")}/>}
         </div>
 
         {/* Gate picker */}

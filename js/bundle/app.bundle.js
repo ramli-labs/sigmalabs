@@ -514,6 +514,12 @@ const Navbar = ({
     to: `/kelas/${window.USER.level}`,
     label: `Kelas ${window.USER.level}`
   }, {
+    to: "/lab",
+    label: "Lab Maya"
+  }, {
+    to: "/gim",
+    label: "Gim"
+  }, {
     to: "/playground",
     label: "Playground"
   }, {
@@ -1931,6 +1937,7 @@ const LoginPage = () => {
       minHeight: "100vh"
     }
   }, React.createElement(Navbar, null), React.createElement("main", {
+    className: "auth-shell",
     style: {
       maxWidth: 1120,
       margin: "0 auto",
@@ -1965,6 +1972,60 @@ const LoginPage = () => {
       marginTop: 14
     }
   }, "Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini."), React.createElement("div", {
+    className: "learning-guide-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+      gap: 10,
+      marginTop: 22
+    }
+  }, [{
+    n: "1",
+    t: "Buat Profil",
+    d: "Pilih kelas dan rombel sesuai perangkat yang dipakai."
+  }, {
+    n: "2",
+    t: "Pilih Modul",
+    d: "Ikuti modul yang diarahkan guru atau lanjut dari dashboard."
+  }, {
+    n: "3",
+    t: "Tuntaskan Alur",
+    d: "Baca materi, isi refleksi, kerjakan misi, lalu kuis."
+  }].map(item => React.createElement("div", {
+    key: item.n,
+    style: {
+      padding: 14,
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 26,
+      height: 26,
+      borderRadius: "50%",
+      background: "var(--gold-400)",
+      border: "2px solid var(--ink)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: 900,
+      fontSize: 12
+    }
+  }, item.n), React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13,
+      marginTop: 10
+    }
+  }, item.t), React.createElement("div", {
+    style: {
+      color: "var(--ink-muted)",
+      fontSize: 12,
+      lineHeight: 1.45,
+      marginTop: 4
+    }
+  }, item.d)))), React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -1972,7 +2033,47 @@ const LoginPage = () => {
       marginTop: 28
     },
     className: "profile-grid"
-  }, profiles.map(profile => React.createElement("button", {
+  }, profiles.length === 0 && React.createElement("div", {
+    className: "card",
+    style: {
+      gridColumn: "1 / -1",
+      padding: 24,
+      background: "white",
+      border: "2px dashed var(--line-strong)"
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      background: "var(--bg-cream)",
+      border: "2px solid var(--ink)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, React.createElement(Icon.Users, {
+    width: "22",
+    height: "22"
+  })), React.createElement("div", null, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      color: "var(--navy-950)"
+    }
+  }, "Belum ada profil siswa"), React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      lineHeight: 1.5,
+      marginTop: 3
+    }
+  }, "Buat profil sesuai kelasmu. Progress akan dimulai dari kosong dan tersimpan di perangkat ini.")))), profiles.map(profile => React.createElement("button", {
     key: profile.id,
     onClick: () => enterAs(profile.id),
     className: "card card-hover",
@@ -2158,7 +2259,7 @@ const LoginPage = () => {
   }, React.createElement(Icon.Refresh, {
     width: "16",
     height: "16"
-  }), " Reset Data Lokal"))))), React.createElement(Footer, null));
+  }), " Kosongkan Data Lokal"))))), React.createElement(Footer, null));
 };
 window.LoginPage = LoginPage;
 
@@ -2306,9 +2407,104 @@ const Dashboard = () => {
   }), React.createElement(StatPill, {
     icon: "Trophy",
     label: "Badge",
-    value: `${user.badges.length}/24`,
+    value: `${user.badges.length}`,
     color: "var(--ai-500)"
   }))), React.createElement("div", {
+    className: "card learning-guide-card",
+    style: {
+      padding: 22,
+      background: "white",
+      marginBottom: 24
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 16,
+      flexWrap: "wrap",
+      marginBottom: 14
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "tag tag-gold",
+    style: {
+      marginBottom: 8
+    }
+  }, "CARA PAKAI SINGKAT"), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: 0
+    }
+  }, "Alur belajar di SIGMA")), React.createElement(Link, {
+    to: `/modul/${continueModule?.id || "inf7-1"}`,
+    className: "btn btn-sm"
+  }, React.createElement(Icon.Play, {
+    width: "14",
+    height: "14"
+  }), " Mulai dari modul aktif")), React.createElement("div", {
+    className: "learning-guide-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+      gap: 12
+    }
+  }, [{
+    n: "1",
+    t: "Baca Materi",
+    d: "Gunakan web ini sebagai penguat modul cetak."
+  }, {
+    n: "2",
+    t: "Isi Refleksi",
+    d: "Tulis pemahaman singkat agar tidak asal klik."
+  }, {
+    n: "3",
+    t: "Selesaikan Misi",
+    d: "Latihan kecil terbuka setelah materi selesai."
+  }, {
+    n: "4",
+    t: "Kerjakan Kuis",
+    d: "Kuis menjadi cek akhir pemahaman modul."
+  }].map(item => React.createElement("div", {
+    key: item.n,
+    style: {
+      padding: 14,
+      borderRadius: 14,
+      background: "var(--bg)",
+      border: "1.5px solid var(--line)"
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 26,
+      height: 26,
+      borderRadius: "50%",
+      background: "var(--navy-950)",
+      color: "white",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: 900,
+      fontSize: 12
+    }
+  }, item.n), React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13
+    }
+  }, item.t)), React.createElement("div", {
+    style: {
+      color: "var(--ink-muted)",
+      fontSize: 12,
+      lineHeight: 1.45,
+      marginTop: 8
+    }
+  }, item.d))))), React.createElement("div", {
     className: "dashboard-top-grid",
     style: {
       display: "grid",
@@ -2436,7 +2632,7 @@ const Dashboard = () => {
       color: "var(--ink-subtle)",
       fontWeight: 600
     }
-  }, user.badges.length, " / 24")), React.createElement("div", {
+  }, user.badges.length, " badge")), React.createElement("div", {
     className: "dashboard-badge-grid",
     style: {
       display: "grid",
@@ -2643,7 +2839,7 @@ const Dashboard = () => {
       color: "var(--gold-400)",
       fontWeight: 600
     }
-  }, "Minggu ini")), [{
+  }, "Contoh")), [{
     r: 1,
     n: "Aisha K.",
     xp: 2140
@@ -2691,7 +2887,14 @@ const Dashboard = () => {
       fontSize: 13,
       fontWeight: 700
     }
-  }, p.xp, " XP")))))), React.createElement(Footer, null));
+  }, p.xp, " XP"))), React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: "rgba(255,255,255,0.5)",
+      marginTop: 12,
+      lineHeight: 1.45
+    }
+  }, "Papan peringkat ini masih contoh (data simulasi). Peringkat antar-siswa yang nyata menyusul saat sinkronisasi server aktif.")))), React.createElement(Footer, null));
 };
 const StatPill = ({
   icon,
@@ -2880,6 +3083,7 @@ const Catalog = ({
       minHeight: "100vh"
     }
   }, React.createElement(Navbar, null), React.createElement("div", {
+    className: "catalog-shell",
     style: {
       maxWidth: 1280,
       margin: "0 auto",
@@ -2964,6 +3168,7 @@ const Catalog = ({
     onClick: () => setFilter("kka"),
     active: filter === "kka"
   }))), React.createElement("div", {
+    className: "catalog-filter-row",
     style: {
       display: "flex",
       alignItems: "center",
@@ -2973,6 +3178,7 @@ const Catalog = ({
       gap: 12
     }
   }, React.createElement("div", {
+    className: "catalog-filter-tabs",
     style: {
       display: "inline-flex",
       background: "white",
@@ -3255,6 +3461,7 @@ const ModuleDetail = ({
       minHeight: "100vh"
     }
   }, React.createElement(Navbar, null), React.createElement("section", {
+    className: "module-header-shell",
     style: {
       padding: "24px 32px 20px",
       maxWidth: 1280,
@@ -3386,13 +3593,92 @@ const ModuleDetail = ({
   }, React.createElement(Icon.Clock, {
     width: "16",
     height: "16"
-  }), " ", mod.duration))), React.createElement("section", {
+  }), " ", mod.duration)), React.createElement("div", {
+    className: "module-learning-flow",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+      gap: 10,
+      marginTop: 14
+    }
+  }, [{
+    n: "1",
+    t: "Materi",
+    d: "Baca penguat modul cetak",
+    done: stepStatus.materiDone,
+    active: tab === "materi"
+  }, {
+    n: "2",
+    t: "Refleksi",
+    d: "Tulis bukti pemahaman",
+    done: stepStatus.materiDone,
+    active: tab === "materi"
+  }, {
+    n: "3",
+    t: "Misi",
+    d: "Latihan setelah materi",
+    done: stepStatus.misiDone,
+    active: tab === "quest",
+    locked: !stepStatus.misiUnlocked
+  }, {
+    n: "4",
+    t: "Kuis",
+    d: "Cek akhir modul",
+    done: stepStatus.kuisDone,
+    active: tab === "kuis",
+    locked: !stepStatus.kuisUnlocked
+  }].map(item => React.createElement("div", {
+    key: item.n,
+    style: {
+      padding: 12,
+      borderRadius: 14,
+      background: item.active ? "white" : "rgba(255,255,255,0.62)",
+      border: item.active ? `2px solid ${subj.color}` : "1.5px solid var(--line)",
+      opacity: item.locked ? 0.58 : 1
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 24,
+      height: 24,
+      borderRadius: "50%",
+      background: item.done ? "var(--green-500)" : item.locked ? "var(--line)" : subj.color,
+      color: item.locked ? "var(--ink-muted)" : "white",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: 900,
+      fontSize: 11
+    }
+  }, item.done ? React.createElement(Icon.Check, {
+    width: "13",
+    height: "13"
+  }) : item.n), React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 900
+    }
+  }, item.t)), React.createElement("div", {
+    style: {
+      color: "var(--ink-muted)",
+      fontSize: 11,
+      lineHeight: 1.4,
+      marginTop: 6
+    }
+  }, item.d))))), React.createElement("section", {
+    className: "module-tabs-shell",
     style: {
       padding: "0 32px",
       maxWidth: 1280,
       margin: "0 auto"
     }
   }, React.createElement("div", {
+    className: "module-tabs-scroll",
     style: {
       display: "flex",
       gap: 4,
@@ -3430,6 +3716,7 @@ const ModuleDetail = ({
       transition: "all 0.15s"
     }
   }, t.label, t.unlocked === false ? " 🔒" : "")))), React.createElement("section", {
+    className: "module-content-shell",
     style: {
       padding: "28px 32px 60px",
       maxWidth: 1280,
@@ -5558,6 +5845,7 @@ const KuisTab = ({
         overflow: "hidden"
       }
     }, React.createElement("div", {
+      className: "quiz-card-header",
       style: {
         padding: "26px 30px",
         borderBottom: "1.5px solid var(--line)",
@@ -5610,6 +5898,7 @@ const KuisTab = ({
       value: `+${quizRecord.xpAwarded || 0}`,
       color: "var(--gold-500)"
     }))), React.createElement("div", {
+      className: "quiz-card-body",
       style: {
         padding: 30
       }
@@ -5651,6 +5940,7 @@ const KuisTab = ({
       overflow: "hidden"
     }
   }, React.createElement("div", {
+    className: "quiz-card-header",
     style: {
       padding: "26px 30px",
       borderBottom: "1.5px solid var(--line)",
@@ -5707,6 +5997,7 @@ const KuisTab = ({
     value: `${score}/${questions.length}`,
     color: score >= questions.length * 0.7 ? "var(--green-500)" : score >= questions.length / 2 ? "var(--orange-500)" : "var(--red-500)"
   }))), React.createElement("div", {
+    className: "quiz-progress-strip",
     style: {
       padding: "18px 30px",
       borderBottom: "1px solid var(--line)",
@@ -5760,6 +6051,7 @@ const KuisTab = ({
       }
     }, i + 1);
   })))), React.createElement("div", {
+    className: "quiz-card-body",
     style: {
       padding: "24px 30px 30px"
     }
@@ -7630,6 +7922,10 @@ const MODULE_PROFILES = {
         title: "Langkah Respons",
         reason: "Centang langkah aman saat menghadapi perundungan siber.",
         items: ["Jangan membalas kasar", "Simpan bukti", "Blokir bila perlu", "Lapor orang dewasa tepercaya"]
+      }, {
+        type: "game",
+        id: "ai-ethics",
+        reason: "Menguji keputusan etis saat teknologi berdampak pada orang lain, privasi, dan keselamatan."
       }]
     })
   },
@@ -7660,6 +7956,10 @@ const MODULE_PROFILES = {
         title: "Perlindungan Data",
         reason: "Centang langkah yang membantu melindungi data.",
         items: ["Cek izin aplikasi", "Batasi lokasi", "Jangan unggah identitas", "Pakai akun privat"]
+      }, {
+        type: "game",
+        id: "caesar-cipher",
+        reason: "Menguatkan gagasan bahwa data dan pesan perlu dilindungi, dimulai dari konsep enkripsi sederhana."
       }]
     })
   },
@@ -7683,6 +7983,10 @@ const MODULE_PROFILES = {
         title: "Rencana Perbaikan",
         reason: "Pilih kebiasaan digital yang ingin kamu perbaiki minggu ini.",
         choices: ["Batasi notifikasi", "Jeda layar", "Fokus tugas", "Tidur lebih teratur"]
+      }, {
+        type: "game",
+        id: "pattern-quiz",
+        reason: "Melatih fokus singkat dan kesadaran pola sebelum merefleksikan kebiasaan digital."
       }]
     })
   },
@@ -7707,6 +8011,10 @@ const MODULE_PROFILES = {
         title: "Pecah Proyek",
         reason: "Pilih komponen proyek yang perlu disiapkan.",
         items: ["Masalah", "Data", "Solusi", "Produk digital", "Pembagian tugas"]
+      }, {
+        type: "lab",
+        id: "sorting",
+        reason: "Membantu melihat bagaimana data proyek dapat diurutkan, dibandingkan, dan dianalisis sebelum dipresentasikan."
       }]
     })
   },
@@ -8107,6 +8415,10 @@ const MODULE_PROFILES = {
         title: "Evaluasi Kampanye",
         reason: "Centang indikator keberhasilan kampanye digital.",
         items: ["Pesan konsisten", "Audiens merespons", "Konten sesuai platform", "Tim berkoordinasi", "Ada data untuk perbaikan"]
+      }, {
+        type: "game",
+        id: "pattern-quiz",
+        reason: "Melatih membaca pola respons audiens dan memilih strategi konten yang lebih terarah."
       }]
     })
   },
@@ -8131,6 +8443,10 @@ const MODULE_PROFILES = {
         title: "Pilih Platform Advokasi",
         reason: "Tentukan platform yang paling tepat untuk menjangkau teman sebaya.",
         choices: ["Instagram Stories", "Video pendek", "Poster digital", "Diskusi kelas"]
+      }, {
+        type: "game",
+        id: "ai-ethics",
+        reason: "Membantu menimbang dampak keputusan teknologi sebelum menyusun pesan advokasi literasi digital."
       }]
     })
   },
@@ -8161,6 +8477,10 @@ const MODULE_PROFILES = {
           "AI digunakan tanpa pengawasan": "Regulasi AI",
           "Pengguna tidak menyadari manipulasi": "Edukasi pengguna"
         }
+      }, {
+        type: "lab",
+        id: "image-classifier",
+        reason: "Menunjukkan secara langsung bagaimana sistem AI membaca fitur visual dan mengapa hasil prediksi perlu dikritisi."
       }]
     })
   },
@@ -8185,6 +8505,10 @@ const MODULE_PROFILES = {
         title: "Cek Kesiapan Proyek",
         reason: "Pastikan semua komponen proyek sudah siap.",
         items: ["Masalah jelas dan relevan", "Data mendukung solusi", "Prototipe digital berfungsi", "Presentasi ringkas dan jelas", "Refleksi mencakup pelajaran yang didapat"]
+      }, {
+        type: "lab",
+        id: "neural-playground",
+        reason: "Memberi contoh konkret bagaimana data, pelatihan, akurasi, dan iterasi bisa masuk ke proyek akhir berbasis KA."
       }]
     })
   }
@@ -8269,7 +8593,7 @@ function getCuratedModuleQuest(mod, topic, topicIndex) {
     title: `Misi: ${topic}`,
     mission: quest.mission,
     concepts: quest.concepts || profile.concepts,
-    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 1) : [secondary])]
+    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 2) : [secondary])]
   };
 }
 function getFunFact(id) {
@@ -8318,6 +8642,9 @@ function getFunFact(id) {
 }
 function getQuizQuestions(id) {
   const mod = window.CURRICULUM.modules.find(m => m.id === id);
+  if (window.QUIZ_BANK_V2 && Array.isArray(window.QUIZ_BANK_V2[id]) && window.QUIZ_BANK_V2[id].length) {
+    return window.QUIZ_BANK_V2[id];
+  }
   const banks = {
     "inf7-1": [{
       difficulty: "Mudah",
@@ -10810,6 +11137,74 @@ const {
   useEffect,
   useRef
 } = React;
+const ResourceModuleLinks = ({
+  item,
+  compact = false
+}) => {
+  if (!item) return null;
+  const refs = (item.moduleRefs || []).map(id => window.CURRICULUM.modules.find(m => m.id === id)).filter(Boolean);
+  const skills = item.skills || [];
+  if (!refs.length && !skills.length) return null;
+  return React.createElement("div", {
+    className: compact ? "" : "card-soft",
+    style: {
+      padding: compact ? 0 : 16,
+      background: compact ? "transparent" : "var(--bg-cream)",
+      border: compact ? "none" : "1.5px solid var(--line)",
+      borderRadius: compact ? 0 : 14,
+      marginTop: compact ? 12 : 16
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.08em",
+      textTransform: "uppercase",
+      marginBottom: 8
+    }
+  }, "Penguat Modul Cetak"), refs.length > 0 && React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6,
+      marginBottom: skills.length ? 10 : 0
+    }
+  }, refs.slice(0, compact ? 2 : 4).map(mod => React.createElement("span", {
+    key: mod.id,
+    className: "tag",
+    style: {
+      background: "white",
+      color: "var(--navy-950)",
+      border: "1px solid var(--line)"
+    }
+  }, "Kelas ", mod.level, " \u2022 Unit ", mod.unit))), !compact && refs.length > 0 && React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      lineHeight: 1.5,
+      marginBottom: skills.length ? 10 : 0
+    }
+  }, refs.slice(0, 3).map(mod => mod.title).join(" • ")), skills.length > 0 && React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }
+  }, skills.map(skill => React.createElement("span", {
+    key: skill,
+    style: {
+      padding: "5px 9px",
+      borderRadius: "var(--r-full)",
+      background: compact ? "var(--bg)" : "white",
+      border: "1px solid var(--line)",
+      fontSize: 11,
+      fontWeight: 800,
+      color: "var(--ink-muted)"
+    }
+  }, skill))));
+};
+window.ResourceModuleLinks = ResourceModuleLinks;
 const LabList = () => {
   const labs = window.CURRICULUM.labs.filter(l => l.level.includes(window.USER.level));
   const [filter, setFilter] = useState("all");
@@ -10975,6 +11370,11 @@ const LabCard = ({
   const done = window.USER.completedLabs.includes(lab.id);
   return React.createElement(Link, {
     to: `/lab/${lab.id}`,
+    onClick: () => {
+      try {
+        sessionStorage.removeItem("sigma_lab_referrer");
+      } catch (e) {}
+    },
     className: "card card-hover fade-in-up",
     style: {
       padding: 22,
@@ -11052,7 +11452,10 @@ const LabCard = ({
       lineHeight: 1.5,
       minHeight: 40
     }
-  }, lab.tagline), React.createElement("div", {
+  }, lab.tagline), React.createElement(ResourceModuleLinks, {
+    item: lab,
+    compact: true
+  }), React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
@@ -11101,7 +11504,8 @@ const GameList = () => {
   const games = window.CURRICULUM.games.filter(g => g.level.includes(window.USER.level));
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? games : games.filter(g => g.subject === filter);
-  const dailyDone = Math.min(window.USER.completedGames.length, 3);
+  const todayStr = new Date().toDateString();
+  const dailyDone = Math.min(Object.values(window.USER.gameScores || {}).filter(g => g.updatedAt && new Date(g.updatedAt).toDateString() === todayStr).length, 3);
   return React.createElement("div", {
     className: "page",
     style: {
@@ -11216,7 +11620,7 @@ const GameList = () => {
       color: "rgba(255,255,255,0.7)",
       marginBottom: 16
     }
-  }, "Bonus 100 XP + badge Streak Player jika berhasil"), React.createElement("div", {
+  }, "Target pemanasan: pilih gim yang sesuai modul, lalu ulangi sampai konsepnya terasa."), React.createElement("div", {
     style: {
       display: "flex",
       gap: 6
@@ -11288,6 +11692,11 @@ const GameCard = ({
   const done = window.USER.completedGames.includes(game.id);
   return React.createElement(Link, {
     to: `/gim/${game.id}`,
+    onClick: () => {
+      try {
+        sessionStorage.removeItem("sigma_lab_referrer");
+      } catch (e) {}
+    },
     className: "card card-hover fade-in-up",
     style: {
       padding: 22,
@@ -11365,7 +11774,10 @@ const GameCard = ({
       lineHeight: 1.5,
       minHeight: 40
     }
-  }, game.tagline), React.createElement("div", {
+  }, game.tagline), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: game,
+    compact: true
+  }), React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
@@ -11758,7 +12170,9 @@ const SortingLab = () => {
       marginTop: 10,
       maxWidth: 680
     }
-  }, "Lihat algoritma bekerja langkah-demi-langkah. ", React.createElement("strong", null, "Biru muda"), " = sedang dibandingkan, ", React.createElement("strong", null, "kuning"), " = sedang ditukar, ", React.createElement("strong", null, "hijau"), " = sudah di tempat.")), React.createElement("div", {
+  }, "Lihat algoritma bekerja langkah-demi-langkah. ", React.createElement("strong", null, "Biru muda"), " = sedang dibandingkan, ", React.createElement("strong", null, "kuning"), " = sedang ditukar, ", React.createElement("strong", null, "hijau"), " = sudah di tempat."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: window.CURRICULUM.labs.find(l => l.id === "sorting")
+  })), React.createElement("div", {
     className: "card",
     style: {
       padding: 20,
@@ -12117,7 +12531,9 @@ const BinaryLab = () => {
       marginTop: 10,
       maxWidth: 680
     }
-  }, "Klik setiap bit untuk menyalakan (1) atau mematikan (0). Lihat hasil konversi ke desimal dan heksadesimal secara real-time.")), React.createElement("div", {
+  }, "Klik setiap bit untuk menyalakan (1) atau mematikan (0). Lihat hasil konversi ke desimal dan heksadesimal secara real-time."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: window.CURRICULUM.labs.find(l => l.id === "binary")
+  })), React.createElement("div", {
     className: "card",
     style: {
       padding: 36,
@@ -12514,7 +12930,9 @@ const LogicGatesLab = () => {
       marginTop: 10,
       maxWidth: 680
     }
-  }, "Gerbang logika adalah \"atom\" dari semua komputer. Setiap operasi di CPU, dari hitung 1+1 sampai render video 4K, dibangun dari jutaan gerbang ini.")), React.createElement("div", {
+  }, "Gerbang logika adalah \"atom\" dari semua komputer. Setiap operasi di CPU, dari hitung 1+1 sampai render video 4K, dibangun dari jutaan gerbang ini."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: window.CURRICULUM.labs.find(l => l.id === "logic-gates")
+  })), React.createElement("div", {
     style: {
       display: "flex",
       gap: 10,
@@ -13092,7 +13510,9 @@ const NeuralLab = () => {
       marginTop: 10,
       maxWidth: 680
     }
-  }, "Perceptron (neuron tunggal) mencoba belajar pola dari 4 titik data. Perhatikan garis keputusan berubah saat neural network \"belajar\".")), React.createElement("div", {
+  }, "Perceptron (neuron tunggal) mencoba belajar pola dari 4 titik data. Perhatikan garis keputusan berubah saat neural network \"belajar\"."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: window.CURRICULUM.labs.find(l => l.id === "neural-playground")
+  })), React.createElement("div", {
     className: "lab-main-grid",
     style: {
       display: "grid",
@@ -13441,6 +13861,7 @@ const ImageClassifierLab = () => {
     const c = canvasRef.current;
     const ctx = c.getContext("2d");
     const img = ctx.getImageData(0, 0, c.width, c.height).data;
+    const pts = [];
     let minX = c.width,
       minY = c.height,
       maxX = 0,
@@ -13451,6 +13872,7 @@ const ImageClassifierLab = () => {
         const i = (y * c.width + x) * 4;
         if (img[i] < 200 && img[i + 3] > 50) {
           drawnPx++;
+          pts.push(x, y);
           if (x < minX) minX = x;
           if (x > maxX) maxX = x;
           if (y < minY) minY = y;
@@ -13504,27 +13926,78 @@ const ImageClassifierLab = () => {
     const topWidth = bandAvg(0.05, 0.28);
     const midWidth = bandAvg(0.38, 0.62);
     const bottomWidth = bandAvg(0.72, 0.95);
+    let cxp = 0,
+      cyp = 0;
+    for (let k = 0; k < pts.length; k += 2) {
+      cxp += pts[k];
+      cyp += pts[k + 1];
+    }
+    cxp /= drawnPx;
+    cyp /= drawnPx;
+    const SECTORS = 60;
+    const maxR = new Array(SECTORS).fill(0);
+    for (let k = 0; k < pts.length; k += 2) {
+      const dx = pts[k] - cxp,
+        dy = pts[k + 1] - cyp;
+      const r = Math.sqrt(dx * dx + dy * dy);
+      let s = Math.floor((Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI) * SECTORS) % SECTORS;
+      if (s < 0) s += SECTORS;
+      if (r > maxR[s]) maxR[s] = r;
+    }
+    for (let s = 0; s < SECTORS; s++) {
+      if (maxR[s] > 0) continue;
+      let lv = 0,
+        rv = 0;
+      for (let t = 1; t <= SECTORS; t++) {
+        const v = maxR[(s - t + SECTORS) % SECTORS];
+        if (v > 0) {
+          lv = v;
+          break;
+        }
+      }
+      for (let t = 1; t <= SECTORS; t++) {
+        const v = maxR[(s + t) % SECTORS];
+        if (v > 0) {
+          rv = v;
+          break;
+        }
+      }
+      maxR[s] = (lv + rv) / 2;
+    }
+    const meanR = maxR.reduce((a, b) => a + b, 0) / SECTORS || 1;
+    const cv = Math.sqrt(maxR.reduce((a, b) => a + (b - meanR) * (b - meanR), 0) / SECTORS) / meanR;
+    let peaks = 0;
+    for (let s = 0; s < SECTORS; s++) {
+      const v = maxR[s];
+      if (v < meanR * 1.08) continue;
+      let isMax = true;
+      for (let d = 1; d <= 3; d++) {
+        if (maxR[(s - d + SECTORS) % SECTORS] > v || maxR[(s + d) % SECTORS] > v) {
+          isMax = false;
+          break;
+        }
+      }
+      if (isMax) peaks++;
+    }
     const scores = {
       lingkaran: 0,
       persegi: 0,
       segitiga: 0,
       bintang: 0
     };
-    if (aspectRatio > 0.75 && aspectRatio < 1.33) {
-      scores.lingkaran += 2;
-      scores.persegi += 2;
+    if (cv < 0.12) scores.lingkaran += 5;else if (cv < 0.18) scores.lingkaran += 2;
+    if (peaks <= 1 && cv < 0.16) scores.lingkaran += 2;
+    if (peaks >= 5 && cv > 0.22) scores.bintang += 7;else if (peaks >= 4 && cv > 0.20) scores.bintang += 4;
+    if (cv > 0.30) scores.bintang += 2;
+    if (peaks === 3) scores.segitiga += 4;
+    if (bottomWidth > topWidth * 1.4) scores.segitiga += 3;
+    if (peaks === 4) scores.persegi += 4;
+    if (Math.abs(topWidth - bottomWidth) < w * 0.22 && Math.abs(midWidth - bottomWidth) < w * 0.22 && cv < 0.22) scores.persegi += 3;
+    if (aspectRatio > 0.7 && aspectRatio < 1.4) {
+      scores.lingkaran += 1;
+      scores.persegi += 1;
       scores.bintang += 1;
     }
-    if (fillRatio > 0.15) scores.persegi += 2;
-    if (fillRatio < 0.2) {
-      scores.lingkaran += 1;
-      scores.segitiga += 1;
-      scores.bintang += 2;
-    }
-    if (bottomWidth > topWidth * 1.5 && midWidth > topWidth * 1.2) scores.segitiga += 5;
-    if (Math.abs(topWidth - bottomWidth) < w * 0.25 && Math.abs(midWidth - bottomWidth) < w * 0.25) scores.persegi += 2;
-    if (midWidth > topWidth * 1.25 && midWidth > bottomWidth * 1.25) scores.lingkaran += 2;
-    if (aspectRatio < 0.9) scores.segitiga += 1;
     const corners = [{
       x: minX + 8,
       y: minY + 8
@@ -13540,10 +14013,9 @@ const ImageClassifierLab = () => {
     }];
     let cornerHits = 0;
     corners.forEach(p => {
-      if (p.x < 0 || p.y < 0 || p.x >= c.width || p.y >= c.height) return;
       let hit = false;
-      for (let dy = -5; dy <= 5; dy++) {
-        for (let dx = -5; dx <= 5; dx++) {
+      for (let dy = -6; dy <= 6 && !hit; dy++) {
+        for (let dx = -6; dx <= 6; dx++) {
           const x = p.x + dx,
             y = p.y + dy;
           if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
@@ -13553,13 +14025,11 @@ const ImageClassifierLab = () => {
             break;
           }
         }
-        if (hit) break;
       }
       if (hit) cornerHits++;
     });
-    if (cornerHits >= 3 && !(bottomWidth > topWidth * 1.5)) scores.persegi += 3;
-    if (cornerHits <= 1) scores.lingkaran += 3;
-    if (cornerHits === 2) scores.segitiga += 2;
+    if (cornerHits >= 4 && cv < 0.22) scores.persegi += 3;
+    if (cornerHits <= 1 && cv < 0.14) scores.lingkaran += 2;
     const [best] = Object.entries(scores).sort((a, b) => b[1] - a[1]);
     const total = Object.values(scores).reduce((a, b) => a + b, 0);
     const conf = total ? Math.min(0.95, best[1] / total + 0.3) : 0.4;
@@ -13646,7 +14116,9 @@ const ImageClassifierLab = () => {
       marginTop: 10,
       maxWidth: 680
     }
-  }, "Gambar bentuk sesuai instruksi, AI coba tebak \u2014 seperti Quick Draw Google. Pakai heuristik sederhana (aspect ratio, density, corner detection).")), React.createElement("div", {
+  }, "Gambar bentuk sesuai instruksi, AI coba tebak \u2014 seperti Quick Draw Google. Pakai heuristik sederhana (aspect ratio, density, corner detection)."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: window.CURRICULUM.labs.find(l => l.id === "image-classifier")
+  })), React.createElement("div", {
     className: "lab-main-grid",
     style: {
       display: "grid",
@@ -13922,7 +14394,9 @@ const NetworkLab = () => {
       marginTop: 10,
       maxWidth: 680
     }
-  }, "Ketika kamu buka YouTube, datanya melewati banyak \"pos pemeriksaan\" sebelum sampai. Ini simulasinya.")), React.createElement("div", {
+  }, "Ketika kamu buka YouTube, datanya melewati banyak \"pos pemeriksaan\" sebelum sampai. Ini simulasinya."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: window.CURRICULUM.labs.find(l => l.id === "network-sim")
+  })), React.createElement("div", {
     className: "card",
     style: {
       padding: 40,
@@ -14274,6 +14748,7 @@ const SortRaceGame = () => {
   const [time, setTime] = useState(0);
   const [done, setDone] = useState(false);
   const [draggingIdx, setDraggingIdx] = useState(null);
+  const [selectedIdx, setSelectedIdx] = useState(null);
   const [rounds, setRounds] = useState([]);
   const startRef = React.useRef(null);
   const generate = () => {
@@ -14294,9 +14769,19 @@ const SortRaceGame = () => {
   }, [done, rounds.length]);
   const swap = (i, j) => {
     if (i === j) return;
+    if (i === null || i === undefined || j === null || j === undefined) return;
     const next = [...nums];
     [next[i], next[j]] = [next[j], next[i]];
     setNums(next);
+  };
+  const tapSwap = i => {
+    if (runningSortBlocked(done)) return;
+    if (selectedIdx === null) {
+      setSelectedIdx(i);
+      return;
+    }
+    swap(selectedIdx, i);
+    setSelectedIdx(null);
   };
   useEffect(() => {
     if (nums.length === 0) return;
@@ -14354,7 +14839,7 @@ const SortRaceGame = () => {
       marginBottom: 20,
       textAlign: "center"
     }
-  }, "Drag & drop angka untuk menyusun dari ", React.createElement("strong", null, "terkecil ke terbesar"), ". Cepat = XP lebih banyak!"), React.createElement("div", {
+  }, "Susun angka dari ", React.createElement("strong", null, "terkecil ke terbesar"), ". Di laptop bisa drag & drop; di HP ketuk dua kartu untuk menukar posisi."), React.createElement("div", {
     style: {
       display: "flex",
       gap: 10,
@@ -14369,11 +14854,13 @@ const SortRaceGame = () => {
     onDrop: () => {
       swap(draggingIdx, i);
       setDraggingIdx(null);
+      setSelectedIdx(null);
     },
+    onClick: () => tapSwap(i),
     style: {
       width: 80,
       height: 80,
-      background: draggingIdx === i ? "var(--gold-400)" : "var(--info-400)",
+      background: draggingIdx === i || selectedIdx === i ? "var(--gold-400)" : "var(--info-400)",
       color: "var(--navy-950)",
       border: "3px solid var(--ink)",
       borderRadius: 14,
@@ -14384,7 +14871,7 @@ const SortRaceGame = () => {
       fontWeight: 800,
       cursor: "grab",
       userSelect: "none",
-      boxShadow: "var(--shadow-chunk-sm)",
+      boxShadow: selectedIdx === i ? "var(--shadow-chunk)" : "var(--shadow-chunk-sm)",
       transition: "all 0.15s"
     }
   }, n))), React.createElement("div", {
@@ -14394,9 +14881,10 @@ const SortRaceGame = () => {
       color: "var(--ink-subtle)",
       textAlign: "center"
     }
-  }, "Tips: klik angka lalu drag ke posisi angka lain untuk swap")));
+  }, "Tips: pilih angka yang paling kecil dari bagian belum rapi, lalu pindahkan ke posisi depan. Itu mirip cara kerja selection sort.")));
 };
 window.SortRaceGame = SortRaceGame;
+const runningSortBlocked = done => done;
 const CaesarCipherGame = () => {
   const puzzles = [{
     plain: "SIGMA",
@@ -14409,7 +14897,7 @@ const CaesarCipherGame = () => {
   }, {
     plain: "ALGORITMA",
     shift: 7,
-    cipher: "HSNVYPTH"
+    cipher: "HSNVYPATH"
   }, {
     plain: "NEURAL",
     shift: 4,
@@ -14847,11 +15335,13 @@ const PatternQuizGame = () => {
   const [selected, setSelected] = useState(null);
   const [correct, setCorrect] = useState(0);
   const [time, setTime] = useState(0);
+  const [done, setDone] = useState(false);
   const startRef = React.useRef(Date.now());
   useEffect(() => {
+    if (done) return;
     const iv = setInterval(() => setTime(Math.floor((Date.now() - startRef.current) / 1000)), 500);
     return () => clearInterval(iv);
-  }, []);
+  }, [done]);
   const pick = opt => {
     if (selected !== null) return;
     setSelected(opt);
@@ -14860,10 +15350,12 @@ const PatternQuizGame = () => {
       if (idx < puzzles.length - 1) {
         setIdx(idx + 1);
         setSelected(null);
+      } else {
+        setDone(true);
       }
     }, 1400);
   };
-  if (idx === puzzles.length - 1 && selected !== null) {
+  if (done) {
     return React.createElement(GameEndScreen, {
       gameId: "pattern-quiz",
       correct: correct,
@@ -15202,7 +15694,9 @@ const GameShell = ({
       fontSize: 36,
       margin: 0
     }
-  }, title)), React.createElement("div", {
+  }, title), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: game
+  })), React.createElement("div", {
     style: {
       display: "flex",
       gap: 10
@@ -15459,8 +15953,14 @@ const App = () => {
     window.addEventListener("sigma:userchange", onUserChange);
     return () => window.removeEventListener("sigma:userchange", onUserChange);
   }, []);
+  useEffect(() => {
+    if (route !== "/" && route !== "/login" && !window.SIGMA_AUTH.hasProfiles()) {
+      navigate("/login");
+    }
+  }, [route]);
   if (route === "/" || route === "") return React.createElement(Landing, null);
   if (route === "/login") return React.createElement(LoginPage, null);
+  if (!window.SIGMA_AUTH.hasProfiles()) return React.createElement(LoginPage, null);
   if (route === "/dashboard") return React.createElement(Dashboard, null);
   if (route === "/playground") return React.createElement(Playground, null);
   const kelasMatch = route.match(/^\/kelas\/(\d+)$/);
@@ -15491,13 +15991,20 @@ const App = () => {
       }
     }, "Ganti Profil")
   }));
+  const cameFromModule = () => {
+    try {
+      return (sessionStorage.getItem("sigma_lab_referrer") || "").includes("/modul/");
+    } catch (e) {
+      return false;
+    }
+  };
   const canOpenLab = id => {
     const lab = window.CURRICULUM.labs.find(l => l.id === id);
-    return !lab || lab.level.includes(window.USER.level) ? null : lockedResource("Lab", lab.level);
+    return !lab || lab.level.includes(window.USER.level) || cameFromModule() ? null : lockedResource("Lab", lab.level);
   };
   const canOpenGame = id => {
     const game = window.CURRICULUM.games.find(g => g.id === id);
-    return !game || game.level.includes(window.USER.level) ? null : lockedResource("Gim", game.level);
+    return !game || game.level.includes(window.USER.level) || cameFromModule() ? null : lockedResource("Gim", game.level);
   };
   if (route === "/lab/sorting") return canOpenLab("sorting") || React.createElement(SortingLab, null);
   if (route === "/lab/binary") return canOpenLab("binary") || React.createElement(BinaryLab, null);

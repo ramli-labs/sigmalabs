@@ -6,6 +6,54 @@
 const { Icon, Navbar, Footer, Link, useRoute, navigate, SectionHeader, Breadcrumb, EmptyState, ModuleCard, LabschoolLogo, BrandStrip, ControlField } = window;
 const { useState, useEffect, useRef } = React;
 
+const ResourceModuleLinks = ({ item, compact = false }) => {
+  if (!item) return null;
+  const refs = (item.moduleRefs || [])
+    .map(id => window.CURRICULUM.modules.find(m => m.id === id))
+    .filter(Boolean);
+  const skills = item.skills || [];
+  if (!refs.length && !skills.length) return null;
+
+  return (
+    <div className={compact ? "" : "card-soft"} style={{
+      padding: compact ? 0 : 16,
+      background: compact ? "transparent" : "var(--bg-cream)",
+      border: compact ? "none" : "1.5px solid var(--line)",
+      borderRadius: compact ? 0 : 14,
+      marginTop: compact ? 12 : 16,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 900, color: "var(--ink-subtle)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+        Penguat Modul Cetak
+      </div>
+      {refs.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: skills.length ? 10 : 0 }}>
+          {refs.slice(0, compact ? 2 : 4).map(mod => (
+            <span key={mod.id} className="tag" style={{ background: "white", color: "var(--navy-950)", border: "1px solid var(--line)" }}>
+              Kelas {mod.level} • Unit {mod.unit}
+            </span>
+          ))}
+        </div>
+      )}
+      {!compact && refs.length > 0 && (
+        <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5, marginBottom: skills.length ? 10 : 0 }}>
+          {refs.slice(0, 3).map(mod => mod.title).join(" • ")}
+        </div>
+      )}
+      {skills.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {skills.map(skill => (
+            <span key={skill} style={{ padding: "5px 9px", borderRadius: "var(--r-full)", background: compact ? "var(--bg)" : "white", border: "1px solid var(--line)", fontSize: 11, fontWeight: 800, color: "var(--ink-muted)" }}>
+              {skill}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+window.ResourceModuleLinks = ResourceModuleLinks;
+
 const LabList = () => {
   const labs = window.CURRICULUM.labs.filter(l => l.level.includes(window.USER.level));
   const [filter, setFilter] = useState("all");
@@ -77,7 +125,7 @@ const LabCard = ({ lab, delay = 0 }) => {
   const I = Icon[lab.icon];
   const done = window.USER.completedLabs.includes(lab.id);
   return (
-    <Link to={`/lab/${lab.id}`} className="card card-hover fade-in-up" style={{
+    <Link to={`/lab/${lab.id}`} onClick={() => { try { sessionStorage.removeItem("sigma_lab_referrer"); } catch (e) {} }} className="card card-hover fade-in-up" style={{
       padding: 22, background: "white", textDecoration: "none", color: "inherit", display: "block",
       animationDelay: `${delay}s`, position: "relative", overflow: "hidden",
     }}>
@@ -97,6 +145,7 @@ const LabCard = ({ lab, delay = 0 }) => {
       </div>
       <div className="display" style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.2, marginBottom: 6 }}>{lab.title}</div>
       <div style={{ fontSize: 13, color: "var(--ink-muted)", marginBottom: 14, lineHeight: 1.5, minHeight: 40 }}>{lab.tagline}</div>
+      <ResourceModuleLinks item={lab} compact/>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "var(--ink-subtle)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         <span><Icon.Clock width="12" height="12" style={{ verticalAlign: "-2px" }}/> {lab.duration}</span>
         <span>{lab.difficulty}</span>

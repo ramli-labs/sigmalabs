@@ -31,7 +31,7 @@ const LoginPage = () => {
   return (
     <div className="page" style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar/>
-      <main style={{ maxWidth: 1120, margin: "0 auto", padding: "36px 32px 70px" }}>
+      <main className="auth-shell" style={{ maxWidth: 1120, margin: "0 auto", padding: "36px 32px 70px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 28, alignItems: "start" }} className="login-grid">
           <section>
             <div className="tag tag-gold" style={{ marginBottom: 14 }}>PROFIL SISWA LOKAL</div>
@@ -42,7 +42,36 @@ const LoginPage = () => {
               Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini.
             </p>
 
+            <div className="learning-guide-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10, marginTop: 22 }}>
+              {[
+                { n: "1", t: "Buat Profil", d: "Pilih kelas dan rombel sesuai perangkat yang dipakai." },
+                { n: "2", t: "Pilih Modul", d: "Ikuti modul yang diarahkan guru atau lanjut dari dashboard." },
+                { n: "3", t: "Tuntaskan Alur", d: "Baca materi, isi refleksi, kerjakan misi, lalu kuis." },
+              ].map(item => (
+                <div key={item.n} style={{ padding: 14, background: "white", border: "1.5px solid var(--line)", borderRadius: 14 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 12 }}>{item.n}</div>
+                  <div style={{ fontWeight: 900, fontSize: 13, marginTop: 10 }}>{item.t}</div>
+                  <div style={{ color: "var(--ink-muted)", fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{item.d}</div>
+                </div>
+              ))}
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16, marginTop: 28 }} className="profile-grid">
+              {profiles.length === 0 && (
+                <div className="card" style={{ gridColumn: "1 / -1", padding: 24, background: "white", border: "2px dashed var(--line-strong)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--bg-cream)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Icon.Users width="22" height="22"/>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 900, color: "var(--navy-950)" }}>Belum ada profil siswa</div>
+                      <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5, marginTop: 3 }}>
+                        Buat profil sesuai kelasmu. Progress akan dimulai dari kosong dan tersimpan di perangkat ini.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {profiles.map(profile => (
                 <button key={profile.id} onClick={() => enterAs(profile.id)} className="card card-hover" style={{
                   padding: 20,
@@ -105,7 +134,7 @@ const LoginPage = () => {
                 <Icon.Play width="16" height="16"/> Buat & Masuk
               </button>
               <button className="btn" type="button" onClick={reset}>
-                <Icon.Refresh width="16" height="16"/> Reset Data Lokal
+                <Icon.Refresh width="16" height="16"/> Kosongkan Data Lokal
               </button>
             </form>
           </aside>

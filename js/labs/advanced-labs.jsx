@@ -86,6 +86,7 @@ const NeuralLab = () => {
           <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 10, maxWidth: 680 }}>
             Perceptron (neuron tunggal) mencoba belajar pola dari 4 titik data. Perhatikan garis keputusan berubah saat neural network "belajar".
           </p>
+          {window.ResourceModuleLinks && <window.ResourceModuleLinks item={window.CURRICULUM.labs.find(l => l.id === "neural-playground")}/>}
         </div>
 
         <div className="lab-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
@@ -258,13 +259,15 @@ const ImageClassifierLab = () => {
     const ctx = c.getContext("2d");
     const img = ctx.getImageData(0, 0, c.width, c.height).data;
 
-    // Find bounding box of drawn pixels
+    // Find bounding box of drawn pixels (and collect their coordinates)
+    const pts = [];
     let minX = c.width, minY = c.height, maxX = 0, maxY = 0, drawnPx = 0;
     for (let y = 0; y < c.height; y++) {
       for (let x = 0; x < c.width; x++) {
         const i = (y * c.width + x) * 4;
         if (img[i] < 200 && img[i+3] > 50) {
           drawnPx++;
+          pts.push(x, y);
           if (x < minX) minX = x; if (x > maxX) maxX = x;
           if (y < minY) minY = y; if (y > maxY) maxY = y;
         }
@@ -304,55 +307,83 @@ const ImageClassifierLab = () => {
     const midWidth = bandAvg(0.38, 0.62);
     const bottomWidth = bandAvg(0.72, 0.95);
 
-    // Count corners/turns: check perimeter direction changes (very rough)
-    // Simpler heuristic scoring
-    const scores = {
-      lingkaran: 0,
-      persegi: 0,
-      segitiga: 0,
-      bintang: 0,
-    };
-    // Aspect close to 1 favors lingkaran, persegi
-    if (aspectRatio > 0.75 && aspectRatio < 1.33) {
-      scores.lingkaran += 2;
-      scores.persegi += 2;
-      scores.bintang += 1;
-    }
-    // Fill ratio: circles and squares fill more uniformly
-    if (fillRatio > 0.15) scores.persegi += 2;
-    if (fillRatio < 0.2) { scores.lingkaran += 1; scores.segitiga += 1; scores.bintang += 2; }
-    // Triangle has a narrow top and wider base; square has similar row extents.
-    if (bottomWidth > topWidth * 1.5 && midWidth > topWidth * 1.2) scores.segitiga += 5;
-    if (Math.abs(topWidth - bottomWidth) < w * 0.25 && Math.abs(midWidth - bottomWidth) < w * 0.25) scores.persegi += 2;
-    if (midWidth > topWidth * 1.25 && midWidth > bottomWidth * 1.25) scores.lingkaran += 2;
-    if (aspectRatio < 0.9) scores.segitiga += 1;
+    // Profil radius: jarak tiap piksel ke titik tengah, dikelompokkan per sudut.
+    // Lingkaran = radius rata (variasi kecil); bintang = radius naik-turun tajam
+    // dengan banyak "lengan"; segitiga/persegi = 3/4 puncak radius (sudut).
+    let cxp = 0, cyp = 0;
+    for (let k = 0; k < pts.length; k += 2) { cxp += pts[k]; cyp += pts[k + 1]; }
+    cxp /= drawnPx; cyp /= drawnPx;
 
-    // Detect corners via checking pixel density at corners of bounding box
+    const SECTORS = 60;
+    const maxR = new Array(SECTORS).fill(0);
+    for (let k = 0; k < pts.length; k += 2) {
+      const dx = pts[k] - cxp, dy = pts[k + 1] - cyp;
+      const r = Math.sqrt(dx * dx + dy * dy);
+      let s = Math.floor(((Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI)) * SECTORS) % SECTORS;
+      if (s < 0) s += SECTORS;
+      if (r > maxR[s]) maxR[s] = r;
+    }
+    // Isi sektor kosong (garis terputus) dengan rata-rata tetangga terdekat
+    for (let s = 0; s < SECTORS; s++) {
+      if (maxR[s] > 0) continue;
+      let lv = 0, rv = 0;
+      for (let t = 1; t <= SECTORS; t++) { const v = maxR[(s - t + SECTORS) % SECTORS]; if (v > 0) { lv = v; break; } }
+      for (let t = 1; t <= SECTORS; t++) { const v = maxR[(s + t) % SECTORS]; if (v > 0) { rv = v; break; } }
+      maxR[s] = (lv + rv) / 2;
+    }
+
+    const meanR = maxR.reduce((a, b) => a + b, 0) / SECTORS || 1;
+    const cv = Math.sqrt(maxR.reduce((a, b) => a + (b - meanR) * (b - meanR), 0) / SECTORS) / meanR;
+    // Hitung "lengan"/sudut: puncak lokal radius yang menonjol di atas rata-rata
+    let peaks = 0;
+    for (let s = 0; s < SECTORS; s++) {
+      const v = maxR[s];
+      if (v < meanR * 1.08) continue;
+      let isMax = true;
+      for (let d = 1; d <= 3; d++) {
+        if (maxR[(s - d + SECTORS) % SECTORS] > v || maxR[(s + d) % SECTORS] > v) { isMax = false; break; }
+      }
+      if (isMax) peaks++;
+    }
+
+    const scores = { lingkaran: 0, persegi: 0, segitiga: 0, bintang: 0 };
+    // Lingkaran: radius sangat rata, nyaris tanpa puncak tajam
+    if (cv < 0.12) scores.lingkaran += 5;
+    else if (cv < 0.18) scores.lingkaran += 2;
+    if (peaks <= 1 && cv < 0.16) scores.lingkaran += 2;
+    // Bintang: radius naik-turun tajam (cv besar) + banyak lengan
+    if (peaks >= 5 && cv > 0.22) scores.bintang += 7;
+    else if (peaks >= 4 && cv > 0.20) scores.bintang += 4;
+    if (cv > 0.30) scores.bintang += 2;
+    // Segitiga: 3 sudut, alas lebih lebar dari puncak
+    if (peaks === 3) scores.segitiga += 4;
+    if (bottomWidth > topWidth * 1.4) scores.segitiga += 3;
+    // Persegi: 4 sudut, lebar baris atas≈tengah≈bawah, radius cukup rata
+    if (peaks === 4) scores.persegi += 4;
+    if (Math.abs(topWidth - bottomWidth) < w * 0.22 && Math.abs(midWidth - bottomWidth) < w * 0.22 && cv < 0.22) scores.persegi += 3;
+    // Aspek mendekati 1 — penyeimbang kecil untuk semua bentuk
+    if (aspectRatio > 0.7 && aspectRatio < 1.4) { scores.lingkaran += 1; scores.persegi += 1; scores.bintang += 1; }
+
+    // Dukungan deteksi sudut kotak: piksel di 4 pojok bounding box
     const corners = [
-      { x: minX + 8, y: minY + 8 },
-      { x: maxX - 8, y: minY + 8 },
-      { x: minX + 8, y: maxY - 8 },
-      { x: maxX - 8, y: maxY - 8 },
+      { x: minX + 8, y: minY + 8 }, { x: maxX - 8, y: minY + 8 },
+      { x: minX + 8, y: maxY - 8 }, { x: maxX - 8, y: maxY - 8 },
     ];
     let cornerHits = 0;
     corners.forEach(p => {
-      if (p.x < 0 || p.y < 0 || p.x >= c.width || p.y >= c.height) return;
-      // Check 5x5 area
       let hit = false;
-      for (let dy = -5; dy <= 5; dy++) {
-        for (let dx = -5; dx <= 5; dx++) {
+      for (let dy = -6; dy <= 6 && !hit; dy++) {
+        for (let dx = -6; dx <= 6; dx++) {
           const x = p.x + dx, y = p.y + dy;
           if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
           const i = (y * c.width + x) * 4;
           if (img[i] < 200 && img[i + 3] > 50) { hit = true; break; }
         }
-        if (hit) break;
       }
       if (hit) cornerHits++;
     });
-    if (cornerHits >= 3 && !(bottomWidth > topWidth * 1.5)) scores.persegi += 3;
-    if (cornerHits <= 1) scores.lingkaran += 3;
-    if (cornerHits === 2) scores.segitiga += 2;
+    if (cornerHits >= 4 && cv < 0.22) scores.persegi += 3;
+    if (cornerHits <= 1 && cv < 0.14) scores.lingkaran += 2;
 
     // Pick highest
     const [best] = Object.entries(scores).sort((a, b) => b[1] - a[1]);
@@ -379,6 +410,7 @@ const ImageClassifierLab = () => {
           <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 10, maxWidth: 680 }}>
             Gambar bentuk sesuai instruksi, AI coba tebak — seperti Quick Draw Google. Pakai heuristik sederhana (aspect ratio, density, corner detection).
           </p>
+          {window.ResourceModuleLinks && <window.ResourceModuleLinks item={window.CURRICULUM.labs.find(l => l.id === "image-classifier")}/>}
         </div>
 
         <div className="lab-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
@@ -496,6 +528,7 @@ const NetworkLab = () => {
           <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 10, maxWidth: 680 }}>
             Ketika kamu buka YouTube, datanya melewati banyak "pos pemeriksaan" sebelum sampai. Ini simulasinya.
           </p>
+          {window.ResourceModuleLinks && <window.ResourceModuleLinks item={window.CURRICULUM.labs.find(l => l.id === "network-sim")}/>}
         </div>
 
         <div className="card" style={{ padding: 40, background: "white", marginBottom: 20 }}>

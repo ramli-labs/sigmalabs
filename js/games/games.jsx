@@ -145,6 +145,7 @@ const SortRaceGame = () => {
   const [time, setTime] = useState(0);
   const [done, setDone] = useState(false);
   const [draggingIdx, setDraggingIdx] = useState(null);
+  const [selectedIdx, setSelectedIdx] = useState(null);
   const [rounds, setRounds] = useState([]);
   const startRef = React.useRef(null);
 
@@ -164,9 +165,20 @@ const SortRaceGame = () => {
 
   const swap = (i, j) => {
     if (i === j) return;
+    if (i === null || i === undefined || j === null || j === undefined) return;
     const next = [...nums];
     [next[i], next[j]] = [next[j], next[i]];
     setNums(next);
+  };
+
+  const tapSwap = (i) => {
+    if (runningSortBlocked(done)) return;
+    if (selectedIdx === null) {
+      setSelectedIdx(i);
+      return;
+    }
+    swap(selectedIdx, i);
+    setSelectedIdx(null);
   };
 
   useEffect(() => {
@@ -200,7 +212,7 @@ const SortRaceGame = () => {
       ]}>
       <div className="card" style={{ padding: 32, background: "white" }}>
         <div style={{ fontSize: 14, color: "var(--ink-muted)", marginBottom: 20, textAlign: "center" }}>
-          Drag & drop angka untuk menyusun dari <strong>terkecil ke terbesar</strong>. Cepat = XP lebih banyak!
+          Susun angka dari <strong>terkecil ke terbesar</strong>. Di laptop bisa drag & drop; di HP ketuk dua kartu untuk menukar posisi.
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           {nums.map((n, i) => (
@@ -208,28 +220,31 @@ const SortRaceGame = () => {
               draggable
               onDragStart={() => setDraggingIdx(i)}
               onDragOver={e => e.preventDefault()}
-              onDrop={() => { swap(draggingIdx, i); setDraggingIdx(null); }}
+              onDrop={() => { swap(draggingIdx, i); setDraggingIdx(null); setSelectedIdx(null); }}
+              onClick={() => tapSwap(i)}
               style={{
                 width: 80, height: 80,
-                background: draggingIdx === i ? "var(--gold-400)" : "var(--info-400)",
+                background: draggingIdx === i || selectedIdx === i ? "var(--gold-400)" : "var(--info-400)",
                 color: "var(--navy-950)",
                 border: "3px solid var(--ink)", borderRadius: 14,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 28, fontWeight: 800,
                 cursor: "grab", userSelect: "none",
-                boxShadow: "var(--shadow-chunk-sm)",
+                boxShadow: selectedIdx === i ? "var(--shadow-chunk)" : "var(--shadow-chunk-sm)",
                 transition: "all 0.15s",
               }}>{n}</div>
           ))}
         </div>
         <div style={{ marginTop: 24, fontSize: 13, color: "var(--ink-subtle)", textAlign: "center" }}>
-          Tips: klik angka lalu drag ke posisi angka lain untuk swap
+          Tips: pilih angka yang paling kecil dari bagian belum rapi, lalu pindahkan ke posisi depan. Itu mirip cara kerja selection sort.
         </div>
       </div>
     </GameShell>
   );
 };
 window.SortRaceGame = SortRaceGame;
+
+const runningSortBlocked = (done) => done;
 
 
 // ============================================
@@ -240,7 +255,7 @@ const CaesarCipherGame = () => {
   const puzzles = [
     { plain: "SIGMA", shift: 3, cipher: "VLJPD" },
     { plain: "CODING", shift: 5, cipher: "HTINSL" },
-    { plain: "ALGORITMA", shift: 7, cipher: "HSNVYPTH" },
+    { plain: "ALGORITMA", shift: 7, cipher: "HSNVYPATH" },
     { plain: "NEURAL", shift: 4, cipher: "RIYVEP" },
     { plain: "JUARA", shift: 2, cipher: "LWCTC" },
   ];
@@ -465,12 +480,14 @@ const PatternQuizGame = () => {
   const [selected, setSelected] = useState(null);
   const [correct, setCorrect] = useState(0);
   const [time, setTime] = useState(0);
+  const [done, setDone] = useState(false);
   const startRef = React.useRef(Date.now());
 
   useEffect(() => {
+    if (done) return;
     const iv = setInterval(() => setTime(Math.floor((Date.now() - startRef.current) / 1000)), 500);
     return () => clearInterval(iv);
-  }, []);
+  }, [done]);
 
   const pick = (opt) => {
     if (selected !== null) return;
@@ -480,11 +497,13 @@ const PatternQuizGame = () => {
       if (idx < puzzles.length - 1) {
         setIdx(idx + 1);
         setSelected(null);
+      } else {
+        setDone(true);
       }
     }, 1400);
   };
 
-  if (idx === puzzles.length - 1 && selected !== null) {
+  if (done) {
     return <GameEndScreen gameId="pattern-quiz" correct={correct} total={puzzles.length} time={time} xp={correct * 15}/>;
   }
 
@@ -643,6 +662,7 @@ const GameShell = ({ title, subject, gameId, stats, children }) => {
           <div>
             <div className={`tag ${subj.tagClass}`} style={{ marginBottom: 8 }}>GIM EDUKASI</div>
             <h1 className="display" style={{ fontSize: 36, margin: 0 }}>{title}</h1>
+            {window.ResourceModuleLinks && <window.ResourceModuleLinks item={game}/>}
           </div>
           <div style={{ display: "flex", gap: 10 }}>
             {stats.map((s, i) => (

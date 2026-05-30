@@ -51,6 +51,7 @@ const BinaryLab = () => {
           <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 10, maxWidth: 680 }}>
             Klik setiap bit untuk menyalakan (1) atau mematikan (0). Lihat hasil konversi ke desimal dan heksadesimal secara real-time.
           </p>
+          {window.ResourceModuleLinks && <window.ResourceModuleLinks item={window.CURRICULUM.labs.find(l => l.id === "binary")}/>}
         </div>
 
         {/* Bit toggles */}

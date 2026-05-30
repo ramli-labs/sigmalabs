@@ -74,7 +74,7 @@ const ModuleDetail = ({ moduleId }) => {
       <Navbar/>
 
       {/* Header */}
-      <section style={{ padding: "24px 32px 20px", maxWidth: 1280, margin: "0 auto" }}>
+      <section className="module-header-shell" style={{ padding: "24px 32px 20px", maxWidth: 1280, margin: "0 auto" }}>
         <Breadcrumb trail={[
           { to: "/", label: "Beranda" },
           { to: `/kelas/${mod.level}`, label: `Kelas ${mod.level}` },
@@ -118,11 +118,36 @@ const ModuleDetail = ({ moduleId }) => {
             <Icon.Clock width="16" height="16"/> {mod.duration}
           </div>
         </div>
+
+        <div className="module-learning-flow" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+          {[
+            { n: "1", t: "Materi", d: "Baca penguat modul cetak", done: stepStatus.materiDone, active: tab === "materi" },
+            { n: "2", t: "Refleksi", d: "Tulis bukti pemahaman", done: stepStatus.materiDone, active: tab === "materi" },
+            { n: "3", t: "Misi", d: "Latihan setelah materi", done: stepStatus.misiDone, active: tab === "quest", locked: !stepStatus.misiUnlocked },
+            { n: "4", t: "Kuis", d: "Cek akhir modul", done: stepStatus.kuisDone, active: tab === "kuis", locked: !stepStatus.kuisUnlocked },
+          ].map(item => (
+            <div key={item.n} style={{
+              padding: 12,
+              borderRadius: 14,
+              background: item.active ? "white" : "rgba(255,255,255,0.62)",
+              border: item.active ? `2px solid ${subj.color}` : "1.5px solid var(--line)",
+              opacity: item.locked ? 0.58 : 1,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: item.done ? "var(--green-500)" : item.locked ? "var(--line)" : subj.color, color: item.locked ? "var(--ink-muted)" : "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 11 }}>
+                  {item.done ? <Icon.Check width="13" height="13"/> : item.n}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 900 }}>{item.t}</div>
+              </div>
+              <div style={{ color: "var(--ink-muted)", fontSize: 11, lineHeight: 1.4, marginTop: 6 }}>{item.d}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Tabs */}
-      <section style={{ padding: "0 32px", maxWidth: 1280, margin: "0 auto" }}>
-        <div style={{ display: "flex", gap: 4, borderBottom: "2px solid var(--line)", marginTop: 24 }}>
+      <section className="module-tabs-shell" style={{ padding: "0 32px", maxWidth: 1280, margin: "0 auto" }}>
+        <div className="module-tabs-scroll" style={{ display: "flex", gap: 4, borderBottom: "2px solid var(--line)", marginTop: 24 }}>
           {[
             { id: "materi", label: "📚 Materi", unlocked: true },
             { id: "quest", label: "🧭 Misi", unlocked: stepStatus.misiUnlocked },
@@ -144,7 +169,7 @@ const ModuleDetail = ({ moduleId }) => {
       </section>
 
       {/* Tab content */}
-      <section style={{ padding: "28px 32px 60px", maxWidth: 1280, margin: "0 auto" }}>
+      <section className="module-content-shell" style={{ padding: "28px 32px 60px", maxWidth: 1280, margin: "0 auto" }}>
         {tab === "materi" && <MateriTab mod={mod} subject={subj} onSwitchTab={setTab}/>}
         {tab === "quest" && <QuestTab mod={mod} subject={subj} onSwitchTab={setTab}/>}
         {tab === "kuis" && <KuisTab mod={mod} subject={subj}/>}
@@ -1226,7 +1251,7 @@ const KuisTab = ({ mod, subject }) => {
     return (
       <div style={{ maxWidth: 940, margin: "0 auto" }}>
         <div className="card" style={{ padding: 0, background: "white", overflow: "hidden" }}>
-          <div style={{ padding: "26px 30px", borderBottom: "1.5px solid var(--line)", background: "linear-gradient(135deg, white, var(--bg))", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
+          <div className="quiz-card-header" style={{ padding: "26px 30px", borderBottom: "1.5px solid var(--line)", background: "linear-gradient(135deg, white, var(--bg))", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 800, color: subject.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Kuis Terkunci</div>
               <h2 className="display" style={{ fontSize: 28, margin: 0 }}>Tes Pemahaman: {mod.title}</h2>
@@ -1240,7 +1265,7 @@ const KuisTab = ({ mod, subject }) => {
               <QuizStat label="XP Kuis" value={`+${quizRecord.xpAwarded || 0}`} color="var(--gold-500)"/>
             </div>
           </div>
-          <div style={{ padding: 30 }}>
+          <div className="quiz-card-body" style={{ padding: 30 }}>
             <div style={{ padding: 18, borderRadius: 16, background: "#D1FAE5", border: "1.5px solid var(--green-500)" }}>
               <div style={{ fontSize: 15, fontWeight: 900, color: "var(--green-500)" }}>Kuis sudah dikumpulkan</div>
               <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.55, marginTop: 6, fontWeight: 700 }}>
@@ -1256,8 +1281,8 @@ const KuisTab = ({ mod, subject }) => {
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto" }}>
-      <div className="card" style={{ padding: 0, background: "white", overflow: "hidden" }}>
-        <div style={{ padding: "26px 30px", borderBottom: "1.5px solid var(--line)", background: "linear-gradient(135deg, white, var(--bg))", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
+        <div className="card" style={{ padding: 0, background: "white", overflow: "hidden" }}>
+        <div className="quiz-card-header" style={{ padding: "26px 30px", borderBottom: "1.5px solid var(--line)", background: "linear-gradient(135deg, white, var(--bg))", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, color: subject.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Kuis</div>
             <h2 className="display" style={{ fontSize: 28, margin: 0 }}>Tes Pemahaman: {mod.title}</h2>
@@ -1273,7 +1298,7 @@ const KuisTab = ({ mod, subject }) => {
           </div>
         </div>
 
-        <div style={{ padding: "18px 30px", borderBottom: "1px solid var(--line)", background: "white" }}>
+        <div className="quiz-progress-strip" style={{ padding: "18px 30px", borderBottom: "1px solid var(--line)", background: "white" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 220px", height: 9, background: "var(--line)", borderRadius: 999, overflow: "hidden" }}>
               <div style={{ width: `${Math.round((answeredCount / questions.length) * 100)}%`, height: "100%", background: subject.color }}/>
@@ -1298,7 +1323,7 @@ const KuisTab = ({ mod, subject }) => {
           </div>
         </div>
 
-        <div style={{ padding: "24px 30px 30px" }}>
+        <div className="quiz-card-body" style={{ padding: "24px 30px 30px" }}>
           {submitted && (
           <div style={{ padding: 14, borderRadius: 14, background: xpInfo?.gained ? "#D1FAE5" : "var(--bg-cream)", border: `1.5px solid ${xpInfo?.gained ? "var(--green-500)" : "var(--gold-400)"}`, marginBottom: 18 }}>
             <div style={{ fontSize: 14, fontWeight: 900, color: xpInfo?.gained ? "var(--green-500)" : "var(--orange-500)" }}>
@@ -2525,6 +2550,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Baca Situasi Digital", reason: "Kelompokkan tindakan berdasarkan risiko dan respons yang tepat.", choices: ["Aman", "Berisiko", "Perlu lapor", "Perlu dukungan"], items: ["Menyimpan bukti perundungan", "Membalas hinaan", "Minta bantuan guru BK", "Menyebar tangkapan layar"], answer: { "Menyimpan bukti perundungan": "Aman", "Membalas hinaan": "Berisiko", "Minta bantuan guru BK": "Perlu dukungan", "Menyebar tangkapan layar": "Berisiko" } },
         { type: "interactive", kind: "checklist", title: "Langkah Respons", reason: "Centang langkah aman saat menghadapi perundungan siber.", items: ["Jangan membalas kasar", "Simpan bukti", "Blokir bila perlu", "Lapor orang dewasa tepercaya"] },
+        { type: "game", id: "ai-ethics", reason: "Menguji keputusan etis saat teknologi berdampak pada orang lain, privasi, dan keselamatan." },
       ],
     }),
   },
@@ -2539,6 +2565,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Klasifikasi Data Pribadi", reason: "Tentukan tingkat risiko contoh data.", choices: ["Data pribadi", "Data sensitif", "Bukan pribadi", "Perlu izin"], items: ["Nomor telepon", "Lokasi rumah", "Nama warna favorit", "Foto kartu pelajar"], answer: { "Nomor telepon": "Data pribadi", "Lokasi rumah": "Data sensitif", "Nama warna favorit": "Bukan pribadi", "Foto kartu pelajar": "Data sensitif" } },
         { type: "interactive", kind: "checklist", title: "Perlindungan Data", reason: "Centang langkah yang membantu melindungi data.", items: ["Cek izin aplikasi", "Batasi lokasi", "Jangan unggah identitas", "Pakai akun privat"] },
+        { type: "game", id: "caesar-cipher", reason: "Menguatkan gagasan bahwa data dan pesan perlu dilindungi, dimulai dari konsep enkripsi sederhana." },
       ],
     }),
   },
@@ -2553,6 +2580,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "evaluate", title: "Audit Kesejahteraan Digital", reason: "Centang kebiasaan yang mendukung belajar dan keseimbangan.", items: ["Ada batas waktu", "Notifikasi dikendalikan", "Istirahat mata", "Prioritaskan tugas", "Refleksi setelah memakai"] },
         { type: "interactive", kind: "note", title: "Rencana Perbaikan", reason: "Pilih kebiasaan digital yang ingin kamu perbaiki minggu ini.", choices: ["Batasi notifikasi", "Jeda layar", "Fokus tugas", "Tidur lebih teratur"] },
+        { type: "game", id: "pattern-quiz", reason: "Melatih fokus singkat dan kesadaran pola sebelum merefleksikan kebiasaan digital." },
       ],
     }),
   },
@@ -2567,6 +2595,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Alur Projek Akhir", reason: "Susun urutan kerja proyek dari masalah sampai presentasi.", steps: ["Pilih masalah", "Kumpulkan data", "Rancang algoritma", "Buat produk", "Presentasikan"], answer: ["Pilih masalah", "Kumpulkan data", "Rancang algoritma", "Buat produk", "Presentasikan"] },
         { type: "interactive", kind: "decompose", title: "Pecah Proyek", reason: "Pilih komponen proyek yang perlu disiapkan.", items: ["Masalah", "Data", "Solusi", "Produk digital", "Pembagian tugas"] },
+        { type: "lab", id: "sorting", reason: "Membantu melihat bagaimana data proyek dapat diurutkan, dibandingkan, dan dianalisis sebelum dipresentasikan." },
       ],
     }),
   },
@@ -2787,6 +2816,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "decompose", title: "Komponen Kampanye", reason: "Pilih elemen yang harus ada dalam rencana kampanye konten.", items: ["Tujuan kampanye", "Target audiens", "Identitas visual", "Jadwal konten", "Cara mengukur keberhasilan"] },
         { type: "interactive", kind: "evaluate", title: "Evaluasi Kampanye", reason: "Centang indikator keberhasilan kampanye digital.", items: ["Pesan konsisten", "Audiens merespons", "Konten sesuai platform", "Tim berkoordinasi", "Ada data untuk perbaikan"] },
+        { type: "game", id: "pattern-quiz", reason: "Melatih membaca pola respons audiens dan memilih strategi konten yang lebih terarah." },
       ],
     }),
   },
@@ -2801,6 +2831,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Alur Advokasi Digital", reason: "Susun langkah kampanye literasi digital yang efektif.", steps: ["Pilih isu", "Kenali audiens", "Buat pesan kunci", "Pilih platform", "Ukur dampak"], answer: ["Pilih isu", "Kenali audiens", "Buat pesan kunci", "Pilih platform", "Ukur dampak"] },
         { type: "interactive", kind: "note", title: "Pilih Platform Advokasi", reason: "Tentukan platform yang paling tepat untuk menjangkau teman sebaya.", choices: ["Instagram Stories", "Video pendek", "Poster digital", "Diskusi kelas"] },
+        { type: "game", id: "ai-ethics", reason: "Membantu menimbang dampak keputusan teknologi sebelum menyusun pesan advokasi literasi digital." },
       ],
     }),
   },
@@ -2815,6 +2846,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "checklist", title: "Cara Deteksi DeepFake", reason: "Centang tanda yang membantu mendeteksi konten yang dimanipulasi AI.", items: ["Gerakan tidak alami di tepi wajah", "Pencahayaan tidak konsisten", "Sumber tidak dapat diverifikasi", "Konteks terlalu dramatis atau mengejutkan"] },
         { type: "interactive", kind: "classify", title: "Ancaman AI vs Solusi", reason: "Cocokkan ancaman keamanan AI dengan langkah mitigasinya.", choices: ["Enkripsi data", "Verifikasi sumber", "Regulasi AI", "Edukasi pengguna"], items: ["Data bocor dari aplikasi AI", "Video deepfake menyebar", "AI digunakan tanpa pengawasan", "Pengguna tidak menyadari manipulasi"], answer: { "Data bocor dari aplikasi AI": "Enkripsi data", "Video deepfake menyebar": "Verifikasi sumber", "AI digunakan tanpa pengawasan": "Regulasi AI", "Pengguna tidak menyadari manipulasi": "Edukasi pengguna" } },
+        { type: "lab", id: "image-classifier", reason: "Menunjukkan secara langsung bagaimana sistem AI membaca fitur visual dan mengapa hasil prediksi perlu dikritisi." },
       ],
     }),
   },
@@ -2829,6 +2861,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Alur Proyek Akhir KKA", reason: "Susun urutan pengerjaan proyek dari awal sampai presentasi.", steps: ["Pilih masalah", "Kumpulkan data", "Analisis & rancang solusi", "Buat prototipe digital", "Presentasikan"], answer: ["Pilih masalah", "Kumpulkan data", "Analisis & rancang solusi", "Buat prototipe digital", "Presentasikan"] },
         { type: "interactive", kind: "evaluate", title: "Cek Kesiapan Proyek", reason: "Pastikan semua komponen proyek sudah siap.", items: ["Masalah jelas dan relevan", "Data mendukung solusi", "Prototipe digital berfungsi", "Presentasi ringkas dan jelas", "Refleksi mencakup pelajaran yang didapat"] },
+        { type: "lab", id: "neural-playground", reason: "Memberi contoh konkret bagaimana data, pelatihan, akurasi, dan iterasi bisa masuk ke proyek akhir berbasis KA." },
       ],
     }),
   },
@@ -2917,7 +2950,7 @@ function getCuratedModuleQuest(mod, topic, topicIndex) {
     title: `Misi: ${topic}`,
     mission: quest.mission,
     concepts: quest.concepts || profile.concepts,
-    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 1) : [secondary])],
+    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 2) : [secondary])],
   };
 }
 
@@ -2968,6 +3001,10 @@ function getFunFact(id) {
 
 function getQuizQuestions(id) {
   const mod = window.CURRICULUM.modules.find(m => m.id === id);
+  // Bank soal kontekstual v2 (file js/data/quiz-bank-v2.js) diutamakan bila tersedia.
+  if (window.QUIZ_BANK_V2 && Array.isArray(window.QUIZ_BANK_V2[id]) && window.QUIZ_BANK_V2[id].length) {
+    return window.QUIZ_BANK_V2[id];
+  }
   const banks = {
     "inf7-1": [
       { difficulty: "Mudah",

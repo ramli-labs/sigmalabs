@@ -36,7 +36,7 @@ const App = () => {
 
   // Module: /modul/:id
   const modulMatch = route.match(/^\/modul\/([\w-]+)$/);
-  if (modulMatch) return <ModuleDetail moduleId={modulMatch[1]}/>;
+  if (modulMatch) return <ModuleDetail key={modulMatch[1]} moduleId={modulMatch[1]}/>;
 
   // Lab list
   if (route === "/lab") return <LabList/>;

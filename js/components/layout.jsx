@@ -189,7 +189,6 @@ const ModuleCard = ({ module: mod, progress = null, compact = false, locked = fa
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
           <span className={`tag ${subj.tagClass}`}>Kelas {mod.level}</span>
-          {mod.status === "draft" && <span className="tag tag-gold">Draft</span>}
           {locked && <span className="tag" style={{ background: "var(--line)", color: "var(--ink-muted)" }}><Icon.Lock width="11" height="11"/> Terkunci</span>}
         </div>
       </div>

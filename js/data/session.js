@@ -1,6 +1,6 @@
 // ============================================
 // SIGMA Local Session
-// Simulasi login + progress via localStorage
+// Profil siswa lokal + progress via localStorage
 // ============================================
 
 (function () {
@@ -22,11 +22,11 @@
         { id: "digital", emoji: "💻", label: "Juara Digital", color: "var(--info-400)" },
       ],
       progress: {
-        "inf8-1": { percent: 80, lessonsDone: 4, total: 5 },
-        "inf8-2": { percent: 60, lessonsDone: 3, total: 5 },
-        "inf8-5": { percent: 40, lessonsDone: 2, total: 5 },
-        "kka8-1": { percent: 100, lessonsDone: 4, total: 4 },
-        "kka8-2": { percent: 50, lessonsDone: 2, total: 4 },
+        "inf8-1": { percent: 67, lessonsDone: 4, total: 6 },
+        "inf8-2": { percent: 50, lessonsDone: 3, total: 6 },
+        "inf8-5": { percent: 33, lessonsDone: 2, total: 6 },
+        "kka8-1": { percent: 67, lessonsDone: 4, total: 6 },
+        "kka8-2": { percent: 33, lessonsDone: 2, total: 6 },
       },
       completedLabs: ["binary", "sorting"],
       completedGames: ["sort-race", "typing-binary", "bug-hunter"],
@@ -43,10 +43,10 @@
         { id: "starter", emoji: "✨", label: "Mulai Belajar", color: "var(--ai-400)" },
       ],
       progress: {
-        "inf7-1": { percent: 40, lessonsDone: 2, total: 5 },
-        "inf7-3": { percent: 20, lessonsDone: 1, total: 5 },
-        "kka7-1": { percent: 100, lessonsDone: 4, total: 4 },
-        "kka7-2": { percent: 25, lessonsDone: 1, total: 4 },
+        "inf7-1": { percent: 33, lessonsDone: 2, total: 6 },
+        "inf7-3": { percent: 17, lessonsDone: 1, total: 6 },
+        "kka7-1": { percent: 67, lessonsDone: 4, total: 6 },
+        "kka7-2": { percent: 17, lessonsDone: 1, total: 6 },
       },
       completedLabs: ["image-classifier"],
       completedGames: ["pattern-quiz", "sort-race"],
@@ -64,11 +64,11 @@
         { id: "secure", emoji: "🔐", label: "Aman Digital", color: "var(--green-500)" },
       ],
       progress: {
-        "inf9-1": { percent: 60, lessonsDone: 3, total: 5 },
-        "inf9-4": { percent: 20, lessonsDone: 1, total: 5 },
-        "kka9-1": { percent: 100, lessonsDone: 5, total: 5 },
-        "kka9-2": { percent: 60, lessonsDone: 3, total: 5 },
-        "kka9-5": { percent: 20, lessonsDone: 1, total: 5 },
+        "inf9-1": { percent: 50, lessonsDone: 3, total: 6 },
+        "inf9-4": { percent: 17, lessonsDone: 1, total: 6 },
+        "kka9-1": { percent: 83, lessonsDone: 5, total: 6 },
+        "kka9-2": { percent: 50, lessonsDone: 3, total: 6 },
+        "kka9-5": { percent: 17, lessonsDone: 1, total: 6 },
       },
       completedLabs: ["logic-gates", "neural-playground"],
       completedGames: ["caesar-cipher", "ai-ethics"],
@@ -76,6 +76,23 @@
   ];
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
+
+  function normalizeProgressMap(progress) {
+    const source = progress && typeof progress === "object" ? progress : {};
+    const normalized = {};
+    Object.entries(source).forEach(([moduleId, value]) => {
+      const mod = window.CURRICULUM?.modules?.find(m => m.id === moduleId);
+      const total = Number(mod?.lessons || value?.total || 1);
+      const lessonsDone = Math.max(0, Math.min(total, Number(value?.lessonsDone || 0)));
+      normalized[moduleId] = {
+        ...value,
+        lessonsDone,
+        total,
+        percent: total ? Math.round((lessonsDone / total) * 100) : 0,
+      };
+    });
+    return normalized;
+  }
 
   function normalizeProfile(profile) {
     const safe = profile && typeof profile === "object" ? profile : {};
@@ -91,7 +108,7 @@
       xp: Number(safe.xp || 0),
       streak: Number(safe.streak || 1),
       badges: Array.isArray(safe.badges) ? safe.badges : [],
-      progress: safe.progress && typeof safe.progress === "object" ? safe.progress : {},
+      progress: normalizeProgressMap(safe.progress),
       completedLabs: Array.isArray(safe.completedLabs) ? safe.completedLabs : [],
       completedGames: Array.isArray(safe.completedGames) ? safe.completedGames : [],
       quests: safe.quests && typeof safe.quests === "object" ? safe.quests : {},

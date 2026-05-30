@@ -8,7 +8,16 @@ const { useState, useEffect, useRef } = React;
 
 const ModuleDetail = ({ moduleId }) => {
   const mod = window.CURRICULUM.modules.find(m => m.id === moduleId);
-  const [tab, setTab] = useState("materi");
+  // Open the tab that matches saved progress: Materi → Misi → Kuis
+  const [tab, setTab] = useState(() => {
+    try {
+      const s = window.SIGMA_AUTH.getLearningStepStatus(moduleId);
+      if (!s.materiDone) return "materi";
+      if (!s.misiDone) return "quest";
+      if (!s.kuisDone) return "kuis";
+      return "materi";
+    } catch (e) { return "materi"; }
+  });
   const [, setUserVersion] = useState(0);
 
   useEffect(() => {
@@ -136,8 +145,8 @@ const ModuleDetail = ({ moduleId }) => {
 
       {/* Tab content */}
       <section style={{ padding: "28px 32px 60px", maxWidth: 1280, margin: "0 auto" }}>
-        {tab === "materi" && <MateriTab mod={mod} subject={subj}/>}
-        {tab === "quest" && <QuestTab mod={mod} subject={subj}/>}
+        {tab === "materi" && <MateriTab mod={mod} subject={subj} onSwitchTab={setTab}/>}
+        {tab === "quest" && <QuestTab mod={mod} subject={subj} onSwitchTab={setTab}/>}
         {tab === "kuis" && <KuisTab mod={mod} subject={subj}/>}
         {tab === "tutor" && <TutorTab mod={mod} subject={subj}/>}
       </section>
@@ -148,7 +157,7 @@ const ModuleDetail = ({ moduleId }) => {
 };
 
 // ---------- Tab: Materi ----------
-const MateriTab = ({ mod, subject }) => {
+const MateriTab = ({ mod, subject, onSwitchTab }) => {
   const progress = window.USER.progress[mod.id] || { percent: 0, lessonsDone: 0, total: mod.lessons };
   const isComplete = progress.lessonsDone >= mod.lessons;
   const startIndex = Math.min(progress.lessonsDone || 0, mod.lessons - 1);
@@ -164,8 +173,14 @@ const MateriTab = ({ mod, subject }) => {
   }, [mod.id, lessonIndex]);
 
   const completeNext = () => {
+    const wasLast = lessonIndex >= mod.lessons - 1;
     window.SIGMA_AUTH.completeLesson(mod.id, lessonIndex);
-    setLessonIndex(i => Math.min(mod.lessons - 1, i + 1));
+    if (wasLast) {
+      // All lessons done → Misi unlocks; take the student straight there
+      if (onSwitchTab) onSwitchTab("quest");
+    } else {
+      setLessonIndex(i => Math.min(mod.lessons - 1, i + 1));
+    }
   };
   const prevLesson = () => setLessonIndex(i => Math.max(0, i - 1));
   const nextLesson = () => setLessonIndex(i => Math.min(mod.lessons - 1, i + 1));
@@ -178,11 +193,12 @@ const MateriTab = ({ mod, subject }) => {
   <div className="module-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 32 }}>
     <div>
       <div className="card" style={{ padding: 36, background: "white" }}>
-        {mod.status === "draft" && (
-          <div style={{ padding: "14px 18px", background: "var(--gold-300)", border: "2px solid var(--ink)", borderRadius: 12, marginBottom: 22, fontSize: 14, fontWeight: 700, lineHeight: 1.5 }}>
-            Modul ini dalam finalisasi konten untuk pembelajaran kelas. Struktur materi, misi, kuis, lab, dan progress sudah tersedia.
+        <div style={{ padding: "14px 18px", background: subject.colorLight, border: `2px solid ${subject.color}`, borderRadius: 12, marginBottom: 22, fontSize: 14, fontWeight: 700, lineHeight: 1.5, color: "var(--navy-950)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 900, color: subject.color, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+            <Icon.Book width="14" height="14"/> Penguat Modul Cetak
           </div>
-        )}
+          Gunakan halaman ini setelah membaca bagian terkait di modul cetak. SIGMA berisi ringkasan, contoh, latihan, dan refleksi untuk memperkuat materi yang sudah diterima siswa.
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, fontWeight: 800, color: "var(--ink-subtle)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>
           <Icon.Book width="14" height="14"/> Pelajaran {lessonIndex + 1} dari {mod.lessons}
         </div>
@@ -311,84 +327,249 @@ const MateriTab = ({ mod, subject }) => {
 };
 
 // ---------- Tab: Misi ----------
-const QuestTab = ({ mod, subject }) => {
-  const progress = window.USER.progress[mod.id] || { lessonsDone: 0, total: mod.lessons, percent: 0 };
-  const completedQuests = Object.values(window.USER.quests?.[mod.id] || {}).filter(q => q.completed).length;
-  const startIndex = Math.min(completedQuests, mod.lessons - 1);
-  const [lessonIndex, setLessonIndex] = useState(startIndex);
-  const [saved, setSaved] = useState(false);
-  const [activityScores, setActivityScores] = useState({});
-  const quest = getQuestContent(mod, lessonIndex);
-  const completed = !!window.USER.quests?.[mod.id]?.[lessonIndex]?.completed;
-  const availableActivities = quest.activities.filter(a => {
-    if (a.type === "lab") return window.CURRICULUM.labs.find(l => l.id === a.id)?.level.includes(window.USER.level);
-    if (a.type === "game") return window.CURRICULUM.games.find(g => g.id === a.id)?.level.includes(window.USER.level);
-    return true;
-  });
-
-  const recordScore = (key, score) => {
-    setActivityScores(prev => ({ ...prev, [key]: Math.max(prev[key] || 0, score) }));
+const QuestTab = ({ mod, subject, onSwitchTab }) => {
+  // Per-topic reflection draft persistence (unique key per user + module + lesson)
+  const draftKey = i => `sigma-mission-${window.USER?.id || "anon"}-${mod.id}-${i}`;
+  const readDraft = i => { try { return localStorage.getItem(draftKey(i)) || ""; } catch (e) { return ""; } };
+  const writeDraft = (i, text) => { try { localStorage.setItem(draftKey(i), text); } catch (e) {} };
+  const isQuestCompleted = i => !!window.USER.quests?.[mod.id]?.[i]?.completed;
+  const getFirstOpenMissionIndex = () => {
+    const firstOpen = Array(mod.lessons).fill(0).findIndex((_, i) => !isQuestCompleted(i));
+    return firstOpen === -1 ? Math.max(0, mod.lessons - 1) : firstOpen;
   };
-  const complete = (score = 0) => {
-    let best = Object.values(activityScores).reduce((m, s) => Math.max(m, s), score);
-    availableActivities.forEach(a => {
-      if (a.type === "lab" && (window.USER.completedLabs || []).includes(a.id)) best = Math.max(best, 80);
-      if (a.type === "game" && (window.USER.completedGames || []).includes(a.id)) {
-        const xp = window.USER.gameScores?.[a.id]?.bestXp || 0;
-        best = Math.max(best, xp > 0 ? Math.min(100, Math.round(xp / 2)) : 70);
+
+  const startIndex = getFirstOpenMissionIndex();
+  const [lessonIndex, setLessonIndex] = useState(startIndex);
+  const [activityScores, setActivityScores] = useState({});
+  const [reflection, setReflection] = useState(() => readDraft(startIndex));
+  const [claimed, setClaimed] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+
+  const mission = buildUnderstandingMission(mod, lessonIndex);
+  const completed = !!window.USER.quests?.[mod.id]?.[lessonIndex]?.completed;
+  const isDone = completed || claimed;
+
+  // Live score calculation
+  const actCount = mission.activities.length;
+  const actSum = mission.activities.reduce((sum, _, i) => {
+    return sum + (activityScores[`${lessonIndex}-act-${i}`] || 0);
+  }, 0);
+  const actScore = actCount > 0 ? Math.min(75, Math.round((actSum / (actCount * 100)) * 75)) : 75;
+  const exitTicketMin = 20;
+  const reflScore = reflection.trim().length >= exitTicketMin ? 25 : 0;
+  const liveScore = actScore + reflScore;
+  // For already-completed topics, show the stored best score (per topic)
+  const storedBest = window.USER.quests?.[mod.id]?.[lessonIndex]?.bestScore || 0;
+  const totalScore = isDone ? Math.max(liveScore, storedBest) : liveScore;
+  const passed = totalScore >= mission.passScore;
+  const reflValid = reflection.trim().length >= exitTicketMin;
+  const scoreColor = totalScore >= 70 ? "var(--green-500)" : totalScore >= 50 ? "var(--orange-500)" : "var(--ink-subtle)";
+  const scoreBar  = totalScore >= 70 ? "var(--green-500)" : totalScore >= 50 ? "var(--orange-500)" : "var(--info-500)";
+
+  const recordScore = (key, sc) => {
+    setActivityScores(prev => ({ ...prev, [key]: Math.max(prev[key] || 0, sc) }));
+    setShowHint(false);
+  };
+
+  // Check current persisted state, plus the just-claimed lesson before React re-renders.
+  const allMissionsDone = Array(mod.lessons).fill(0).every((_, i) =>
+    (claimed && i === lessonIndex) || isQuestCompleted(i)
+  );
+  const isLastLesson = lessonIndex === mod.lessons - 1;
+
+  const handleClaim = () => {
+    if (!reflValid || isDone) return;
+    if (passed) {
+      window.SIGMA_AUTH.completeQuest(mod.id, lessonIndex, totalScore);
+      setClaimed(true);
+      setShowHint(false);
+      // Auto-advance to next lesson (unless this is the last)
+      if (!isLastLesson) {
+        setTimeout(() => switchLesson(lessonIndex + 1), 700);
       }
-    });
-    window.SIGMA_AUTH.completeQuest(mod.id, lessonIndex, best);
-    setSaved(true);
+    } else {
+      setShowHint(true);
+    }
+  };
+
+  const switchLesson = i => {
+    setLessonIndex(i);
+    setActivityScores({});
+    setClaimed(false);
+    setShowHint(false);
+    setReflection(readDraft(i)); // load this topic's saved draft
   };
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 28 }} className="module-detail-grid">
-      <div className="card" style={{ padding: 32, background: "white" }}>
-        <div className="tag tag-gold" style={{ marginBottom: 14 }}>Misi Belajar</div>
-        <h2 className="display" style={{ fontSize: 34, margin: 0, color: "var(--navy-950)" }}>{quest.title}</h2>
-        <p style={{ fontSize: 15, color: "var(--ink-muted)", lineHeight: 1.65, marginTop: 12 }}>
-          Misi adalah aktivitas pengayaan web yang memakai modul cetak sebagai acuan. Siswa mencoba, memilih, mengurutkan, mengklasifikasi, atau bereksperimen sesuai topik pelajaran.
-        </p>
+      <div>
+        {/* Header */}
+        <div className="card" style={{ padding: 28, background: "white", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <span className="tag" style={{ background: subject.colorLight, color: subject.color, fontWeight: 900, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>Cek Pemahaman</span>
+            {isDone && <span className="tag tag-green"><Icon.Check width="12" height="12"/> Tuntas</span>}
+          </div>
+          <h2 className="display" style={{ fontSize: 28, margin: "0 0 10px", color: "var(--navy-950)", lineHeight: 1.2 }}>{mission.title}</h2>
+          <p style={{ fontSize: 15, color: "var(--ink-muted)", lineHeight: 1.65, margin: 0 }}>
+            Misi ini adalah cek pemahaman singkat. Bacalah materi terlebih dahulu, lalu selesaikan tantangan untuk memastikan kamu siap mengikuti kuis.
+          </p>
+          {showHint && (
+            <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "var(--bg-cream)", border: "1.5px solid var(--gold-400)", fontSize: 13, fontWeight: 700, color: "var(--orange-500)" }}>
+              Skor kamu {totalScore}/100 — belum mencapai {mission.passScore}. Baca kembali ringkasan materi dan perbaiki jawabanmu.
+            </div>
+          )}
+        </div>
 
-        <section style={{ marginTop: 24, padding: 22, background: subject.colorLight, borderRadius: 14, border: `2px solid ${subject.color}` }}>
-          <div style={{ fontSize: 12, fontWeight: 900, color: subject.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>Misi</div>
-          <div style={{ fontSize: 17, lineHeight: 1.6, fontWeight: 700, color: "var(--navy-950)" }}>{quest.mission}</div>
-        </section>
-
-        <section style={{ marginTop: 24 }}>
-          <h3 className="display" style={{ fontSize: 24, margin: "0 0 14px" }}>Peta Konsep</h3>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            {quest.concepts.map((c, i) => (
-              <React.Fragment key={c}>
-                <div style={{ padding: "10px 14px", border: "2px solid var(--ink)", borderRadius: 12, background: i === 0 ? "var(--gold-300)" : "white", fontSize: 13, fontWeight: 900, boxShadow: "var(--shadow-chunk-sm)" }}>{c}</div>
-                {i < quest.concepts.length - 1 && <Icon.ArrowRight width="18" height="18" style={{ color: "var(--ink-subtle)" }}/>}
-              </React.Fragment>
+        {/* Card 1: Ringkasan Materi */}
+        <div className="card" style={{ padding: 24, background: "white", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: subject.colorLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon.Book width="15" height="15" style={{ color: subject.color }}/>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Ringkasan Materi</span>
+          </div>
+          <div style={{ display: "grid", gap: 9 }}>
+            {mission.summaryPoints.map((pt, i) => (
+              <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "11px 14px", background: "var(--bg)", borderRadius: 10, border: "1px solid var(--line)" }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, background: subject.color, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 11, flexShrink: 0 }}>{i + 1}</div>
+                <div style={{ fontSize: 14, color: "var(--navy-950)", lineHeight: 1.6 }}>{pt}</div>
+              </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        <section style={{ marginTop: 28 }}>
-          <h3 className="display" style={{ fontSize: 24, margin: "0 0 14px" }}>Aktivitas Interaktif</h3>
-          <div className="quest-activity-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
-            {availableActivities.length > 0 ? availableActivities.map(a => {
-              const aKey = `${lessonIndex}-${a.type}-${a.id || a.title}`;
-              return <QuestActivity key={aKey} activity={a} onComplete={score => recordScore(aKey, score)} done={completed || saved}/>;
-            }) : (
-              <div style={{ gridColumn: "1 / -1", padding: 18, borderRadius: 12, background: "var(--bg)", color: "var(--ink-muted)", fontSize: 14 }}>
-                Belum ada aktivitas tambahan untuk level kelas ini. Fokus pada misi dan refleksi dulu.
+        {/* Card 2: Tantangan Pemahaman */}
+        <div className="card" style={{ padding: 24, background: "white", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--gold-300)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon.Puzzle width="15" height="15" style={{ color: "var(--navy-950)" }}/>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Tantangan Pemahaman</span>
+          </div>
+          {mission.activities.length > 0 ? (
+            <div className="quest-activity-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
+              {mission.activities.map((a, i) => {
+                const aKey = `${lessonIndex}-act-${i}`;
+                return <InteractiveQuestCard key={aKey} activity={a} onComplete={sc => recordScore(aKey, sc)} done={isDone}/>;
+              })}
+            </div>
+          ) : (
+            <div style={{ padding: 16, background: "var(--bg)", borderRadius: 12, color: "var(--ink-muted)", fontSize: 14 }}>
+              Selesaikan refleksi singkat di bawah untuk melanjutkan.
+            </div>
+          )}
+        </div>
+
+        {/* Card 3: Refleksi Singkat */}
+        <div className="card" style={{ padding: 24, background: "white", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon.Sparkles width="15" height="15" style={{ color: "var(--green-500)" }}/>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Refleksi Singkat</span>
+          </div>
+          <p style={{ fontSize: 14, color: "var(--ink-muted)", marginBottom: 12, lineHeight: 1.55 }}>
+            {mission.reflectionPrompt}
+          </p>
+          <textarea
+            className="input"
+            rows="3"
+            value={reflection}
+            onChange={e => { setReflection(e.target.value); writeDraft(lessonIndex, e.target.value); setShowHint(false); }}
+            disabled={isDone}
+            placeholder="Hal paling penting dari pelajaran ini adalah..."
+            style={{ resize: "vertical", lineHeight: 1.6 }}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: reflValid ? "var(--green-500)" : "var(--ink-subtle)" }}>
+              {reflection.trim().length} / minimal {exitTicketMin} karakter {reflValid ? "✓" : ""}
+            </div>
+            {!reflValid && reflection.trim().length > 0 && (
+              <div style={{ fontSize: 12, color: "var(--orange-500)", fontWeight: 700 }}>
+                Tambahkan sedikit alasan agar refleksimu lebih bermakna.
               </div>
             )}
           </div>
-        </section>
+        </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 30, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 13, color: "var(--ink-muted)", fontWeight: 700 }}>
-            {completed || saved ? "Misi pelajaran ini sudah tercatat." : "Tandai selesai setelah misi dikerjakan."}
+        {/* Card 4: Skor Misi */}
+        <div className="card" style={{ padding: 24, background: isDone || (passed && reflValid) ? "#F0FDF4" : "white", border: `1.5px solid ${isDone || (passed && reflValid) ? "var(--green-500)" : "var(--line)"}`, marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: passed ? "#D1FAE5" : "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon.Chart width="15" height="15" style={{ color: passed ? "var(--green-500)" : "var(--ink-muted)" }}/>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Skor Misi</span>
+            <span style={{ marginLeft: "auto", fontSize: 24, fontWeight: 900, color: scoreColor }}>{totalScore}<span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-muted)" }}>/100</span></span>
           </div>
-          <button className={`btn ${completed || saved ? "btn-success" : subject.btnClass}`} onClick={complete} disabled={completed || saved}>
-            {completed || saved ? <><Icon.Check width="14" height="14"/> Misi Selesai</> : <><Icon.Check width="14" height="14"/> Tandai Misi Selesai</>}
-          </button>
+          <div style={{ height: 10, background: "var(--line)", borderRadius: 999, overflow: "hidden", marginBottom: 12 }}>
+            <div style={{ width: `${totalScore}%`, height: "100%", background: scoreBar, transition: "width 0.4s" }}/>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            <div style={{ padding: "5px 12px", borderRadius: 8, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, fontWeight: 700, color: "var(--ink-muted)" }}>
+              Tantangan: {actScore}/75
+            </div>
+            <div style={{ padding: "5px 12px", borderRadius: 8, background: reflValid ? "#D1FAE5" : "var(--bg)", border: `1px solid ${reflValid ? "var(--green-500)" : "var(--line)"}`, fontSize: 12, fontWeight: 700, color: reflValid ? "var(--green-500)" : "var(--ink-muted)" }}>
+              Refleksi: {reflScore}/25
+            </div>
+          </div>
+          <div style={{ padding: "12px 16px", borderRadius: 12, background: isDone || (passed && reflValid) ? "#D1FAE5" : "var(--bg-cream)", border: `1.5px solid ${isDone || (passed && reflValid) ? "var(--green-500)" : "var(--gold-400)"}` }}>
+            <div style={{ fontSize: 14, fontWeight: 900, color: isDone || (passed && reflValid) ? "var(--green-500)" : "var(--orange-500)" }}>
+              {isDone
+                ? allMissionsDone
+                  ? "Semua misi tuntas! Kamu siap mengerjakan kuis."
+                  : isLastLesson
+                    ? "Misi pelajaran terakhir tuntas."
+                    : "Misi tuntas. Lanjut ke pelajaran berikutnya…"
+                : passed && reflValid
+                  ? isLastLesson ? "Skor cukup. Klik tombol untuk menyelesaikan semua misi." : "Skor cukup. Klik tombol untuk lanjut ke pelajaran berikutnya."
+                  : passed && !reflValid
+                    ? "Skor sudah cukup — isi refleksi satu kalimat untuk menyelesaikan misi."
+                    : `Skor minimal lulus: ${mission.passScore}. Baca kembali materi, lalu perbaiki jawaban.`}
+            </div>
+          </div>
+        </div>
+
+        {/* Pengayaan Opsional */}
+        {mission.extras.length > 0 && (
+          <div style={{ padding: 24, background: "var(--bg)", borderRadius: 14, border: "1.5px dashed var(--line-strong)", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 12, fontWeight: 900, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Pengayaan Opsional</span>
+              <span className="tag" style={{ marginLeft: "auto", fontSize: 11 }}>Setelah misi tuntas</span>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--ink-muted)", marginBottom: 14 }}>
+              Lab dan gim berikut tersedia sebagai pengayaan setelah misi pemahaman selesai.
+            </p>
+            <div className="quest-activity-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
+              {mission.extras.map((a, i) => <QuestActivity key={i} activity={a} onComplete={() => {}} done={false}/>)}
+            </div>
+          </div>
+        )}
+
+        {/* Action Button */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
+          {isDone ? (
+            allMissionsDone ? (
+              <button className="btn btn-success" onClick={() => onSwitchTab && onSwitchTab("kuis")} style={{ minWidth: 220 }}>
+                <Icon.Check width="14" height="14"/> Semua Misi Tuntas — Lanjut ke Kuis
+              </button>
+            ) : (
+              <button className="btn btn-success" disabled style={{ minWidth: 220 }}>
+                <Icon.Check width="14" height="14"/> Misi Tuntas — Menuju Pelajaran Berikutnya…
+              </button>
+            )
+          ) : passed && reflValid ? (
+            <button className="btn btn-success" onClick={handleClaim} style={{ minWidth: 220 }}>
+              <Icon.Check width="14" height="14"/> {isLastLesson ? "Misi Tuntas — Selesaikan Semua Misi" : "Misi Tuntas — Pelajaran Berikutnya"}
+            </button>
+          ) : reflValid && !passed ? (
+            <button className="btn btn-primary" onClick={handleClaim} style={{ minWidth: 220 }}>
+              <Icon.Refresh width="14" height="14"/> Perbaiki Jawaban
+            </button>
+          ) : (
+            <button className="btn" disabled style={{ minWidth: 220 }}>
+              <Icon.Check width="14" height="14"/> Simpan Misi Pemahaman
+            </button>
+          )}
         </div>
       </div>
 
@@ -399,9 +580,8 @@ const QuestTab = ({ mod, subject }) => {
             const label = mod.topics[i] || `Pengayaan ${i + 1}`;
             const done = !!window.USER.quests?.[mod.id]?.[i]?.completed;
             return (
-              <button key={i} onClick={() => { setLessonIndex(i); setSaved(false); setActivityScores({}); }} style={{
-                width: "100%",
-                display: "flex", alignItems: "center", gap: 10,
+              <button key={i} onClick={() => switchLesson(i)} style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 12px", borderRadius: 10, marginBottom: 4,
                 background: lessonIndex === i ? subject.colorLight : "transparent",
                 border: lessonIndex === i ? `1.5px solid ${subject.color}` : "1.5px solid transparent",
@@ -454,7 +634,7 @@ const QuestActivity = ({ activity, onComplete, done }) => {
       <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5 }}>{activity.reason}</div>
       {isFinished && (
         <div style={{ marginTop: 8, fontSize: 12, fontWeight: 800, color: "var(--green-500)" }}>
-          Klik untuk mengulang, atau tekan "Tandai Misi Selesai" di bawah.
+          Klik untuk mengulang sebagai pengayaan tambahan.
         </div>
       )}
     </Link>
@@ -463,17 +643,39 @@ const QuestActivity = ({ activity, onComplete, done }) => {
 
 const InteractiveQuestCard = ({ activity, onComplete, done }) => {
   const [values, setValues] = useState({});
-  const [selfDone, setSelfDone] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [revising, setRevising] = useState(false);
-  const isDone = done || selfDone;
-  const locked = isDone && !revising;
+  // Shuffle sequence steps once on mount so order is not given away
+  const [shuffledSteps] = useState(() =>
+    activity.kind === "sequence" ? [...(activity.steps || [])].sort(() => Math.random() - 0.5) : []
+  );
+  // Shuffle multiple-choice options once, keeping each option's original index
+  const [shuffledChoiceOptions] = useState(() =>
+    activity.kind === "choice"
+      ? (activity.options || []).map((text, idx) => ({ text, idx })).sort(() => Math.random() - 0.5)
+      : []
+  );
   const set = (key, value) => setValues(v => ({ ...v, [key]: value }));
+  // Actual score (never forced to 100)
+  const feedback = getInteractionFeedback(activity, values, false);
+  const activityPassed = submitted && feedback.score >= 70;
+  const isDone = done || activityPassed;
+  const locked = isDone && !revising;
+  // Reveal score + correctness ONLY after the student presses "Periksa Jawaban"
+  const revealed = submitted || locked;
+  // Display feedback forces 100 when locked (shows perfect state)
+  const displayFeedback = getInteractionFeedback(activity, values, locked);
+
   const mark = () => {
     onComplete(feedback.score);
-    setSelfDone(true);
+    setSubmitted(true);
     setRevising(false);
   };
-  const feedback = getInteractionFeedback(activity, values, locked);
+  const retry = () => {
+    setValues({});
+    setSubmitted(false);
+    setRevising(false);
+  };
 
   const wrap = (children) => (
     <div className="card" style={{ padding: 18, background: locked ? "#D1FAE5" : "white", display: "block" }}>
@@ -482,26 +684,31 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
           {locked ? <Icon.Check width="22" height="22"/> : <Icon.Puzzle width="22" height="22"/>}
         </div>
         <div>
-          <div className="tag tag-gold" style={{ marginBottom: 4 }}>Mini Interaksi</div>
+          <div className="tag tag-gold" style={{ marginBottom: 4 }}>Tantangan</div>
           <div style={{ fontWeight: 900, fontSize: 14 }}>{activity.title}</div>
         </div>
       </div>
       <div style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5, marginBottom: 12 }}>{activity.reason}</div>
       {children}
-      {feedback.active && (
-        <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 12, background: feedback.bg, border: `1.5px solid ${feedback.border}`, display: "grid", gap: 8 }}>
+      {submitted && !locked && feedback.score < 70 && (
+        <div style={{ marginTop: 10, padding: "10px 12px", borderRadius: 10, background: "#FEF3C7", border: "1.5px solid var(--gold-400)", fontSize: 13, fontWeight: 700, color: "var(--orange-500)" }}>
+          Belum tepat. Baca kembali ringkasan materi di atas, lalu coba perbaiki jawabanmu.
+        </div>
+      )}
+      {revealed && displayFeedback.active && (
+        <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 12, background: displayFeedback.bg, border: `1.5px solid ${displayFeedback.border}`, display: "grid", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 900, color: feedback.color }}>
-              <Icon.Sparkles width="15" height="15"/> {feedback.title}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 900, color: displayFeedback.color }}>
+              <Icon.Sparkles width="15" height="15"/> {displayFeedback.title}
             </div>
-            <span style={{ fontSize: 12, fontWeight: 900, color: feedback.color }}>{feedback.score}/100</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: displayFeedback.color }}>{displayFeedback.score}/100</span>
           </div>
           <div style={{ height: 7, background: "white", borderRadius: 999, overflow: "hidden", border: "1px solid var(--line)" }}>
-            <div style={{ width: `${feedback.score}%`, height: "100%", background: feedback.color }}/>
+            <div style={{ width: `${displayFeedback.score}%`, height: "100%", background: displayFeedback.color }}/>
           </div>
-          <div style={{ fontSize: 12, lineHeight: 1.45, color: "var(--ink-muted)", fontWeight: 700 }}>{feedback.message}</div>
-          <div style={{ fontSize: 12, fontWeight: 900, color: feedback.color }}>
-            Hadiah: {getQuestXpPreview(feedback.score)} XP {done && revising ? "jika skor terbaikmu naik" : ""}
+          <div style={{ fontSize: 12, lineHeight: 1.45, color: "var(--ink-muted)", fontWeight: 700 }}>{displayFeedback.message}</div>
+          <div style={{ fontSize: 12, fontWeight: 900, color: displayFeedback.color }}>
+            Hadiah: {getQuestXpPreview(displayFeedback.score)} XP
           </div>
         </div>
       )}
@@ -509,14 +716,65 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
         <button className="btn btn-sm btn-primary" onClick={() => setRevising(true)} style={{ marginTop: 12, width: "100%" }}>
           <Icon.Refresh width="14" height="14"/> Revisi Jawaban
         </button>
+      ) : submitted && feedback.score < 70 ? (
+        <button className="btn btn-sm btn-primary" onClick={retry} style={{ marginTop: 12, width: "100%" }}>
+          <Icon.Refresh width="14" height="14"/> Coba Lagi
+        </button>
       ) : (
-        <button className={`btn btn-sm ${isDone ? "btn-success" : "btn-primary"}`} onClick={mark} style={{ marginTop: 12, width: "100%" }}>
-          <Icon.Check width="14" height="14"/> {isDone ? "Klaim Ulang" : feedback.score >= 80 ? "Klaim Misi" : "Simpan Misi"}
+        <button className="btn btn-sm btn-primary" onClick={mark} style={{ marginTop: 12, width: "100%" }}>
+          <Icon.Check width="14" height="14"/> Periksa Jawaban
         </button>
       )}
     </div>
   );
 
+  if (activity.kind === "choice") {
+    return wrap(
+      <div style={{ display: "grid", gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--navy-950)", lineHeight: 1.45, marginBottom: 2 }}>{activity.question}</div>
+        {shuffledChoiceOptions.map(opt => {
+          const selected = values.choice === opt.idx;
+          const reveal = selected && (submitted || locked);
+          const isCorrect = opt.idx === activity.answer;
+          const bg = reveal ? (isCorrect ? "#D1FAE5" : "#FEE2E2") : selected ? "var(--gold-300)" : "white";
+          const bd = reveal ? (isCorrect ? "var(--green-500)" : "var(--red-500)") : selected ? "var(--ink)" : "var(--line-strong)";
+          return (
+            <button key={opt.idx} disabled={locked} onClick={() => set("choice", opt.idx)}
+              style={{ textAlign: "left", padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${bd}`, background: bg, fontSize: 13, fontWeight: 600, cursor: locked ? "default" : "pointer", lineHeight: 1.4 }}>
+              {opt.text}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+  if (activity.kind === "explain") {
+    const text = values.explain || "";
+    const keywords = activity.keywords || [];
+    const normalized = text.toLowerCase();
+    const matchedKeywords = keywords.filter(k => normalized.includes(String(k).toLowerCase()));
+    const neededKeywords = Math.min(2, keywords.length);
+    return wrap(
+      <div style={{ display: "grid", gap: 10 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--navy-950)", lineHeight: 1.45 }}>{activity.question}</div>
+        <textarea
+          className="input"
+          rows="5"
+          disabled={locked}
+          value={text}
+          onChange={e => set("explain", e.target.value)}
+          placeholder="Tulis 2-3 kalimat dengan bahasamu sendiri. Sertakan contoh atau alasan."
+          style={{ resize: "vertical", minHeight: 116, lineHeight: 1.55 }}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", fontSize: 12, fontWeight: 800, color: "var(--ink-muted)" }}>
+          <span>{text.trim().length} karakter</span>
+          {revealed && neededKeywords > 0 && (
+            <span>Kata kunci terkait: {Math.min(matchedKeywords.length, neededKeywords)}/{neededKeywords}</span>
+          )}
+        </div>
+      </div>
+    );
+  }
   if (activity.kind === "table") {
     const groups = activity.groups || [
       { label: "Objek data", choices: ["Siswa", "Buku", "Menu kantin", "Kegiatan kelas"] },
@@ -554,6 +812,8 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
   }
   if (activity.kind === "sequence") {
     const steps = activity.steps || ["Pahami masalah", "Pecah bagian", "Susun langkah", "Uji solusi"];
+    // Use shuffled display order (never reveal the correct order upfront)
+    const displaySteps = shuffledSteps.length > 0 ? shuffledSteps : steps;
     const selected = values.order || [];
     const pick = (step) => {
       if (locked || selected.includes(step)) return;
@@ -561,17 +821,21 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
     };
     return wrap(
       <div style={{ display: "grid", gap: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-muted)", marginBottom: 4 }}>
+          Klik langkah dalam urutan yang benar:
+        </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {steps.map(step => (
-            <button key={step} disabled={locked} onClick={() => pick(step)} className="btn btn-sm" style={{ background: selected.includes(step) ? "var(--gold-300)" : "white" }}>
+          {displaySteps.map(step => (
+            <button key={step} disabled={locked || selected.includes(step)} onClick={() => pick(step)} className="btn btn-sm"
+              style={{ background: selected.includes(step) ? "var(--gold-300)" : "white", opacity: selected.includes(step) ? 0.5 : 1 }}>
               {step}
             </button>
           ))}
         </div>
         <div style={{ padding: 10, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--line)", minHeight: 42, fontSize: 13, fontWeight: 800 }}>
-          {selected.length ? selected.map((s, i) => `${i + 1}. ${s}`).join(" -> ") : "Klik langkah untuk menyusun urutan solusi."}
+          {selected.length ? selected.map((s, i) => `${i + 1}. ${s}`).join(" → ") : "Klik langkah di atas untuk menyusun urutan."}
         </div>
-        <button className="btn btn-sm" onClick={() => set("order", [])} disabled={!selected.length || locked}>Ulangi urutan</button>
+        <button className="btn btn-sm" onClick={() => set("order", [])} disabled={!selected.length || locked}>Ulangi Urutan</button>
       </div>
     );
   }
@@ -604,7 +868,7 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
               {["Penting", "Bisa diabaikan"].map(choice => {
                 const selected = values[item] === choice;
                 const expected = answer[item];
-                const checked = selected && expected;
+                const checked = selected && expected && revealed;
                 return (
                   <button key={choice} className="btn btn-sm" disabled={locked} onClick={() => set(item, choice)} style={{ background: checked ? (choice === expected ? "#D1FAE5" : "#FEE2E2") : selected ? "var(--gold-300)" : "white" }}>
                     {choice}
@@ -661,7 +925,7 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
               {choices.map(choice => {
                 const selected = values[item] === choice;
                 const expected = answer[item];
-                const checked = selected && expected;
+                const checked = selected && expected && revealed;
                 return (
                   <button key={choice} className="btn btn-sm" disabled={locked} onClick={() => set(item, choice)} style={{ background: checked ? (choice === expected ? "#D1FAE5" : "#FEE2E2") : selected ? "var(--gold-300)" : "white" }}>
                     {choice}
@@ -723,7 +987,25 @@ function getInteractionFeedback(activity, values, done) {
 
   const answer = activity.answer || null;
 
-  if ((activity.kind === "classify" || activity.kind === "abstraction") && answer) {
+  if (activity.kind === "choice") {
+    score = values.choice === undefined ? 0 : (values.choice === activity.answer ? 100 : 20);
+  } else if (activity.kind === "explain") {
+    const text = String(values.explain || "").replace(/\s+/g, " ").trim().toLowerCase();
+    const keywords = (activity.keywords || []).map(k => String(k).toLowerCase()).filter(Boolean);
+    const keywordHits = keywords.filter(k => text.includes(k)).length;
+    const hasExample = /contoh|misal|misalnya|seperti|karena|sebab|agar|jika|maka/.test(text);
+    if (text.length < 35) {
+      score = text.length ? 25 : 0;
+    } else if (text.length < 70) {
+      score = 45 + Math.min(keywordHits, 1) * 15 + (hasExample ? 10 : 0);
+    } else if (text.length < 110) {
+      score = 65 + Math.min(keywordHits, 2) * 10 + (hasExample ? 10 : 0);
+    } else {
+      score = 78 + Math.min(keywordHits, 2) * 8 + (hasExample ? 6 : 0);
+    }
+    if (keywordHits === 0) score = Math.min(score, 65);
+    score = Math.min(100, score);
+  } else if ((activity.kind === "classify" || activity.kind === "abstraction") && answer) {
     const items = activity.items || [];
     const answered = items.filter(item => values[item]).length;
     const correct = items.filter(item => values[item] && values[item] === answer[item]).length;
@@ -767,7 +1049,7 @@ function getInteractionFeedback(activity, values, done) {
 
   if (done) score = 100;
   const active = done || score > 0;
-  const hasAnswer = !!answer || !!activity.answer || activity.kind === "binary";
+  const hasAnswer = !!answer || !!activity.answer || activity.kind === "binary" || activity.kind === "choice";
   let title = hasAnswer ? "Coba cek pilihanmu" : "Mulai bagus";
   let message = hasAnswer ? "Pilih jawaban yang menurutmu tepat. Feedback benar-salah akan muncul langsung." : "Lanjutkan pilihanmu sampai kartu ini terasa lengkap.";
   let color = "var(--info-500)";
@@ -794,6 +1076,31 @@ function getInteractionFeedback(activity, values, done) {
     border = "var(--gold-400)";
   }
 
+  if (activity.kind === "explain") {
+    if (score >= 90) {
+      title = "Penjelasan kuat";
+      message = "Jawabanmu sudah cukup rinci, memakai bahasa sendiri, dan terhubung dengan inti materi.";
+      color = "var(--green-500)";
+      bg = "#D1FAE5";
+      border = "var(--green-500)";
+    } else if (score >= 70) {
+      title = "Penjelasan cukup";
+      message = "Sudah bisa diklaim. Akan lebih kuat jika kamu menambah contoh nyata atau alasan yang lebih jelas.";
+      color = "var(--green-500)";
+      bg = "#D1FAE5";
+      border = "var(--green-500)";
+    } else if (score >= 45) {
+      title = "Perlu dikembangkan";
+      message = "Tambahkan satu contoh, alasan, atau kata penting dari materi agar jawaban tidak sekadar umum.";
+      color = "var(--orange-500)";
+      bg = "var(--bg-cream)";
+      border = "var(--gold-400)";
+    } else if (score > 0) {
+      title = "Masih terlalu singkat";
+      message = "Coba tulis ulang dengan 2-3 kalimat: jelaskan maksudnya, beri contoh, lalu sebutkan alasannya.";
+    }
+  }
+
   return { active, score, title, message, color, bg, border };
 }
 
@@ -803,6 +1110,63 @@ function getQuestXpPreview(score) {
   if (score >= 50) return 15;
   return 10;
 }
+
+// Shown after the quiz is finished — navigate to the next module / lesson
+const NextStepCard = ({ mod }) => {
+  const subj = window.CURRICULUM.subjects[mod.subject];
+  const ordered = window.CURRICULUM.modules
+    .filter(m => m.level === mod.level && m.subject === mod.subject)
+    .sort((a, b) => (a.unit || 0) - (b.unit || 0));
+  const idx = ordered.findIndex(m => m.id === mod.id);
+  const nextModule = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
+
+  return (
+    <div style={{ marginTop: 18, padding: 22, borderRadius: 16, background: "white", border: `2px solid ${subj.color}`, boxShadow: "var(--shadow-soft)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: subj.colorLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon.Trophy width="16" height="16" style={{ color: subj.color }}/>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Modul Tuntas</span>
+      </div>
+      {nextModule ? (
+        <>
+          <div style={{ fontSize: 14, color: "var(--ink-muted)", lineHeight: 1.55, marginBottom: 14 }}>
+            Hebat! Kamu sudah menuntaskan Materi, Misi, dan Kuis untuk <b>{mod.title}</b>. Lanjutkan ke modul berikutnya:
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "14px 16px", borderRadius: 12, background: "var(--bg)", border: "1.5px solid var(--line)", marginBottom: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, background: subj.color, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, flexShrink: 0 }}>{nextModule.unit}</div>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: subj.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{subj.name} • Unit {nextModule.unit}</div>
+              <div style={{ fontWeight: 900, fontSize: 15, color: "var(--navy-950)", lineHeight: 1.3 }}>{nextModule.title}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link to={`/modul/${nextModule.id}`} className={`btn ${subj.btnClass}`}>
+              Lanjut ke Modul Berikutnya <Icon.ArrowRight width="14" height="14"/>
+            </Link>
+            <Link to={`/kelas/${mod.level}`} className="btn">
+              <Icon.ArrowLeft width="14" height="14"/> Semua Modul Kelas {mod.level}
+            </Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize: 14, color: "var(--ink-muted)", lineHeight: 1.55, marginBottom: 16 }}>
+            Luar biasa! 🎉 Ini modul <b>{subj.name}</b> terakhir untuk kelas {mod.level}, dan kamu sudah menuntaskan seluruh rangkaiannya.
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link to={`/kelas/${mod.level}`} className={`btn ${subj.btnClass}`}>
+              Kembali ke Daftar Modul Kelas {mod.level} <Icon.ArrowRight width="14" height="14"/>
+            </Link>
+            <Link to="/dashboard" className="btn">
+              <Icon.Home width="14" height="14"/> Dashboard
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 // ---------- Tab: Kuis ----------
 const KuisTab = ({ mod, subject }) => {
@@ -820,7 +1184,7 @@ const KuisTab = ({ mod, subject }) => {
   const percent = questions.length ? Math.round((score / questions.length) * 100) : 0;
   const quizRecord = window.USER.quizzes?.[mod.id];
   const quizLocked = !!quizRecord && !submitted;
-  const potentialXp = getQuizXpAward(score);
+  const potentialXp = getQuizXpPreview(score);
   const currentQuestion = questions[currentIndex];
   const currentAnswered = answers[currentIndex] !== undefined;
   const quizGuardProps = started && !submitted ? {
@@ -883,6 +1247,7 @@ const KuisTab = ({ mod, subject }) => {
                 Jawaban tidak bisa direvisi agar penilaian tetap adil. Lanjutkan pengayaan melalui Materi, Misi, atau AI Tutor.
               </div>
             </div>
+            <NextStepCard mod={mod}/>
           </div>
         </div>
       </div>
@@ -1033,6 +1398,8 @@ const KuisTab = ({ mod, subject }) => {
             })}
           </div>
           )}
+
+        {submitted && <NextStepCard mod={mod}/>}
 
         <div style={{ display: "flex", gap: 10, marginTop: 24, padding: 14, background: "white", border: "1.5px solid var(--line)", borderRadius: 14, position: "sticky", bottom: 16, zIndex: 2, boxShadow: "var(--shadow-soft)" }}>
           {!started && !submitted ? (
@@ -1215,23 +1582,6 @@ const TutorTab = ({ mod, subject }) => {
 // ---------- helpers ----------
 function getLessonContent(mod, index) {
   const topic = mod.topics[index] || `Pengayaan ${index + 1}`;
-  const isDraft = mod.status === "draft";
-
-  if (isDraft) {
-    return {
-      title: `${topic}: Rancangan Pengayaan`,
-      intro: `Bagian ini adalah tempat materi KKA/AI final untuk "${mod.title}" nantinya ditampilkan. Untuk simulasi, kamu tetap bisa mencoba alur belajar, progress, kuis, dan AI Tutor.`,
-      printGuide: "Saat modul KKA/AI cetak sudah tersedia, baca bagian yang sesuai dengan pelajaran ini terlebih dahulu. Gunakan SIGMA untuk latihan, refleksi, dan aktivitas pengayaan setelah membaca.",
-      prompt: "Aktivitas seperti apa yang paling membantu kamu memahami topik ini: contoh nyata, simulasi, gim, atau proyek mini?",
-      blocks: [
-        { label: "Tujuan", text: "Mengenali struktur pelajaran: konsep inti, contoh, aktivitas, dan refleksi. Saat modul final tersedia, bagian ini akan diganti dengan materi asli." },
-        { label: "Contoh Pengayaan", text: "Siswa dapat diajak mengamati contoh teknologi, mendiskusikan dampaknya, lalu membuat proyek mini sederhana sesuai topik modul." },
-        { label: "Refleksi", text: "Catat hal yang sudah dipahami, hal yang masih membingungkan, dan ide aktivitas yang cocok untuk kelas." },
-      ],
-      activity: "Buat satu pertanyaan yang ingin kamu jawab saat modul KKA/AI final tersedia.",
-      checks: ["Apa tujuan pelajaran ini?", "Aktivitas apa yang cocok?", "Apa pertanyaanmu?", "Bagaimana mengukur pemahaman?"],
-    };
-  }
 
   if (mod.id === "inf7-1") {
     const bk = {
@@ -1430,6 +1780,387 @@ function getLessonContent(mod, index) {
   };
 }
 
+// ============================================================
+// Dynamic per-topic comprehension generator
+// Activities are built from the ACTIVE topic title (keyword match)
+// + a lesson-specific question, so every lesson differs.
+// ============================================================
+
+function capText(s, n) { return s && s.length > n ? s.slice(0, n - 1) + "…" : (s || ""); }
+
+// Activity builders (compatible with existing InteractiveQuestCard kinds)
+function mkChoice(title, question, options, answer) {
+  return { type: "interactive", kind: "choice", title, reason: "Pilih satu jawaban yang paling tepat.", question, options, answer };
+}
+function mkClassify(title, instruction, map) {
+  return { type: "interactive", kind: "classify", title, reason: instruction, choices: [...new Set(Object.values(map))], items: Object.keys(map), answer: map };
+}
+function mkSequence(title, instruction, steps) {
+  return { type: "interactive", kind: "sequence", title, reason: instruction, steps, answer: [...steps] };
+}
+function mkChecklist(title, reason, items) {
+  return { type: "interactive", kind: "checklist", title, reason, items };
+}
+function mkExplain(title, question, keywords) {
+  return {
+    type: "interactive",
+    kind: "explain",
+    title,
+    reason: "Tulis jawaban singkat dengan contoh atau alasan. Ini melatih pemahaman, bukan sekadar memilih.",
+    question,
+    keywords,
+  };
+}
+
+// Topic keyword buckets — ORDER MATTERS (specific → generic).
+// Each bucket: test(topicLower) + summary[] (extra context) + pool[] (activities, rotated per lesson).
+const TOPIC_BUCKETS = [
+  { test: t => /dekomposisi|problem solving|pemecahan masalah|memecah/.test(t),
+    summary: ["Dekomposisi berarti memecah masalah besar menjadi bagian-bagian kecil yang lebih mudah ditangani.", "Setiap bagian dianalisis satu per satu, lalu solusinya disusun bertahap dan diuji."],
+    pool: [
+      mkChoice("Tujuan Dekomposisi", "Apa tujuan utama dekomposisi masalah?", ["Memecah masalah besar menjadi bagian kecil yang lebih mudah diselesaikan", "Menghapus semua bagian masalah yang sulit", "Menebak jawaban tanpa analisis", "Membuat masalah menjadi lebih panjang"], 0),
+      mkSequence("Alur Dekomposisi", "Susun urutan berpikir dekomposisi yang tepat.", ["Memahami masalah utama", "Memecah masalah jadi bagian kecil", "Menganalisis setiap bagian", "Menyusun solusi bertahap", "Menguji solusi"]),
+      mkClassify("Bagian Masalah atau Langkah Solusi?", "Klasifikasikan tiap contoh berikut.", { "Data belum lengkap": "Bagian masalah", "Mencari sumber data tambahan": "Langkah solusi", "Instruksi masih membingungkan": "Bagian masalah", "Membuat urutan kerja": "Langkah solusi" }),
+    ] },
+  { test: t => /abstraksi/.test(t),
+    summary: ["Abstraksi berarti memilih informasi penting dan mengabaikan detail yang tidak perlu.", "Tujuannya agar solusi fokus pada inti masalah."],
+    pool: [
+      mkChoice("Arti Abstraksi", "Apa inti dari abstraksi?", ["Memilih informasi penting dan mengabaikan detail yang tidak perlu", "Menambahkan sebanyak mungkin detail", "Menghapus seluruh informasi", "Menyalin semua data apa adanya"], 0),
+      mkClassify("Penting atau Bisa Diabaikan?", "Saat membuat denah dari gerbang ke perpustakaan, klasifikasikan detail berikut.", { "Titik awal dan tujuan": "Penting", "Arah belok di koridor": "Penting", "Warna sepatu teman": "Bisa diabaikan", "Cuaca hari ini": "Bisa diabaikan" }),
+    ] },
+  { test: t => /\bpola\b|pattern|pengenalan pola/.test(t),
+    summary: ["Pengenalan pola adalah menemukan kesamaan atau pengulangan dari beberapa contoh.", "Pola membantu kita menebak aturan dan membuat prediksi sederhana."],
+    pool: [
+      mkChoice("Arti Pola", "Apa yang dimaksud mengenali pola?", ["Menemukan kesamaan atau pengulangan dari beberapa kejadian", "Menghafal satu kejadian saja", "Mengabaikan data yang berulang", "Menebak tanpa membandingkan"], 0),
+      mkClassify("Pola atau Bukan Pola?", "Klasifikasikan tiap pernyataan.", { "Terlambat setiap hari Senin": "Pola", "Nilai naik setelah rutin berlatih": "Pola", "Satu kali banjir tahun lalu": "Bukan pola / perlu data" }),
+      mkSequence("Menemukan Pola", "Susun langkah menemukan pola dari data.", ["Kumpulkan beberapa contoh", "Bandingkan persamaan & perbedaan", "Temukan pengulangan", "Simpulkan aturan pola", "Uji dengan contoh baru"]),
+    ] },
+  { test: t => /jaringan|internet|topologi|\blan\b|\bwan\b|tcp|\bip\b|router|koneksi|nirkabel/.test(t),
+    summary: ["Jaringan menghubungkan perangkat agar dapat bertukar data.", "Data bergerak dari perangkat → router → ISP → server, lalu kembali sebagai respons.", "Gangguan koneksi bisa berasal dari perangkat, jaringan, atau server."],
+    pool: [
+      mkChoice("Fungsi Jaringan", "Apa fungsi utama jaringan komputer?", ["Menghubungkan perangkat agar dapat bertukar data", "Menghapus data dari komputer", "Membuat komputer tidak butuh listrik", "Mengubah komputer jadi server selamanya"], 0),
+      mkSequence("Perjalanan Data", "Susun alur saat pengguna membuka sebuah website.", ["Pengguna mengetik alamat website", "Permintaan dikirim lewat jaringan", "Server menerima permintaan", "Server mengirim respons", "Halaman tampil di perangkat"]),
+      mkClassify("Sumber Gangguan Koneksi", "Klasifikasikan penyebab gangguan berikut.", { "Wi-Fi laptop mati": "Perangkat", "Router rumah bermasalah": "Jaringan", "Website sedang down": "Server" }),
+      mkClassify("Jenis Jaringan", "Cocokkan tiap contoh dengan jenis jaringannya.", { "Komputer satu lab sekolah terhubung": "LAN (lokal)", "Jaringan antar kota atau negara": "WAN (luas)", "Antar perangkat lewat Bluetooth": "PAN (pribadi)" }),
+    ] },
+  { test: t => /mesin pencari|pencarian|search|kata kunci|sift|kredibilitas|sumber|sintesis informasi/.test(t),
+    summary: ["Mesin pencari mencocokkan kata kunci dengan halaman yang sudah diindeks.", "Kata kunci spesifik dan evaluasi sumber membuat hasil lebih relevan dan tepercaya."],
+    pool: [
+      mkChoice("Kata Kunci Efektif", "Kata kunci paling efektif untuk mencari 'dampak sampah plastik di sekolah' adalah...", ["dampak sampah plastik sekolah", "semua hal yang ada di dunia", "gambar lucu tempat sampah", "plastik bagus sekali menurutku"], 0),
+      mkClassify("Sumber Tepercaya atau Perlu Dicek?", "Klasifikasikan tiap ciri sumber.", { "Penulis dan tanggal jelas": "Tepercaya", "Ada rujukan atau data pendukung": "Tepercaya", "Judul bombastis tanpa bukti": "Perlu dicek", "Tidak mencantumkan sumber": "Perlu dicek" }),
+      mkSequence("Strategi Mencari Informasi", "Susun langkah mencari informasi yang baik.", ["Tentukan pertanyaan/kebutuhan", "Pilih kata kunci spesifik", "Bandingkan beberapa sumber", "Evaluasi kredibilitas", "Catat rujukan"]),
+    ] },
+  { test: t => /fakta|opini|hoaks|verifikasi|berita|disinformasi|misinformasi|kritis/.test(t),
+    summary: ["Fakta dapat dibuktikan dengan data atau sumber yang jelas.", "Opini adalah pendapat atau penilaian pribadi.", "Hoaks adalah informasi menyesatkan yang perlu diverifikasi sebelum dipercaya atau dibagikan."],
+    pool: [
+      mkChoice("Ciri Fakta", "Ciri utama fakta adalah...", ["Dapat dibuktikan dengan data atau sumber yang jelas", "Selalu berupa pendapat pribadi", "Tidak perlu diverifikasi", "Selalu viral di media sosial"], 0),
+      mkClassify("Fakta, Opini, atau Perlu Verifikasi?", "Klasifikasikan tiap pernyataan.", { "Sekolah masuk pukul 07.00 sesuai jadwal resmi": "Fakta", "Informatika pelajaran paling menyenangkan": "Opini", "Pesan berantai tanpa sumber yang jelas": "Perlu Verifikasi" }),
+      mkSequence("Langkah Verifikasi", "Susun langkah memverifikasi sebuah informasi.", ["Berhenti sebelum membagikan", "Periksa sumber asli", "Bandingkan dengan sumber tepercaya lain", "Cek tanggal dan konteks", "Simpulkan benar atau menyesatkan"]),
+    ] },
+  { test: t => /privasi|keamanan|password|sandi|phishing|2fa|otp|malware|data pribadi|jejak|reputasi|cyberbully|perundungan|psikologis|pelaporan|pencegahan|perlindungan|netiket|etika|autentikasi|identitas digital|deepfake|\bpdp\b|\buu\b|ancaman/.test(t),
+    summary: ["Etika digital berarti sopan, menjaga privasi, dan bertanggung jawab di ruang online.", "Jejak digital bisa tersimpan dan tersebar, jadi pikirkan dampak sebelum mengunggah.", "Keamanan akun dimulai dari kebiasaan: password unik, verifikasi dua langkah, dan tidak membagi OTP."],
+    pool: [
+      mkChoice("Kebiasaan Aman", "Kebiasaan keamanan digital yang tepat adalah...", ["Memakai password unik dan tidak membagikan OTP", "Memakai satu password untuk semua akun", "Mengeklik semua tautan hadiah", "Membagikan kode OTP ke teman"], 0),
+      mkClassify("Aman atau Berisiko?", "Klasifikasikan tiap tindakan.", { "Mengaktifkan verifikasi dua langkah (2FA)": "Aman", "Membagikan foto kartu pelajar di status": "Berisiko", "Mengecek alamat situs sebelum login": "Aman", "Memakai password 12345 untuk semua akun": "Berisiko" }),
+      mkClassify("Data Pribadi atau Bukan?", "Klasifikasikan tiap data berikut.", { "Nomor telepon": "Data pribadi", "Lokasi rumah": "Data pribadi", "Warna favorit": "Bukan data pribadi" }),
+      mkChoice("Menghadapi Perundungan Siber", "Jika melihat perundungan di grup kelas, tindakan paling aman adalah...", ["Simpan bukti, jangan membalas, lalu lapor orang dewasa tepercaya", "Membalas dengan hinaan lebih keras", "Menyebarkan tangkapan layarnya ke grup lain", "Diam dan ikut menertawakan"], 0),
+      mkClassify("Jejak Digital: Aktif atau Pasif?", "Jejak aktif kita buat sengaja; jejak pasif terekam tanpa sadar. Klasifikasikan.", { "Mengunggah foto ke media sosial": "Jejak aktif", "Menulis komentar di forum": "Jejak aktif", "Riwayat pencarian terekam otomatis": "Jejak pasif", "Lokasi terlacak aplikasi di latar belakang": "Jejak pasif" }),
+      mkChoice("Mengelola Reputasi Digital", "Cara menjaga reputasi digital yang baik adalah...", ["Berpikir sebelum mengunggah dan menjaga jejak yang positif", "Mengunggah apa saja karena bisa dihapus kapan pun", "Membagikan data pribadi agar terlihat terbuka", "Mengomentari semua orang dengan kasar"], 0),
+      mkSequence("Langkah Pelaporan", "Susun langkah aman saat menghadapi perundungan siber.", ["Jangan membalas", "Simpan bukti (tangkapan layar)", "Blokir pelaku bila perlu", "Lapor ke orang dewasa tepercaya", "Dampingi/ dukung korban"]),
+      mkChoice("Perlindungan Data Pribadi", "Langkah perlindungan data pribadi yang tepat adalah...", ["Membatasi izin aplikasi dan tidak mengumbar identitas", "Memberi semua izin agar aplikasi lancar", "Memakai nama asli dan alamat di profil publik", "Mengirim foto KTP ke akun tak dikenal"], 0),
+    ] },
+  { test: t => /mindfulness|screen time|fomo|detox|kesejahteraan|seimbang|keseimbangan|interpersonal|penggunaan sehat|batasan penggunaan|kebiasaan digital|digital sehat|mental/.test(t),
+    summary: ["Kesejahteraan digital berarti memakai teknologi dengan sadar agar tetap mendukung belajar, relasi, dan kesehatan.", "Batas waktu, kontrol notifikasi, dan jeda layar membantu menjaga fokus dan keseimbangan."],
+    pool: [
+      mkChoice("Arti Mindfulness Digital", "Mindfulness digital berarti...", ["Memakai gawai secara sadar, sesuai tujuan dan batas waktu", "Menjauhi semua teknologi selamanya", "Memakai gawai tanpa henti", "Mematikan internet untuk orang lain"], 0),
+      mkChoice("Dampak Screen Time Berlebih", "Screen time berlebihan terutama dapat...", ["Mengganggu fokus, tidur, dan keseimbangan kegiatan", "Membuat baterai lebih awet", "Mempercepat internet", "Menambah ruang penyimpanan"], 0),
+      mkChoice("FOMO & Digital Detox", "Digital detox adalah...", ["Jeda sengaja dari gawai untuk memulihkan fokus dan keseimbangan", "Menghapus semua foto", "Membeli gawai baru", "Menambah waktu bermain game"], 0),
+      mkClassify("Kebiasaan Sehat atau Tidak?", "Klasifikasikan tiap kebiasaan digital.", { "Menetapkan batas waktu layar": "Sehat", "Mengecek HP setiap menit": "Tidak sehat", "Mematikan notifikasi saat belajar": "Sehat", "Bermain gawai sampai larut malam": "Tidak sehat" }),
+      mkChoice("Hubungan Interpersonal", "Agar teknologi tidak mengganggu hubungan dengan orang sekitar...", ["Sediakan waktu tanpa gawai saat bersama keluarga/teman", "Selalu menatap layar saat mengobrol", "Membalas semua notifikasi seketika", "Mengabaikan orang di sekitar demi gawai"], 0),
+    ] },
+  { test: t => /\bka\b|\bai\b|kecerdasan|artifisial|generatif|chatgpt|gemini|copilot|halusinasi|bias|prompt|dataset|data latih|training|model|machine|neural|klasifikasi|confusion/.test(t),
+    summary: ["AI bekerja berdasarkan data dan pola, bukan benar-benar 'memahami'.", "Output AI bisa keliru, bias, atau halusinatif sehingga perlu diperiksa ulang.", "Penggunaan AI harus jujur, kritis, dan bertanggung jawab."],
+    pool: [
+      mkChoice("Memeriksa Output AI", "Mengapa jawaban AI tetap perlu diperiksa ulang?", ["Karena AI dapat menghasilkan jawaban keliru atau tidak sesuai konteks", "Karena AI selalu benar", "Karena AI tidak menggunakan data", "Karena AI hanya bisa menjawab matematika"], 0),
+      mkClassify("Risiko Penggunaan AI", "Klasifikasikan tiap risiko AI berikut.", { "AI mengarang sumber yang tidak ada": "Halusinasi", "AI lebih sering memberi contoh dari satu kelompok saja": "Bias", "Memasukkan data pribadi ke chatbot": "Privasi", "Menyalin jawaban AI tanpa memahami": "Ketergantungan" }),
+      mkChoice("Cara Kerja AI", "AI belajar mengenali sesuatu terutama dari...", ["Banyak contoh data dan pola di dalamnya", "Tebakan acak tanpa data", "Satu contoh saja", "Perintah manual untuk tiap kasus"], 0),
+      mkChoice("AI yang Bertanggung Jawab", "Sikap paling tepat memakai AI untuk tugas sekolah adalah...", ["Memakai AI sebagai bantuan, lalu memverifikasi dan memahaminya sendiri", "Menyalin mentah jawaban AI sebagai milik sendiri", "Memercayai semua jawaban AI tanpa dicek", "Memasukkan data pribadi teman ke AI"], 0),
+      mkChoice("Halusinasi AI", "Yang dimaksud 'halusinasi' pada AI adalah...", ["AI memberi jawaban yang terdengar meyakinkan tetapi sebenarnya keliru atau mengarang", "AI mati mendadak", "AI menolak menjawab", "AI berjalan terlalu lambat"], 0),
+      mkChoice("Bias AI & Data Latih", "Bias pada AI biasanya muncul karena...", ["Data latih tidak beragam atau tidak mewakili semua kelompok", "AI terlalu sering dimatikan", "Koneksi internet lambat", "Layar komputer terlalu terang"], 0),
+      mkChoice("Prompt yang Baik", "Prompt (perintah) yang baik untuk AI sebaiknya...", ["Jelas, spesifik, dan menyertakan konteks yang dibutuhkan", "Sesingkat mungkin tanpa konteks", "Sengaja dibuat ambigu", "Berisi data pribadi orang lain"], 0),
+      mkClassify("Data Latih Berkualitas", "Tentukan apakah tiap kondisi data latih baik atau berisiko.", { "Contoh beragam dari banyak kelompok": "Baik", "Hanya satu jenis contoh saja": "Berisiko", "Data berlabel dan akurat": "Baik", "Data lama dan tidak relevan": "Berisiko" }),
+    ] },
+  { test: t => /biner|pixel|piksel|\bwarna\b|representasi gambar|encoding|kode warna/.test(t),
+    summary: ["Komputer menyimpan segala sesuatu sebagai angka, khususnya biner (0 dan 1).", "Gambar digital tersusun dari pixel; tiap pixel memiliki kode warna (misalnya RGB)."],
+    pool: [
+      mkChoice("Dasar Representasi", "Komputer pada dasarnya menyimpan data dalam bentuk...", ["Angka biner: kombinasi 0 dan 1", "Huruf latin saja", "Gambar berwarna langsung", "Suara analog"], 0),
+      mkClassify("Representasi Digital", "Cocokkan tiap istilah dengan maknanya.", { "Titik kecil penyusun gambar": "Pixel", "Kombinasi 0 dan 1": "Biner", "Kode merah-hijau-biru": "Warna (RGB)" }),
+    ] },
+  { test: t => /terstruktur|struktur data|\blist\b|dictionary|\bstack\b|\bqueue\b|\btree\b|\bgraf\b|lifo|fifo|variabel|bubble|searching|sorting algoritma/.test(t),
+    summary: ["Struktur data menentukan cara menyimpan dan mengakses informasi (list, dictionary, stack, queue).", "Pemilihan struktur yang tepat membuat program lebih rapi dan efisien."],
+    pool: [
+      mkChoice("List vs Dictionary", "Untuk menyimpan profil siswa (nama, kelas, nilai), struktur paling tepat adalah...", ["Dictionary (pasangan kunci-nilai)", "List berisi angka acak", "Satu variabel teks panjang", "Tidak perlu struktur data"], 0),
+      mkClassify("List atau Dictionary?", "Klasifikasikan kebutuhan berikut.", { "Daftar nama siswa berurutan": "List", "Profil: nama, kelas, nilai": "Dictionary", "Urutan langkah algoritma": "List", "Pemetaan kode kelas ke wali kelas": "Dictionary" }),
+      mkChoice("Prinsip Stack", "Stack bekerja dengan prinsip...", ["LIFO: terakhir masuk, pertama keluar", "FIFO: pertama masuk, pertama keluar", "Acak tanpa aturan", "Selalu diambil dari tengah"], 0),
+      mkSequence("Operasi Stack (LIFO)", "Susun urutan operasi Stack yang benar.", ["Buat stack kosong", "push item pertama", "push item kedua", "peek lihat item teratas", "pop keluarkan item teratas"]),
+      mkChoice("Prinsip Queue", "Queue bekerja dengan prinsip...", ["FIFO: pertama masuk, pertama keluar", "LIFO: terakhir masuk, pertama keluar", "Acak tanpa aturan", "Tidak memiliki urutan"], 0),
+      mkChoice("Konsep Tree", "Struktur Tree paling tepat digunakan untuk...", ["Menyimpan data berjenjang seperti silsilah atau struktur folder", "Menyimpan satu angka tunggal", "Mengacak data tanpa hubungan", "Menggantikan semua list"], 0),
+      mkClassify("Bagian Tree", "Cocokkan istilah Tree dengan maknanya.", { "Simpul paling atas": "Root (akar)", "Simpul tanpa anak": "Leaf (daun)", "Simpul di atas sebuah simpul": "Parent (induk)" }),
+      mkChoice("Konsep Graf", "Graf terdiri dari...", ["Simpul (vertex) dan sisi (edge) yang menghubungkannya", "Hanya satu baris angka", "Kolom dan baris seperti tabel saja", "Tumpukan tanpa hubungan"], 0),
+      mkClassify("Pilih Struktur Data", "Cocokkan kebutuhan dengan struktur yang paling tepat.", { "Antrean cetak dokumen": "Queue (FIFO)", "Tombol Undo di aplikasi": "Stack (LIFO)", "Struktur folder bertingkat": "Tree", "Peta rute antar kota": "Graf" }),
+      mkChoice("Konsep Variabel", "Variabel dalam program berfungsi untuk...", ["Menyimpan nilai yang bisa dipakai dan diubah selama program berjalan", "Menghapus semua data otomatis", "Mempercepat internet", "Mengganti nama file"], 0),
+    ] },
+  { test: t => /\bdata\b|tabel|spreadsheet|atribut|filter|sorting|grafik|visualisasi|pivot|vlookup|dashboard|analisis data/.test(t),
+    summary: ["Data yang tersusun rapi memudahkan pencarian, perbandingan, dan penarikan kesimpulan.", "Spreadsheet memakai formula, fungsi, filter, dan grafik untuk mengolah serta menyajikan data."],
+    pool: [
+      mkChoice("Mengapa Data Disusun", "Mengapa data disusun dalam tabel atau grafik?", ["Agar lebih mudah dibaca, dibandingkan, dan dianalisis", "Agar terlihat berwarna saja", "Agar tidak bisa diubah", "Agar ukuran file menjadi kecil"], 0),
+      mkClassify("Fitur Spreadsheet yang Tepat", "Cocokkan kebutuhan dengan fiturnya.", { "Menjumlahkan nilai": "Formula", "Menghitung rata-rata": "Fungsi", "Menampilkan tren": "Grafik", "Melihat data kelas 8A saja": "Filter" }),
+      mkChoice("Atribut Data", "Contoh 'atribut' yang baik pada data siswa adalah...", ["Nama, kelas, dan nilai", "Suasana ruangan", "Warna dinding kelas", "Judul lagu tanpa konteks"], 0),
+      mkSequence("Siklus Analisis Data", "Susun urutan menganalisis data.", ["Kumpulkan data", "Susun dan bersihkan data", "Olah dengan formula/fungsi", "Visualkan dengan grafik", "Tarik kesimpulan"]),
+      mkChoice("Fungsi Filter", "Filter pada spreadsheet berguna untuk...", ["Menampilkan hanya data yang memenuhi kriteria tertentu", "Menghapus semua data", "Mengganti warna sel", "Membuat rumus otomatis"], 0),
+      mkChoice("Memilih Grafik", "Grafik batang paling cocok untuk...", ["Membandingkan jumlah antar kategori", "Menampilkan satu angka tunggal", "Menulis paragraf panjang", "Menyembunyikan data"], 0),
+      mkChoice("Pivot Table", "Pivot Table berguna untuk...", ["Merangkum dan mengelompokkan data secara otomatis", "Menghapus kolom", "Membuat animasi", "Mengunci file"], 0),
+      mkChoice("Sorting Data", "Mengurutkan (sorting) data membantu...", ["Menemukan nilai tertinggi/terendah dan pola lebih cepat", "Menghapus data ganda otomatis", "Mengubah isi angka", "Memperbesar ukuran file"], 0),
+    ] },
+  { test: t => /komputer|input|proses|output|\bcpu\b|hardware|software|perangkat keras|perangkat lunak|memori|penyimpanan|fetch/.test(t),
+    summary: ["Komputer bekerja dengan pola: input → proses → output, dan dapat menyimpan data.", "Perangkat keras bisa disentuh; perangkat lunak berupa program atau instruksi."],
+    pool: [
+      mkClassify("Peran Komponen", "Klasifikasikan peran tiap komponen.", { "Keyboard": "Input", "CPU": "Proses", "Monitor": "Output", "SSD": "Penyimpanan" }),
+      mkChoice("Hardware vs Software", "Pasangan yang tepat adalah...", ["Mouse = perangkat keras, browser = perangkat lunak", "Browser = perangkat keras, mouse = perangkat lunak", "Monitor = perangkat lunak, file = perangkat keras", "Keyboard = perangkat lunak, kabel = program"], 0),
+      mkSequence("Cara Kerja Komputer", "Susun alur kerja dasar komputer.", ["Input masuk", "Data diproses", "Hasil ditampilkan (output)", "Data disimpan bila perlu"]),
+    ] },
+  { test: t => /algoritma|flowchart|pseudocode|instruksi|loop|perulangan|percabangan|if\/else|kondisi|seleksi|scratch|debug/.test(t),
+    summary: ["Algoritma adalah urutan langkah yang jelas dan berurutan untuk menyelesaikan masalah.", "Langkah yang baik bisa diikuti orang lain dan diuji, sering mengikuti pola input, proses, output."],
+    pool: [
+      mkChoice("Ciri Algoritma", "Ciri algoritma yang baik adalah...", ["Langkahnya jelas, berurutan, dan bisa dilakukan orang lain", "Rahasia dan hanya dimengerti pembuatnya", "Sengaja dibuat panjang dan rumit", "Boleh melompati langkah penting"], 0),
+      mkSequence("Alur Input-Proses-Output", "Susun urutan kerja program sederhana.", ["Mulai", "Ambil input", "Proses / cek kondisi", "Tampilkan output", "Selesai"]),
+      mkClassify("Bagian Program", "Klasifikasikan tiap bagian program.", { "Membaca angka dari pengguna": "Input", "Menghitung rata-rata": "Proses", "Menampilkan hasil di layar": "Output" }),
+      mkChoice("Percabangan (IF/ELSE)", "Percabangan if/else dalam program berguna untuk...", ["Membuat keputusan berdasarkan kondisi tertentu", "Mengulang langkah berkali-kali", "Menyimpan data ke memori", "Mengganti warna layar"], 0),
+      mkChoice("Perulangan (Loop)", "Perulangan (loop) dipakai ketika...", ["Sebuah langkah perlu diulang sampai kondisi terpenuhi", "Program hanya berjalan satu kali", "Kita ingin menghapus semua data", "Tidak ada langkah yang berulang"], 0),
+      mkChoice("Pseudocode", "Pseudocode berguna karena...", ["Membantu merancang logika sebelum menulis kode sesungguhnya", "Langsung dijalankan komputer tanpa diubah", "Menggantikan kebutuhan berpikir", "Hanya untuk menggambar"], 0),
+      mkChoice("Debugging", "Debugging adalah proses...", ["Menemukan dan memperbaiki kesalahan dalam program", "Menambah fitur baru", "Mempercepat internet", "Mengubah tampilan antarmuka"], 0),
+    ] },
+  { test: t => /konten|content|brief|infografis|slide|presentasi|video|audio|desain|storytelling|podcast|multimedia|dokumen|word|publikasi|copyright|lisensi|hak cipta|platform|ekosistem|diseminasi|distribusi|analytics|kampanye|advokasi|audiens|literasi digital/.test(t),
+    summary: ["Konten yang baik dimulai dari tujuan dan audiens, bukan dari hiasan.", "Pesan ringkas, visual relevan, dan sumber yang jujur membuat konten efektif dan bertanggung jawab."],
+    pool: [
+      mkChoice("Langkah Pertama Konten", "Sebelum membuat konten digital, hal pertama yang dipikirkan adalah...", ["Tujuan dan audiens konten", "Warna yang paling mencolok", "Aplikasi yang paling populer", "Durasi sepanjang mungkin"], 0),
+      mkSequence("Alur Produksi Konten", "Susun urutan produksi konten.", ["Tentukan tujuan & audiens", "Buat ide / storyboard", "Produksi (rekam / desain)", "Edit", "Publikasikan & evaluasi"]),
+      mkClassify("Format yang Tepat", "Cocokkan kebutuhan dengan format kontennya.", { "Langkah singkat dan visual": "Infografis", "Data perbandingan": "Tabel/Grafik", "Penjelasan mendalam": "Dokumen/Teks" }),
+      mkChoice("Memilih Platform", "Memilih platform untuk menyebarkan konten sebaiknya berdasarkan...", ["Di mana audiens sasaran paling aktif", "Platform yang paling banyak iklannya", "Yang paling sulit digunakan", "Asal pilih yang sedang viral"], 0),
+      mkChoice("Diseminasi Etis", "Menyebarkan (diseminasi) konten secara etis berarti...", ["Jujur, menghormati hak cipta, dan menjaga privasi orang lain", "Menyebar sebanyak mungkin tanpa cek sumber", "Menyalin karya orang tanpa izin", "Membagikan data pribadi orang lain"], 0),
+      mkChoice("Membaca Analytics", "Metrik 'watch time' pada analytics menunjukkan...", ["Seberapa lama audiens menonton kontenmu", "Jumlah warna pada video", "Ukuran file konten", "Banyaknya tombol di layar"], 0),
+      mkChoice("Analisis Audiens", "Memahami audiens membantu kita...", ["Menyesuaikan pesan, gaya, dan platform agar konten lebih relevan", "Mengabaikan kebutuhan pembaca", "Memilih warna acak", "Membuat konten sepanjang mungkin"], 0),
+      mkChoice("Infografis Efektif", "Infografis paling cocok untuk...", ["Menyajikan data atau langkah dalam bentuk visual yang ringkas", "Menulis esai panjang tanpa gambar", "Menyimpan kode rahasia", "Mengganti seluruh laporan teks"], 0),
+      mkChoice("Slide Presentasi", "Slide presentasi yang baik sebaiknya...", ["Berisi poin ringkas dengan visual pendukung", "Memuat seluruh naskah kata per kata", "Penuh animasi di setiap elemen", "Memakai font sekecil mungkin agar muat banyak"], 0),
+      mkChoice("Produksi Video & Audio", "Dalam video, kualitas audio yang buruk berdampak...", ["Besar — penonton cepat pergi jika suara tidak jelas", "Tidak penting selama gambar bagus", "Hanya berpengaruh pada musik", "Bisa diabaikan sepenuhnya"], 0),
+      mkClassify("Lisensi & Hak Cipta", "Tentukan status tiap tindakan konten.", { "Pakai gambar CC-BY dengan menyebut sumber": "Boleh", "Pakai musik berhak cipta tanpa izin": "Melanggar", "Pakai aset CC-0 (domain publik)": "Boleh", "Salin artikel tanpa menyebut penulis": "Melanggar" }),
+      mkChoice("Storytelling Digital", "Storytelling yang kuat dalam konten berarti...", ["Menyusun pesan dengan alur yang jelas agar mudah dipahami & diingat", "Menambahkan sebanyak mungkin efek", "Membuat durasi sepanjang mungkin", "Menghindari struktur sama sekali"], 0),
+    ] },
+  { test: t => /proyek|projek|sintesis|showcase|portfolio|graduation|pitch/.test(t),
+    summary: ["Proyek akhir menggabungkan masalah, data, solusi/algoritma, produk, dan presentasi.", "Proyek yang kuat dimulai dari masalah yang jelas, lalu teknologi dipilih sebagai solusi."],
+    pool: [
+      mkSequence("Alur Proyek", "Susun urutan mengerjakan proyek dari awal sampai akhir.", ["Pilih masalah bermakna", "Kumpulkan data / bahan", "Rancang dan buat solusi", "Uji dan perbaiki", "Dokumentasikan & presentasikan"]),
+      mkChoice("Memulai Proyek", "Proyek yang kuat sebaiknya dimulai dari...", ["Masalah nyata yang jelas", "Memilih alat tercanggih lebih dulu", "Tampilan yang paling ramai", "Meniru proyek lain apa adanya"], 0),
+      mkClassify("Komponen Proyek", "Cocokkan bagian proyek dengan perannya.", { "Pertanyaan yang ingin dijawab": "Masalah", "Bukti & angka pendukung": "Data", "Hasil yang dibuat siswa": "Produk", "Menyampaikan hasil ke audiens": "Presentasi" }),
+      mkChoice("Saat Data Membantah Ide", "Jika data proyek tidak mendukung ide awal, sikap paling ilmiah adalah...", ["Merevisi solusi atau kesimpulan mengikuti data", "Mengubah data agar sesuai ide", "Menghapus data yang mengganggu", "Mengabaikan data dan tetap memakai pendapat"], 0),
+      mkChoice("Isi Evaluasi Proyek", "Bagian evaluasi proyek sebaiknya memuat...", ["Apa yang berhasil, bukti hasil, kendala, dan rencana perbaikan", "Hanya pujian untuk kelompok sendiri", "Daftar warna slide", "Alasan proyek lain tidak perlu dilihat"], 0),
+    ] },
+];
+
+// Build a topic-SPECIFIC multiple-choice question from the active lesson's concept.
+// The correct option is taken from lesson.intro, so it differs per lesson.
+function buildLessonChoice(topic, lesson) {
+  let correct = (lesson.intro || `${topic} adalah konsep penting yang perlu dipahami dalam modul ini.`).replace(/\s+/g, " ").trim();
+  const dot = correct.indexOf(". ");
+  if (dot > 25 && dot < 150) correct = correct.slice(0, dot + 1);
+  correct = capText(correct, 150);
+  const distractors = [
+    `${topic} cukup dihafal tanpa perlu dipahami maknanya.`,
+    `${topic} tidak berhubungan dengan kegiatan digital sehari-hari.`,
+    `${topic} tidak bisa diterapkan untuk menyelesaikan masalah nyata.`,
+  ];
+  return mkChoice(`Pemahaman: ${topic}`, `Manakah pernyataan yang paling tepat tentang "${topic}"?`, [correct, ...distractors], 0);
+}
+
+// Lesson-derived self-check (always names the active topic)
+function buildSelfCheck(topic) {
+  const t = topic.toLowerCase();
+  return mkChecklist(
+    `Cek Mandiri: ${topic}`,
+    `Centang hal tentang ${t} yang sudah benar-benar kamu pahami.`,
+    [`Saya bisa menjelaskan ${t} dengan kata sendiri.`, `Saya bisa memberi satu contoh nyata ${t}.`, `Saya tahu mengapa ${t} penting untuk dipelajari.`]
+  );
+}
+
+function buildLessonApplicationChoice(topic, lesson) {
+  const activity = capText((lesson.activity || "").replace(/\s+/g, " ").trim(), 150);
+  if (!activity) return null;
+  return mkChoice(
+    `Penerapan: ${topic}`,
+    `Aktivitas mana yang paling sesuai untuk membuktikan pemahaman tentang "${topic}"?`,
+    [
+      activity,
+      `Menghafal definisi "${topic}" tanpa membuat contoh.`,
+      `Membaca judul pelajaran lalu langsung lanjut ke kuis.`,
+      `Memilih jawaban acak tanpa menghubungkan dengan materi cetak.`,
+    ],
+    0
+  );
+}
+
+function extractLessonKeywords(topic, lesson) {
+  const raw = [
+    topic,
+    lesson.intro || "",
+    lesson.activity || "",
+    ...((lesson.checks || []).filter(Boolean)),
+  ].join(" ").toLowerCase();
+  const stop = new Set([
+    "agar", "akan", "atau", "bagian", "bisa", "buat", "dalam", "dengan", "dari", "data",
+    "dan", "diabaikan", "jika", "kamu", "karena", "kelas", "konsep", "materi", "membantu",
+    "menjadi", "mereka", "nyata", "pada", "risiko", "satu", "secara", "sebutkan", "sendiri",
+    "siswa", "tanpa", "topik", "untuk", "yang",
+  ]);
+  return [...new Set(raw.split(/[^a-z0-9]+/).filter(w => w.length >= 5 && !stop.has(w)))].slice(0, 6);
+}
+
+function buildLessonExplainChallenge(topic, lesson) {
+  const checks = (lesson.checks || []).filter(Boolean).slice(0, 4);
+  const coreQuestion = checks[0] || lesson.prompt || `Jelaskan ${topic} dengan contoh yang dekat dengan kehidupanmu.`;
+  const followUp = checks[1] ? ` Lanjutkan dengan: ${checks[1]}` : " Sertakan satu contoh nyata atau alasan.";
+  return mkExplain(
+    `Jawaban Singkat: ${topic}`,
+    `${coreQuestion}${followUp}`,
+    extractLessonKeywords(topic, lesson)
+  );
+}
+
+// Topic-specific summary leading line from the active lesson
+function lessonSummaryPoints(lesson) {
+  const pts = [];
+  if (lesson.intro) pts.push(capText(lesson.intro.replace(/\s+/g, " ").trim(), 170));
+  (lesson.blocks || []).forEach(b => {
+    if (pts.length >= 4 || !b.text) return;
+    const raw = b.text.trim();
+    if ((raw.match(/\n/g) || []).length > 3) return; // skip code blocks
+    const txt = capText(raw.replace(/\s+/g, " "), 150);
+    if (!pts.includes(txt)) pts.push(txt);
+  });
+  if (pts.length < 3) (lesson.checks || []).forEach(c => { if (pts.length < 4 && c && !pts.includes(c)) pts.push(c); });
+  return pts.slice(0, 4);
+}
+
+// Rotate the bucket pool so same-bucket topics (e.g. all-network modules) still differ
+// Stable string hash → spreads filler picks across different topics
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+// How well an activity matches the ACTIVE topic (shared significant words)
+function activityRelevance(activity, topicLower) {
+  const text = `${activity.title || ""} ${activity.question || ""} ${activity.reason || ""}`.toLowerCase();
+  const stop = new Set(["yang", "dengan", "untuk", "dari", "dan", "pada", "konsep", "operasi", "python", "jenis", "dasar", "prinsip"]);
+  const words = topicLower.split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !stop.has(w));
+  let score = 0;
+  words.forEach(w => { if (text.includes(w)) score++; });
+  return score;
+}
+
+// Pick `count` bucket activities: most topic-relevant first, then hash-rotated fillers.
+// This makes "Stack" lessons show the Stack challenge, and different topics/modules
+// (even in the same theme bucket) pick different fillers — killing duplicates.
+function selectBucketActivities(pool, topicLower, count) {
+  if (!pool || pool.length === 0) return [];
+  const scored = pool.map(a => ({ a, rel: activityRelevance(a, topicLower) }));
+  const relevant = scored.filter(s => s.rel > 0).sort((x, y) => y.rel - x.rel);
+  const others = scored.filter(s => s.rel === 0);
+  const start = others.length ? hashStr(topicLower) % others.length : 0;
+  const rotatedOthers = others.map((_, i) => others[(start + i) % others.length]);
+  const out = [], seen = new Set();
+  for (const s of [...relevant, ...rotatedOthers]) {
+    if (out.length >= count) break;
+    if (!seen.has(s.a.title)) { seen.add(s.a.title); out.push(s.a); }
+  }
+  return out;
+}
+
+// Core: produce { summaryPoints, activities } that depend on the ACTIVE topic
+function getTopicComprehension(topic, lesson, mod, index) {
+  const tl = topic.toLowerCase();
+  const lessonChoice = buildLessonChoice(topic, lesson);
+  const lessonApplication = buildLessonApplicationChoice(topic, lesson);
+  const lessonExplain = buildLessonExplainChallenge(topic, lesson);
+  const bucket = TOPIC_BUCKETS.find(b => b.test(tl));
+  const summaryPoints = lessonSummaryPoints(lesson);
+
+  let craftedAct = null;
+  const profile = MODULE_PROFILES[mod.id];
+  if (profile) {
+    craftedAct = (profile.quest(topic).activities || []).find(a => a.type === "interactive");
+  } else {
+    craftedAct = (getQuestContent(mod, index).activities || []).find(a => a.type === "interactive" || a.type === "note");
+  }
+
+  const bucketActs = bucket ? selectBucketActivities(bucket.pool, tl, 2) : [];
+  if (bucket) {
+    bucket.summary.forEach(point => {
+      if (summaryPoints.length < 4 && !summaryPoints.includes(point)) summaryPoints.push(point);
+    });
+  }
+
+  const activityCandidates = [
+    lessonChoice,
+    lessonApplication,
+    lessonExplain,
+    craftedAct,
+    ...bucketActs,
+    buildSelfCheck(topic),
+  ].filter(Boolean);
+
+  const activities = [];
+  const seenTitles = new Set();
+  activityCandidates.forEach(activity => {
+    if (activities.length >= 3) return;
+    const key = activity.title || activity.reason || JSON.stringify(activity);
+    if (!seenTitles.has(key)) {
+      seenTitles.add(key);
+      activities.push(activity);
+    }
+  });
+
+  return { summaryPoints: summaryPoints.slice(0, 4), activities };
+}
+
+function buildUnderstandingMission(mod, index) {
+  const topic = mod.topics[index] || `Pengayaan ${index + 1}`;
+  const topicTitle = topic;
+  const lesson = getLessonContent(mod, index);
+  const { summaryPoints, activities } = getTopicComprehension(topic, lesson, mod, index);
+
+  // Optional enrichment (lab/game) stays available but is NOT part of the core mission
+  let extras = [];
+  const profile = MODULE_PROFILES[mod.id];
+  if (profile) {
+    extras = (profile.quest(topic).activities || []).filter(a => a.type === "lab" || a.type === "game").slice(0, 2);
+  } else {
+    extras = (getQuestContent(mod, index).activities || []).filter(a => a.type === "lab" || a.type === "game").slice(0, 2);
+  }
+
+  return {
+    id: `${mod.id || mod.slug}-${index}-understanding-mission`,
+    title: `Misi Pemahaman: ${topicTitle}`,
+    topicTitle,
+    mission: `Misi ini adalah cek pemahaman singkat tentang ${topicTitle.toLowerCase()}. Bacalah materi terlebih dahulu, lalu selesaikan tantangan untuk memastikan kamu siap mengikuti kuis.`,
+    summaryPoints,
+    activities,
+    extras,
+    reflectionPrompt: `Refleksi singkat: tuliskan satu kalimat tentang hal paling penting dari materi "${topicTitle}" dan mengapa itu berguna.`,
+    passScore: 70,
+  };
+}
+
 function getQuestContent(mod, index) {
   const topic = mod.topics[index] || `Pengayaan ${index + 1}`;
   const topicLower = topic.toLowerCase();
@@ -1439,19 +2170,6 @@ function getQuestContent(mod, index) {
     { type: "interactive", kind: "note", title: "Mini Investigasi", reason: "Pilih jenis contoh yang paling cocok untuk dianalisis, lalu simpan sebagai misi." },
     { type: "lab", id: "image-classifier", reason: "Dipakai sebagai aktivitas eksplorasi umum untuk melihat bagaimana sistem digital membaca pola dari input." },
   ];
-
-  if (mod.status === "draft") {
-    return {
-      title: `Misi: ${topic}`,
-      mission: "Buat rancangan aktivitas kecil untuk topik KKA/AI ini: tujuan, alat yang dibutuhkan, dan hasil yang ingin dibuat siswa.",
-      concepts: [topic, "Tujuan", "Aktivitas", "Produk Mini"],
-      activities: [
-        { type: "interactive", kind: "note", title: "Rancang Aktivitas", reason: "Pilih fokus aktivitas yang paling cocok untuk topik ini." },
-        { type: "lab", id: "image-classifier", reason: "Cocok untuk membayangkan bentuk aktivitas AI berbasis eksperimen visual." },
-        { type: "game", id: "pattern-quiz", reason: "Membantu mengenalkan pola sebagai dasar cara kerja sistem cerdas." },
-      ],
-    };
-  }
 
   if (mod.id === "inf7-1") {
     const bkQuest = {
@@ -1699,15 +2417,15 @@ const MODULE_PROFILES = {
     }),
   },
   "inf8-1": {
-    focus: "himpunan data terstruktur I: variabel, list Python, dan Queue",
-    frame: "cara menyimpan data dalam variabel dan list, mengolah dengan for loop dan if/else, dan mengimplementasikan Queue sederhana di Python",
-    example: "nilai = [80, 92, 75, 88]\nfor n in nilai:\n    if n >= 75:\n        print(n, 'Lulus')\n    else:\n        print(n, 'Remedial')\n# List nilai = struktur data paling dasar di Python",
-    product: "program Python sederhana menggunakan list, loop, dan kondisi",
-    concepts: ["Variabel", "List", "Loop", "Kondisi", "Queue"],
+    focus: "himpunan data terstruktur I: List Python dan Queue",
+    frame: "cara merepresentasikan data terstruktur, mengoperasikan List Python sederhana, memahami Queue FIFO, dan memakai List serta Queue untuk memecahkan masalah",
+    example: "antrean = ['Ari', 'Bima', 'Citra']\nantrean.append('Dina')\ndilayani = antrean.pop(0)\nprint(dilayani)  # Ari dilayani lebih dulu: prinsip Queue/FIFO",
+    product: "program atau diagram sederhana yang memakai List dan Queue",
+    concepts: ["Data Terstruktur", "List", "Operasi List", "Queue", "FIFO"],
     quest: topic => ({
       mission: `Terapkan konsep ${topic.toLowerCase()} dalam program Python yang mengolah data sederhana.`,
       activities: [
-        { type: "interactive", kind: "sequence", title: "Susun Kode Python", reason: "Susun urutan langkah program Python dengan list dan loop.", steps: ["Buat variabel list kosong: data = []", "Isi list: data.append(nilai)", "Iterasi: for item in data", "Cek kondisi: if item >= syarat", "Tampilkan: print(hasil)"], answer: ["Buat variabel list kosong: data = []", "Isi list: data.append(nilai)", "Iterasi: for item in data", "Cek kondisi: if item >= syarat", "Tampilkan: print(hasil)"] },
+        { type: "interactive", kind: "sequence", title: "Susun Alur List/Queue", reason: "Susun urutan langkah memakai List sebagai antrean sederhana.", steps: ["Buat list antrean kosong", "Tambahkan data dengan append()", "Lihat elemen paling depan", "Layani elemen depan dengan pop(0)", "Periksa sisa antrean"], answer: ["Buat list antrean kosong", "Tambahkan data dengan append()", "Lihat elemen paling depan", "Layani elemen depan dengan pop(0)", "Periksa sisa antrean"] },
         { type: "lab", id: "sorting", reason: "Melihat bagaimana data dalam list diurutkan secara visual — dasar operasi list di Python." },
       ],
     }),
@@ -1728,10 +2446,10 @@ const MODULE_PROFILES = {
   },
   "inf8-3": {
     focus: "lembar kerja pengolah data",
-    frame: "formula, fungsi, grafik, filter, dan interpretasi di spreadsheet",
+    frame: "spreadsheet sebagai list of lists, referensi sel, operasi dasar, sorting, filtering, dan fungsi ringkasan",
     example: "Spreadsheet bisa menghitung rata-rata nilai, menyaring data kelas, lalu membuat grafik perkembangan belajar.",
-    product: "rancangan spreadsheet",
-    concepts: ["Data", "Formula", "Grafik", "Interpretasi"],
+    product: "rancangan spreadsheet mini untuk analisis data",
+    concepts: ["List of Lists", "Referensi Sel", "Sorting", "Filtering", "Fungsi Ringkasan"],
     quest: topic => ({
       mission: `Rancang penggunaan ${topic.toLowerCase()} pada spreadsheet sederhana.`,
       activities: [
@@ -1769,11 +2487,11 @@ const MODULE_PROFILES = {
     }),
   },
   "inf8-6": {
-    focus: "keamanan digital dan dasar kriptografi dengan Python hashlib",
-    frame: "password, phishing, privasi, backup, keamanan akun, dan cara kerja password hashing dengan Python hashlib",
-    example: "import hashlib\npassword = 'rahasia123'\nhash_pw = hashlib.sha256(password.encode()).hexdigest()\nprint(hash_pw)  # string 64 karakter — tidak bisa dikembalikan ke aslinya",
-    product: "audit keamanan akun dan demonstrasi hashing Python",
-    concepts: ["Password", "Hashing", "Phishing", "Privasi", "Pemulihan"],
+    focus: "keamanan digital dan praktik keamanan harian dengan Python",
+    frame: "ancaman siber, password, phishing, malware, keamanan perangkat dan jaringan, informasi privat-publik, serta praktik keamanan dengan Python",
+    example: "password = 'Rahasia123!'\nkuat = len(password) >= 10 and any(c.isdigit() for c in password)\nprint('Perlu diperkuat?' , not kuat)",
+    product: "audit keamanan digital dan eksperimen Python sederhana",
+    concepts: ["Ancaman Siber", "Password", "Phishing", "Malware", "Privasi"],
     quest: topic => ({
       mission: `Lakukan audit atau eksplorasi terkait ${topic.toLowerCase()} pada kebiasaan dan sistem keamanan digital.`,
       activities: [
@@ -2000,10 +2718,10 @@ const MODULE_PROFILES = {
   },
   "kka8-5": {
     focus: "literasi dan etika kecerdasan artifisial tingkat lanjut",
-    frame: "cara kerja algoritma AI, kualitas data latih, bias dan fairness, privasi, dan kerangka regulasi AI",
+    frame: "perbedaan cara manusia dan KA memproses informasi, sensor digital, KA sebagai alat bantu manusia, kualitas data latih, bias, dan risiko platform digital",
     example: "Sistem AI rekrutmen kerja yang dilatih dari data historis bisa mewarisi bias gender atau latar belakang dari keputusan masa lalu perusahaan.",
-    product: "analisis dampak etis satu sistem AI",
-    concepts: ["Algoritma", "Data Latih", "Bias", "Privasi", "Regulasi"],
+    product: "analisis manfaat dan risiko satu sistem AI",
+    concepts: ["Manusia vs KA", "Sensor", "Data Latih", "Bias", "Platform Digital"],
     quest: topic => ({
       mission: `Analisis aspek ${topic.toLowerCase()} pada satu sistem AI yang kamu kenal.`,
       activities: [
@@ -2074,10 +2792,10 @@ const MODULE_PROFILES = {
   },
   "kka9-4": {
     focus: "strategi diseminasi dan advokasi literasi digital",
-    frame: "merancang komunikasi efektif, menjadi agen perubahan literasi digital, dan mengukur dampak sosial konten",
+    frame: "menganalisis audiens, merancang strategi multi-platform, mengevaluasi analytics, memahami filter bubble, echo chamber, plagiarisme digital, dan menyusun portofolio",
     example: "Siswa bisa membuat kampanye #CekSebelumBagikan di media sosial sekolah untuk mendorong teman menguji fakta sebelum menyebarkan informasi.",
-    product: "rencana advokasi literasi digital",
-    concepts: ["Advokasi", "Pesan", "Platform", "Dampak"],
+    product: "rencana advokasi literasi digital dan portofolio KKA",
+    concepts: ["Audiens", "Strategi", "Analytics", "Etika Lanjutan", "Advokasi"],
     quest: topic => ({
       mission: `Rancang strategi ${topic.toLowerCase()} untuk mendorong penggunaan teknologi yang lebih bertanggung jawab.`,
       activities: [
@@ -2102,10 +2820,10 @@ const MODULE_PROFILES = {
   },
   "kka9-6": {
     focus: "proyek akhir integrasi KKA Fase D",
-    frame: "menggabungkan keterampilan data, algoritma, konten digital, dan etika dalam satu proyek yang bermakna",
-    example: "Proyek 'Peta Literasi Digital Sekolah' bisa menggabungkan survei data, analisis spreadsheet, infografis hasil, dan presentasi rekomendasi kepada dewan guru.",
-    product: "proyek digital terpadu dengan presentasi akhir",
-    concepts: ["Masalah", "Integrasi KKA", "Prototipe", "Presentasi", "Refleksi"],
+    frame: "menganalisis penerapan KA, dampak jangka panjang, penggunaan KA generatif, perancangan produk dengan Design Thinking, implementasi iteratif, dan presentasi proyek akhir",
+    example: "Proyek akhir berbasis KA bisa dimulai dari masalah nyata, lalu memakai Design Thinking untuk merancang produk digital, menguji prototipe, dan merefleksikan dampaknya.",
+    product: "produk digital berbasis KA dengan dokumentasi dan presentasi akhir",
+    concepts: ["KA", "Dampak", "Design Thinking", "Produk Digital", "Refleksi"],
     quest: topic => ({
       mission: `Kerjakan bagian proyek akhir yang berkaitan dengan ${topic.toLowerCase()}.`,
       activities: [
@@ -2216,7 +2934,7 @@ function getFunFact(id) {
     "inf8-3": "Spreadsheet populer karena satu perubahan data bisa langsung memperbarui rumus, tabel, dan grafik yang terhubung.",
     "inf8-4": "Presentasi yang baik bukan slide paling ramai, melainkan slide yang membantu audiens menangkap ide utama dengan cepat.",
     "inf8-5": "Python Pillow bisa membuat ribuan gambar dari template secara otomatis — dari sertifikat, label produk, sampai infografis data. Programmer menggunakannya untuk produksi konten massal tanpa desain manual.",
-    "inf8-6": "Saat kamu login ke suatu situs, yang tersimpan di server bukan password-mu, melainkan hash-nya. Python hashlib menggunakan SHA-256 yang menghasilkan string 64 karakter dan tidak bisa dikembalikan ke aslinya.",
+    "inf8-6": "Keamanan digital bekerja dari kebiasaan kecil: password unik, tidak membagikan OTP, waspada phishing, memperbarui perangkat, dan tahu mana informasi privat atau publik.",
     "inf9-1": "Python adalah bahasa pemrograman terpopuler di dunia sejak 2022. Nama Python bukan dari ular, melainkan dari acara komedi Inggris 'Monty Python's Flying Circus'.",
     "inf9-2": "Pseudocode membantu kita fokus pada logika dulu sebelum memikirkan bahasa pemrograman atau tampilan blok visual.",
     "inf9-3": "Jejak digital bisa berasal dari unggahan sendiri, komentar orang lain, tag foto, riwayat pencarian, sampai data lokasi.",
@@ -2250,17 +2968,6 @@ function getFunFact(id) {
 
 function getQuizQuestions(id) {
   const mod = window.CURRICULUM.modules.find(m => m.id === id);
-  if (mod?.status === "draft") {
-    const draftQuestions = [
-      { q: "Apa arti status Draft pada modul KKA/AI?",
-        options: ["Modul sudah final", "Konten sedang difinalkan", "Modul rusak", "Modul tidak akan dipakai"],
-        correct: 1, explain: "Draft berarti struktur modul sudah ada, tetapi isi final masih menunggu modul KKA/AI selesai." },
-      { q: "Apa tujuan SIGMA menyiapkan jalur KKA/AI sejak awal?",
-        options: ["Agar materi, kuis, lab, dan gim bisa tersusun rapi", "Agar katalog terlihat kosong", "Agar siswa tidak bisa belajar", "Agar lab dihapus"],
-        correct: 0, explain: "Jalur KKA/AI membuat materi, kuis, lab, gim, dan proyek tersusun konsisten." },
-    ];
-    return expandQuizQuestions(mod, draftQuestions);
-  }
   const banks = {
     "inf7-1": [
       { difficulty: "Mudah",
@@ -2953,7 +3660,7 @@ function getModuleDomainQuizQuestions(mod) {
       { q: "Password yang lebih aman untuk akun belajar adalah...", options: ["Unik, panjang, tidak mudah ditebak, dan tidak dipakai di semua akun", "Nama panggilan ditambah tanggal lahir agar mudah diingat teman", "Satu password yang sama untuk semua akun agar praktis", "Kata 'password' karena mudah diketik saat terburu-buru"], correct: 0, explain: "Password kuat dan unik mengurangi risiko akun lain ikut bocor." },
       { q: "Pesan yang meminta OTP dengan alasan hadiah sebaiknya...", options: ["Diabaikan, tidak diberi OTP, dan dicek ke sumber resmi", "Dibalas cepat agar hadiah tidak hilang", "Diteruskan ke teman agar semua mendapat kesempatan", "Dikirimi data lain sebagai pengganti OTP"], correct: 0, explain: "OTP adalah kode rahasia dan tidak boleh dibagikan." },
       { q: "Tautan phishing sering berbahaya karena...", options: ["Menyamar sebagai situs resmi untuk mencuri data pengguna", "Selalu mempercepat internet saat dibuka", "Membuat layar lebih terang dari biasanya", "Menghapus semua iklan di halaman web"], correct: 0, explain: "Phishing menipu pengguna agar memasukkan data pada tempat palsu." },
-      { q: "Python hashlib.sha256() digunakan dalam keamanan digital untuk...", options: ["Mengubah password menjadi hash yang tidak bisa dikembalikan ke aslinya", "Mengenkripsi dan mendekripsi pesan rahasia", "Memeriksa apakah sebuah situs menggunakan HTTPS", "Membuat password baru secara otomatis"], correct: 0, explain: "Hashing adalah proses satu arah — server menyimpan hash, bukan password asli. Saat login, password yang kamu ketik di-hash lalu dibandingkan." },
+      { q: "Contoh praktik keamanan digital dengan Python yang sesuai untuk pemula adalah...", options: ["Membuat pengecek sederhana apakah password cukup panjang dan bervariasi", "Menyimpan password teman di file publik", "Membuat tautan palsu untuk menipu orang", "Menghapus data penting tanpa backup"], correct: 0, explain: "Python bisa dipakai untuk latihan sederhana yang memperkuat kebiasaan aman, misalnya mengecek kekuatan password." },
       { q: "Backup data penting berguna ketika...", options: ["Perangkat rusak, file terhapus, atau akun bermasalah", "Siswa ingin membuat password menjadi lebih pendek", "Semua data ingin dibagikan ke publik", "Aplikasi tidak perlu diperbarui lagi"], correct: 0, explain: "Backup membantu pemulihan saat terjadi masalah data." },
       { q: "Verifikasi dua langkah membuat akun lebih aman karena...", options: ["Login membutuhkan bukti tambahan selain password", "Password menjadi boleh dibagikan ke teman dekat", "Akun tidak perlu lagi memakai email pemulihan", "Semua tautan otomatis menjadi aman"], correct: 0, explain: "Lapisan keamanan tambahan membantu mencegah akses tidak sah." },
     ]);
@@ -3101,44 +3808,119 @@ function difficultyForQuizIndex(index) {
 
 function getModuleScenarioQuestions(mod) {
   const id = mod?.id || "";
-  if (id === "inf7-1") {
-    return [
+  const scenarioMap = {
+    "inf7-1": [
       { q: "Jika masalah jadwal piket terasa rumit, langkah BK pertama yang tepat adalah...", options: ["Memecah masalah menjadi bagian kecil", "Langsung menyalahkan teman", "Menghapus jadwal", "Membuat warna tabel"], correct: 0, explain: "Dekomposisi membantu masalah besar menjadi lebih mudah dikelola." },
       { q: "Detail mana yang bisa diabaikan saat membuat denah menuju perpustakaan?", options: ["Warna tas siswa", "Titik awal", "Arah belok", "Nama ruang"], correct: 0, explain: "Abstraksi memilih detail penting dan mengabaikan detail yang tidak relevan." },
-    ];
-  }
-  if (id.includes("7-3")) {
-    return [
+    ],
+    "inf7-2": [
+      { q: "Agar instruksi komputer tidak membingungkan, langkah yang dibuat harus...", options: ["Urut, jelas, dan bisa diikuti", "Panjang tetapi acak", "Berisi istilah sulit saja", "Tidak perlu diuji"], correct: 0, explain: "Instruksi komputasional perlu runtut dan dapat diuji." },
+    ],
+    "inf7-3": [
       { q: "Saat membuka situs, urutan yang paling masuk akal adalah...", options: ["Perangkat-router-internet-server-respons", "Server-buku-pensil-router", "Keyboard-monitor-kertas", "Akun-password-folder"], correct: 0, explain: "Data berjalan dari perangkat melalui jaringan menuju server dan kembali sebagai respons." },
-    ];
-  }
-  if (id.includes("7-5") || id.includes("7-4")) {
-    return [
+    ],
+    "inf7-4": [
+      { q: "Saat mencari informasi untuk tugas, kata kunci yang baik sebaiknya...", options: ["Spesifik dan sesuai pertanyaan", "Sangat umum dan panjang", "Berisi kata acak", "Hanya memakai satu huruf"], correct: 0, explain: "Kata kunci spesifik membantu menemukan sumber yang relevan." },
+    ],
+    "inf7-5": [
       { q: "Klaim 'akun ini membagikan hadiah gratis' sebaiknya...", options: ["Dicek dulu sumber dan buktinya", "Langsung dibagikan", "Dipercaya karena menarik", "Dianggap selalu benar"], correct: 0, explain: "Klaim yang mengundang emosi atau hadiah perlu diverifikasi." },
-    ];
-  }
-  if (id.includes("8-1") || id.includes("8-2") || id.includes("8-3")) {
-    return [
+    ],
+    "inf7-6": [
+      { q: "Jika melihat komentar yang mengejek teman di grup kelas, respons paling tepat adalah...", options: ["Tidak ikut menyebarkan, simpan bukti, dan laporkan ke orang dewasa tepercaya", "Ikut membalas agar ramai", "Membagikan tangkapan layar untuk hiburan", "Mengabaikan semua aturan netiket"], correct: 0, explain: "Perundungan digital perlu dihentikan dengan cara aman dan bertanggung jawab." },
+    ],
+    "inf8-1": [
+      { q: "Antrean siswa di kantin paling cocok dimodelkan dengan struktur...", options: ["Queue karena yang datang lebih dulu dilayani lebih dulu", "Stack karena yang terakhir selalu dilayani dulu", "Graf lengkap", "Folder gambar"], correct: 0, explain: "Queue memakai prinsip FIFO: first in, first out." },
+    ],
+    "inf8-2": [
+      { q: "Fitur undo pada editor paling dekat dengan konsep...", options: ["Stack", "Queue", "Graf sosial", "Tabel filter"], correct: 0, explain: "Undo mengambil aksi terakhir terlebih dahulu, sesuai prinsip stack/LIFO." },
+    ],
+    "inf8-3": [
       { q: "Untuk mencari nilai di atas 80 pada tabel, operasi yang paling tepat adalah...", options: ["Filter", "Menghapus tabel", "Mengganti tema", "Menutup spreadsheet"], correct: 0, explain: "Filter membantu menampilkan data yang memenuhi kriteria tertentu." },
       { q: "Atribut yang baik pada data siswa contohnya...", options: ["Nama dan kelas", "Warna latar", "Suasana ruangan saja", "Judul lagu tanpa konteks"], correct: 0, explain: "Atribut menjelaskan setiap objek data secara konsisten." },
-    ];
-  }
-  if (id.includes("8-6") || id.includes("9-4")) {
-    return [
+    ],
+    "inf8-4": [
+      { q: "Saat proyek Scratch tidak berjalan sesuai rencana, langkah debugging awal yang masuk akal adalah...", options: ["Uji satu bagian kode lalu cari blok yang menyebabkan masalah", "Menghapus semua sprite", "Menambah suara sebanyak mungkin", "Mengabaikan pesan error"], correct: 0, explain: "Debugging lebih mudah saat masalah diperiksa bagian demi bagian." },
+    ],
+    "inf8-5": [
+      { q: "Jika ingin menilai apakah solusi komputasional berhasil, kita perlu...", options: ["Membandingkan hasil dengan tujuan dan kriteria keberhasilan", "Melihat warna tampilannya saja", "Menghindari uji coba", "Menyalin solusi teman"], correct: 0, explain: "Evaluasi solusi perlu memakai tujuan dan kriteria yang jelas." },
+    ],
+    "inf8-6": [
       { q: "Contoh kebiasaan keamanan digital yang tepat adalah...", options: ["Tidak membagikan OTP", "Memakai satu password untuk semua akun", "Klik semua tautan", "Membuka data pribadi di publik"], correct: 0, explain: "OTP dan data pribadi harus dilindungi." },
-    ];
-  }
-  if (id.includes("9-2")) {
-    return [
+    ],
+    "inf9-1": [
+      { q: "Representasi biner berguna karena komputer menyimpan dan memproses data sebagai...", options: ["Pola 0 dan 1", "Warna catatan", "Kalimat bebas", "Gambar tanpa kode"], correct: 0, explain: "Komputer digital bekerja dengan representasi 0 dan 1." },
+    ],
+    "inf9-2": [
       { q: "Pseudocode berguna karena...", options: ["Membantu merancang logika sebelum implementasi", "Menghapus kebutuhan berpikir", "Selalu mengganti semua program", "Hanya untuk menggambar"], correct: 0, explain: "Pseudocode membantu fokus pada alur logika." },
-    ];
-  }
-  if (id.includes("9-3")) {
-    return [
+    ],
+    "inf9-3": [
       { q: "Saat melihat perundungan siber, tindakan yang paling aman adalah...", options: ["Simpan bukti dan minta bantuan orang dewasa tepercaya", "Membalas dengan hinaan", "Menyebarkan tangkapan layar", "Mengajak teman menyerang balik"], correct: 0, explain: "Respons aman melindungi korban dan membantu pelaporan." },
-    ];
-  }
-  return [
+    ],
+    "inf9-4": [
+      { q: "Contoh data pribadi yang tidak boleh dibagikan sembarangan adalah...", options: ["Alamat rumah dan kata sandi", "Nama mata pelajaran", "Judul buku pelajaran", "Warna sampul modul"], correct: 0, explain: "Data pribadi sensitif harus dilindungi agar tidak disalahgunakan." },
+    ],
+    "inf9-5": [
+      { q: "Saat penggunaan gawai mulai mengganggu tidur dan belajar, strategi awal yang sehat adalah...", options: ["Membuat batas waktu dan jeda sadar", "Menambah notifikasi", "Membuka semua aplikasi sekaligus", "Mengabaikan rasa lelah"], correct: 0, explain: "Kesejahteraan digital membutuhkan pengaturan waktu dan perhatian." },
+    ],
+    "inf9-6": [
+      { q: "Proyek digital yang baik sebaiknya dimulai dari...", options: ["Masalah nyata dan kebutuhan pengguna", "Memilih warna favorit saja", "Menyalin produk lain", "Membuat fitur sebanyak mungkin tanpa tujuan"], correct: 0, explain: "Proyek kuat berangkat dari masalah dan pengguna yang jelas." },
+    ],
+    "kka7-1": [
+      { q: "Saat mencatat data perpustakaan, atribut yang paling berguna adalah...", options: ["Judul buku, peminjam, tanggal pinjam", "Warna langit", "Suasana hati penjaga", "Jenis musik favorit"], correct: 0, explain: "Atribut harus menjelaskan data yang sedang dianalisis." },
+    ],
+    "kka7-2": [
+      { q: "Instruksi untuk robot menggambar persegi harus memuat...", options: ["Langkah berulang yang jelas dan urut", "Perintah acak tanpa ukuran", "Cerita panjang tanpa tindakan", "Gambar akhir saja"], correct: 0, explain: "Algoritma perlu instruksi runtut agar bisa dijalankan." },
+    ],
+    "kka7-3": [
+      { q: "Slide presentasi yang baik sebaiknya...", options: ["Ringkas, visual relevan, dan mudah dibaca", "Penuh teks kecil", "Berisi semua animasi", "Tidak punya tujuan"], correct: 0, explain: "Konten digital efektif menyesuaikan pesan dengan audiens." },
+    ],
+    "kka7-4": [
+      { q: "Sebelum membagikan konten buatan orang lain, tindakan etis adalah...", options: ["Memeriksa izin/lisensi dan mencantumkan sumber", "Menghapus nama pembuat", "Mengklaim sebagai karya sendiri", "Menyebarkan data pribadi"], correct: 0, explain: "Etika digital menghargai hak, privasi, dan tanggung jawab berbagi." },
+    ],
+    "kka7-5": [
+      { q: "Aplikasi AI yang memberi rekomendasi tetap perlu dikritisi karena...", options: ["Bisa dipengaruhi data dan aturan yang digunakan", "Selalu pasti benar", "Tidak pernah memakai data", "Tidak berdampak pada manusia"], correct: 0, explain: "AI bisa membantu, tetapi hasilnya perlu dinilai secara kritis." },
+    ],
+    "kka7-6": [
+      { q: "Prompt yang baik untuk AI sebaiknya berisi...", options: ["Tujuan, konteks, batasan, dan format hasil yang diinginkan", "Satu kata acak", "Perintah yang saling bertentangan", "Data pribadi rahasia"], correct: 0, explain: "Prompt jelas membantu AI menghasilkan keluaran yang lebih relevan dan aman." },
+    ],
+    "kka8-1": [
+      { q: "Untuk membandingkan nilai beberapa kelas di spreadsheet, langkah yang tepat adalah...", options: ["Merapikan tabel, memakai fungsi ringkasan, lalu membaca hasilnya", "Menghapus header", "Mengubah semua angka jadi teks acak", "Menutup file"], correct: 0, explain: "Analisis spreadsheet membutuhkan data rapi dan fungsi yang sesuai." },
+    ],
+    "kka8-2": [
+      { q: "Sebelum membuat program Scratch, pseudocode berguna untuk...", options: ["Merancang logika dan urutan aksi", "Mengganti semua blok", "Menghapus kebutuhan uji coba", "Memilih warna latar saja"], correct: 0, explain: "Pseudocode membantu merencanakan program sebelum implementasi." },
+    ],
+    "kka8-3": [
+      { q: "Dalam produksi video pembelajaran, bagian yang paling perlu dijaga adalah...", options: ["Pesan jelas, audio terbaca, dan visual mendukung", "Efek sebanyak mungkin", "Durasi tanpa batas", "Sumber gambar tidak penting"], correct: 0, explain: "Multimedia efektif ketika pesan dan kualitas komunikasi jelas." },
+    ],
+    "kka8-4": [
+      { q: "Jika memakai gambar berlisensi CC-BY, hal yang harus dilakukan adalah...", options: ["Mencantumkan atribusi pembuat", "Menghapus sumber", "Menjual ulang sebagai karya sendiri", "Mengubah lisensi seenaknya"], correct: 0, explain: "Lisensi CC-BY mengizinkan penggunaan dengan atribusi." },
+    ],
+    "kka8-5": [
+      { q: "Model AI bisa bias jika...", options: ["Data latihnya tidak seimbang atau tidak mewakili semua kelompok", "Data latihnya rapi", "Pengguna membaca hasilnya", "Model diuji sebelum digunakan"], correct: 0, explain: "Kualitas dan keberagaman data latih memengaruhi hasil AI." },
+    ],
+    "kka8-6": [
+      { q: "Saat melatih model klasifikasi gambar, dataset yang baik sebaiknya...", options: ["Beragam, cukup banyak, dan labelnya benar", "Semua gambar sama persis", "Label dibuat acak", "Hanya satu contoh per kelas"], correct: 0, explain: "Model belajar dari data, sehingga dataset harus representatif dan berlabel benar." },
+    ],
+    "kka9-1": [
+      { q: "Fungsi spreadsheet seperti VLOOKUP/XLOOKUP berguna untuk...", options: ["Mencari dan mencocokkan data dari tabel", "Menggambar ikon", "Menghapus seluruh sheet", "Mengganti semua angka jadi gambar"], correct: 0, explain: "Lookup membantu menemukan data berdasarkan kunci tertentu." },
+    ],
+    "kka9-2": [
+      { q: "Binary search efektif jika data...", options: ["Sudah terurut", "Selalu acak", "Tidak punya nilai", "Berisi gambar saja"], correct: 0, explain: "Binary search membagi ruang pencarian pada data yang sudah terurut." },
+    ],
+    "kka9-3": [
+      { q: "Konten digital lanjutan perlu konsisten agar...", options: ["Audiens mudah mengenali pesan dan identitasnya", "Semua file menjadi besar", "Tidak perlu sumber", "Semua platform otomatis sama"], correct: 0, explain: "Konsistensi membantu pesan terlihat profesional dan mudah diingat." },
+    ],
+    "kka9-4": [
+      { q: "Strategi diseminasi yang baik dimulai dari...", options: ["Memahami audiens target dan platform yang mereka gunakan", "Mengunggah acak ke semua tempat", "Mengabaikan analytics", "Menyalin kampanye lain"], correct: 0, explain: "Diseminasi efektif perlu audiens, platform, pesan, dan evaluasi yang jelas." },
+    ],
+    "kka9-5": [
+      { q: "Saat menerima video yang terlihat mencurigakan, langkah literasi digital yang tepat adalah...", options: ["Cek sumber, konteks, dan kemungkinan manipulasi", "Langsung percaya", "Sebarkan agar viral", "Abaikan semua bukti"], correct: 0, explain: "Konten manipulatif seperti deepfake perlu diverifikasi sebelum dipercaya atau dibagikan." },
+    ],
+    "kka9-6": [
+      { q: "Dalam proyek akhir berbasis AI, Design Thinking membantu siswa...", options: ["Memahami pengguna, membuat ide, menguji prototipe, dan memperbaiki solusi", "Langsung membuat produk tanpa masalah", "Menghindari refleksi", "Menghapus dokumentasi"], correct: 0, explain: "Design Thinking menuntun proyek dari kebutuhan pengguna sampai iterasi solusi." },
+    ],
+  };
+  return scenarioMap[id] || [
     { q: "Sikap terbaik saat menyelesaikan aktivitas SIGMA adalah...", options: ["Mencoba, membaca feedback, lalu merevisi", "Menyerah saat salah", "Menebak tanpa membaca", "Menghindari Misi"], correct: 0, explain: "Feedback dan revisi membantu belajar lebih dalam." },
   ];
 }

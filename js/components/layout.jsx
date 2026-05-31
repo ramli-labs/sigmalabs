@@ -191,6 +191,9 @@ const Footer = () => (
           <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.14)" }}/>
           <div style={{ display: "grid", gap: 5 }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.9)" }}>SMP Labschool Jakarta</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.58)" }}>
+              SISTEM INFORMATIKA • GENERASI MAHIR ARTIFISIAL
+            </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gold-400)" }}>
               <span>Kreatif</span><span style={{ opacity: 0.45 }}>•</span><span>Berprestasi</span><span style={{ opacity: 0.45 }}>•</span><span>Berkarakter</span>
             </div>

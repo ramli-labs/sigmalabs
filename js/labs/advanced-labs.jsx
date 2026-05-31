@@ -903,7 +903,7 @@ const SpreadsheetMiniLab = () => {
         </div>
         <div>
           <div className="card" style={{ padding: 22, background: checked ? (isCorrect ? "#D1FAE5" : "#FEE2E2") : "var(--navy-950)", color: checked ? "var(--ink)" : "white", marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: checked ? "var(--ink-muted)" : "var(--gold-400)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Tantangan Formula {challengeIdx + 1}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: checked ? "var(--ink-muted)" : "var(--gold-400)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Latihan Formula {challengeIdx + 1}</div>
             <div style={{ fontSize: 21, fontWeight: 900, lineHeight: 1.25 }}>{current.title}</div>
             <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.55, color: checked ? "var(--ink-muted)" : "rgba(255,255,255,0.72)" }}>{current.ask}</div>
             <div style={{ marginTop: 14, padding: 12, borderRadius: 12, background: checked ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.18)", fontFamily: "var(--font-mono)", minHeight: 48, overflowX: "auto" }}>
@@ -928,7 +928,7 @@ const SpreadsheetMiniLab = () => {
             )}
             <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
               <button className="btn btn-ai" onClick={check} disabled={!formulaParts.length || checked}>Periksa Formula</button>
-              <button className="btn" onClick={next}>{checked ? "Tantangan Berikutnya" : "Ganti Tantangan"}</button>
+              <button className="btn" onClick={next}>{checked ? "Latihan Berikutnya" : "Ganti Latihan"}</button>
             </div>
             <div style={{ marginTop: 12, fontSize: 12, fontWeight: 800, opacity: 0.72 }}>Formula benar: {solvedChallenges.length}/4. Lab tuntas setelah 3 formula berbeda.</div>
           </div>

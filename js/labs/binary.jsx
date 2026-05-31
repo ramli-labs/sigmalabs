@@ -90,12 +90,12 @@ const BinaryLab = () => {
           </div>
         </div>
 
-        {/* Challenge */}
+        {/* Latihan */}
         <div className="card" style={{ padding: 28, background: correct ? "linear-gradient(135deg, #D1FAE5, white)" : "linear-gradient(135deg, var(--gold-300), white)", marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", color: correct ? "var(--green-500)" : "var(--orange-500)", textTransform: "uppercase", marginBottom: 6 }}>
-                🎯 Tantangan
+                🎯 Latihan
               </div>
               <div style={{ fontSize: 17, fontWeight: 700 }}>
                 Ubah <span style={{ fontFamily: "var(--font-mono)", padding: "2px 10px", background: "var(--navy-950)", color: "white", borderRadius: 6 }}>{targetDecimal}</span> menjadi biner dengan menyalakan bit di atas.
@@ -107,7 +107,7 @@ const BinaryLab = () => {
               )}
             </div>
             <button className="btn btn-primary" onClick={newChallenge}>
-              <Icon.Refresh width="14" height="14"/> Tantangan Baru
+              <Icon.Refresh width="14" height="14"/> Latihan Baru
             </button>
           </div>
         </div>

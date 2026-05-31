@@ -724,6 +724,14 @@ const Footer = () => React.createElement("footer", {
   }
 }, "SMP Labschool Jakarta"), React.createElement("div", {
   style: {
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.58)"
+  }
+}, "SISTEM INFORMATIKA \u2022 GENERASI MAHIR ARTIFISIAL"), React.createElement("div", {
+  style: {
     display: "flex",
     gap: 8,
     alignItems: "center",
@@ -1202,7 +1210,7 @@ const Landing = () => {
       borderRadius: "50%"
     },
     className: "pulse"
-  }), "SIGMA \xB7 Sistem Informatika, Generasi Mahir Artifisial"), React.createElement("h1", {
+  }), "SIGMA \xB7 SISTEM INFORMATIKA \u2022 GENERASI MAHIR ARTIFISIAL"), React.createElement("h1", {
     className: "display",
     style: {
       fontSize: "clamp(48px, 7vw, 84px)",
@@ -3001,7 +3009,7 @@ const Dashboard = () => {
       marginTop: 12,
       lineHeight: 1.45
     }
-  }, "Papan peringkat ini masih contoh (data simulasi). Peringkat antar-siswa yang nyata menyusul saat sinkronisasi server aktif.")))), React.createElement(Footer, null));
+  }, "Papan peringkat ini masih contoh. Progress siswa tersimpan di browser/perangkat yang dipakai, belum tersinkron antarperangkat.")))), React.createElement(Footer, null));
 };
 const StatPill = ({
   icon,
@@ -3837,7 +3845,7 @@ const ModuleDetail = ({
   }, {
     n: "2",
     t: "Refleksi",
-    d: "Tulis bukti pemahaman",
+    d: "Tulis refleksi singkat",
     done: stepStatus.materiDone,
     active: tab === "materi"
   }, {
@@ -4747,7 +4755,7 @@ const QuestTab = ({
       textTransform: "uppercase",
       letterSpacing: "0.09em"
     }
-  }, "Tantangan Pemahaman")), mission.activities.length > 0 ? React.createElement("div", {
+  }, "Latihan Pemahaman")), mission.activities.length > 0 ? React.createElement("div", {
     className: "quest-activity-grid",
     style: {
       display: "grid",
@@ -4937,7 +4945,7 @@ const QuestTab = ({
       fontWeight: 700,
       color: "var(--ink-muted)"
     }
-  }, "Tantangan: ", actScore, "/75"), React.createElement("div", {
+  }, "Latihan: ", actScore, "/75"), React.createElement("div", {
     style: {
       padding: "5px 12px",
       borderRadius: 8,
@@ -5192,7 +5200,7 @@ const QuestActivity = ({
       color: isFinished ? "var(--green-500)" : isLab ? "var(--info-500)" : "var(--ai-500)",
       marginBottom: 4
     }
-  }, isFinished ? "Sudah Dikerjakan ✓" : isLab ? "Eksperimen" : "Tantangan"), React.createElement("div", {
+  }, isFinished ? "Sudah Dikerjakan ✓" : isLab ? "Eksperimen" : "Gim"), React.createElement("div", {
     style: {
       fontWeight: 900,
       fontSize: 14
@@ -5303,7 +5311,7 @@ const InteractiveQuestCard = ({
     style: {
       marginBottom: 4
     }
-  }, "Tantangan"), React.createElement("div", {
+  }, "Latihan"), React.createElement("div", {
     style: {
       fontWeight: 900,
       fontSize: 14
@@ -5933,7 +5941,7 @@ function getInteractionFeedback(activity, values, done) {
   let bg = "var(--info-100)";
   let border = "var(--info-300)";
   if (score >= 100) {
-    title = hasAnswer ? "Benar semua" : "Tantangan tuntas";
+    title = hasAnswer ? "Benar semua" : "Latihan tuntas";
     message = hasAnswer ? "Mantap. Jawabanmu tepat dan misi siap diklaim." : "Mantap. Pilihanmu sudah lengkap dan misi siap diklaim.";
     color = "var(--green-500)";
     bg = "#D1FAE5";
@@ -13785,7 +13793,7 @@ const BinaryLab = () => {
       textTransform: "uppercase",
       marginBottom: 6
     }
-  }, "\uD83C\uDFAF Tantangan"), React.createElement("div", {
+  }, "\uD83C\uDFAF Latihan"), React.createElement("div", {
     style: {
       fontSize: 17,
       fontWeight: 700
@@ -13820,7 +13828,7 @@ const BinaryLab = () => {
   }, React.createElement(Icon.Refresh, {
     width: "14",
     height: "14"
-  }), " Tantangan Baru"))), React.createElement("div", {
+  }), " Latihan Baru"))), React.createElement("div", {
     className: "lab-info-grid",
     style: {
       display: "grid",
@@ -16365,7 +16373,7 @@ const SpreadsheetMiniLab = () => {
       textTransform: "uppercase",
       marginBottom: 10
     }
-  }, "Tantangan Formula ", challengeIdx + 1), React.createElement("div", {
+  }, "Latihan Formula ", challengeIdx + 1), React.createElement("div", {
     style: {
       fontSize: 21,
       fontWeight: 900,
@@ -16444,7 +16452,7 @@ const SpreadsheetMiniLab = () => {
   }, "Periksa Formula"), React.createElement("button", {
     className: "btn",
     onClick: next
-  }, checked ? "Tantangan Berikutnya" : "Ganti Tantangan")), React.createElement("div", {
+  }, checked ? "Latihan Berikutnya" : "Ganti Latihan")), React.createElement("div", {
     style: {
       marginTop: 12,
       fontSize: 12,

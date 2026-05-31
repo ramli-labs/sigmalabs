@@ -122,7 +122,7 @@ const ModuleDetail = ({ moduleId }) => {
         <div className="module-learning-flow" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
           {[
             { n: "1", t: "Materi", d: "Baca penguat modul cetak", done: stepStatus.materiDone, active: tab === "materi" },
-            { n: "2", t: "Refleksi", d: "Tulis bukti pemahaman", done: stepStatus.materiDone, active: tab === "materi" },
+            { n: "2", t: "Refleksi", d: "Tulis refleksi singkat", done: stepStatus.materiDone, active: tab === "materi" },
             { n: "3", t: "Misi", d: "Latihan setelah materi", done: stepStatus.misiDone, active: tab === "quest", locked: !stepStatus.misiUnlocked },
             { n: "4", t: "Kuis", d: "Cek akhir modul", done: stepStatus.kuisDone, active: tab === "kuis", locked: !stepStatus.kuisUnlocked },
           ].map(item => (
@@ -494,13 +494,13 @@ const QuestTab = ({ mod, subject, onSwitchTab }) => {
           </div>
         </div>
 
-        {/* Card 2: Tantangan Pemahaman */}
+        {/* Card 2: Latihan Pemahaman */}
         <div className="card" style={{ padding: 24, background: "white", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--gold-300)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Icon.Puzzle width="15" height="15" style={{ color: "var(--navy-950)" }}/>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Tantangan Pemahaman</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Latihan Pemahaman</span>
           </div>
           {mission.activities.length > 0 ? (
             <div className="quest-activity-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
@@ -562,7 +562,7 @@ const QuestTab = ({ mod, subject, onSwitchTab }) => {
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             <div style={{ padding: "5px 12px", borderRadius: 8, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, fontWeight: 700, color: "var(--ink-muted)" }}>
-              Tantangan: {actScore}/75
+              Latihan: {actScore}/75
             </div>
             <div style={{ padding: "5px 12px", borderRadius: 8, background: reflValid ? "#D1FAE5" : "var(--bg)", border: `1px solid ${reflValid ? "var(--green-500)" : "var(--line)"}`, fontSize: 12, fontWeight: 700, color: reflValid ? "var(--green-500)" : "var(--ink-muted)" }}>
               Refleksi: {reflScore}/25
@@ -682,7 +682,7 @@ const QuestActivity = ({ activity, onComplete, done }) => {
         </div>
         <div>
           <div className="tag" style={{ background: isFinished ? "#D1FAE5" : isLab ? "var(--info-100)" : "var(--ai-100)", color: isFinished ? "var(--green-500)" : isLab ? "var(--info-500)" : "var(--ai-500)", marginBottom: 4 }}>
-            {isFinished ? "Sudah Dikerjakan ✓" : isLab ? "Eksperimen" : "Tantangan"}
+            {isFinished ? "Sudah Dikerjakan ✓" : isLab ? "Eksperimen" : "Gim"}
           </div>
           <div style={{ fontWeight: 900, fontSize: 14 }}>{item.title}</div>
         </div>
@@ -765,7 +765,7 @@ const InteractiveQuestCard = ({ activity, onComplete, done }) => {
           {locked ? <Icon.Check width="22" height="22"/> : <Icon.Puzzle width="22" height="22"/>}
         </div>
         <div>
-          <div className="tag tag-gold" style={{ marginBottom: 4 }}>Tantangan</div>
+          <div className="tag tag-gold" style={{ marginBottom: 4 }}>Latihan</div>
           <div style={{ fontWeight: 900, fontSize: 14 }}>{activity.title}</div>
         </div>
       </div>
@@ -1138,7 +1138,7 @@ function getInteractionFeedback(activity, values, done) {
   let border = "var(--info-300)";
 
   if (score >= 100) {
-    title = hasAnswer ? "Benar semua" : "Tantangan tuntas";
+    title = hasAnswer ? "Benar semua" : "Latihan tuntas";
     message = hasAnswer ? "Mantap. Jawabanmu tepat dan misi siap diklaim." : "Mantap. Pilihanmu sudah lengkap dan misi siap diklaim.";
     color = "var(--green-500)";
     bg = "#D1FAE5";

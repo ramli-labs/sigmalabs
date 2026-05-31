@@ -234,7 +234,7 @@ const Dashboard = () => {
               </div>
             ))}
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 12, lineHeight: 1.45 }}>
-              Papan peringkat ini masih contoh (data simulasi). Peringkat antar-siswa yang nyata menyusul saat sinkronisasi server aktif.
+              Papan peringkat ini masih contoh. Progress siswa tersimpan di browser/perangkat yang dipakai, belum tersinkron antarperangkat.
             </div>
           </div>
         </div>

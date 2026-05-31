@@ -22,7 +22,7 @@ const Landing = () => {
           <div className="fade-in-up">
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: "var(--r-full)", background: "white", border: "2px solid var(--ink)", boxShadow: "var(--shadow-chunk-sm)", fontSize: 13, fontWeight: 700, marginBottom: 28 }}>
               <span style={{ width: 8, height: 8, background: "var(--green-500)", borderRadius: "50%" }} className="pulse"/>
-              SIGMA · Sistem Informatika, Generasi Mahir Artifisial
+              SIGMA · SISTEM INFORMATIKA • GENERASI MAHIR ARTIFISIAL
             </div>
 
             <h1 className="display" style={{ fontSize: "clamp(48px, 7vw, 84px)", margin: 0, color: "var(--navy-950)" }}>

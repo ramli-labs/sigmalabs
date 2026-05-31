@@ -307,13 +307,13 @@ window.QUIZ_BANK_V2 = {
       explain: "SUM menjumlahkan seluruh nilai pada rentang." },
     { difficulty: "Mudah", q: "Fitur Filter pada spreadsheet berguna untuk...",
       options: ["Menampilkan hanya baris yang memenuhi kriteria tertentu", "Mengubah warna semua sel", "Menghapus seluruh data", "Menambah kolom otomatis"], correct: 0,
-      explain: "Filter menyembunyikan baris yang tidak sesuai kriteria sehingga fokus pada data yang dibutuhkan." },
+      explain: "Filtering menyembunyikan baris yang tidak sesuai kriteria sehingga fokus pada data yang dibutuhkan." },
     { difficulty: "Mudah", q: "Langkah pertama dalam siklus analisis data adalah...",
       options: ["Menentukan pertanyaan atau tujuan analisis", "Langsung membuat grafik berwarna", "Menghapus data yang tidak disukai", "Menyimpulkan sebelum melihat data"], correct: 0,
       explain: "Analisis dimulai dari pertanyaan yang jelas agar data yang dikumpulkan tepat." },
     { difficulty: "Sedang", q: "Untuk mengurutkan data nilai dari tertinggi ke terendah, fitur yang dipakai adalah...",
       options: ["Sort (pengurutan) menurun pada kolom nilai", "Filter berdasarkan warna", "Fungsi SUM", "Menyalin-tempel acak"], correct: 0,
-      explain: "Sort menurun menyusun nilai dari besar ke kecil." },
+      explain: "Sorting data menurun menyusun nilai dari besar ke kecil." },
     { difficulty: "Sedang", q: "'Sorting multi-level' berarti...",
       options: ["Mengurutkan berdasarkan lebih dari satu kolom, misalnya kelas lalu nilai", "Mengurutkan satu kolom berkali-kali", "Mengurutkan hanya angka genap", "Mengurutkan warna sel"], correct: 0,
       explain: "Pengurutan bertingkat memakai beberapa kunci urut secara berurutan." },
@@ -328,7 +328,7 @@ window.QUIZ_BANK_V2 = {
       explain: "Pie chart menampilkan persentase bagian dari satu kesatuan." },
     { difficulty: "Sedang", q: "Fungsi =MAX(B2:B31) menghasilkan...",
       options: ["Nilai terbesar pada rentang B2:B31", "Jumlah seluruh nilai", "Rata-rata nilai", "Banyaknya sel terisi"], correct: 0,
-      explain: "MAX mengembalikan nilai tertinggi pada rentang." },
+      explain: "MAX adalah fungsi ringkasan untuk mengambil nilai tertinggi pada rentang." },
     { difficulty: "Sulit", q: "Sebelum menyimpulkan dari sebuah grafik, hal yang perlu diperiksa lebih dulu adalah...",
       options: ["Judul, satuan, sumber data, dan rentang sumbu", "Hanya warna grafiknya", "Jumlah animasi pada grafik", "Jenis font judulnya"], correct: 0,
       explain: "Konteks grafik (satuan, sumbu, sumber) menentukan kebenaran kesimpulan." },
@@ -340,7 +340,7 @@ window.QUIZ_BANK_V2 = {
       explain: "SUMIF menjumlahkan nilai yang memenuhi kriteria tertentu." },
     { difficulty: "HOTS", q: "Ingin tahu apakah les berpengaruh pada nilai siswa. Langkah analisis data paling tepat adalah...",
       options: ["Bandingkan nilai yang ikut les dan tidak (atau sebelum-sesudah), lalu pertimbangkan faktor lain", "Langsung menyimpulkan les pasti berpengaruh", "Memilih hanya data yang mendukung dugaan", "Mengabaikan data dan menebak"], correct: 0,
-      explain: "Kesimpulan berbasis data menuntut perbandingan yang adil dan kehati-hatian terhadap faktor lain." },
+      explain: "Proyek analisis data nyata menuntut perbandingan yang adil dan kehati-hatian terhadap faktor lain." },
     { difficulty: "HOTS", q: "Dua laporan data: A menyertakan sumber, metode, dan grafik berlabel; B hanya menampilkan angka mencolok tanpa sumber. Laporan yang lebih layak dipercaya adalah...",
       options: ["A, karena dapat ditelusuri dan diperiksa", "B, karena angkanya besar", "Keduanya sama saja", "B, karena lebih ringkas"], correct: 0,
       explain: "Data yang dapat diverifikasi (sumber + metode) lebih tepercaya." },
@@ -445,7 +445,7 @@ window.QUIZ_BANK_V2 = {
   "kka8-4": [
     { difficulty: "Mudah", q: "Hak cipta melindungi...",
       options: ["Karya pencipta agar tidak dipakai sembarangan tanpa izin", "Hanya karya milik perusahaan besar", "Barang fisik di toko", "Nama akun media sosial"], correct: 0,
-      explain: "Hak cipta memberi pencipta kendali atas penggunaan karyanya." },
+      explain: "Hak kekayaan intelektual dan copyright memberi pencipta kendali atas penggunaan karyanya." },
     { difficulty: "Mudah", q: "Lisensi Creative Commons CC-BY berarti karya boleh dipakai asalkan...",
       options: ["Mencantumkan nama pencipta/sumbernya", "Membayar sejumlah uang", "Tidak boleh dipakai sama sekali", "Mengubah judulnya"], correct: 0,
       explain: "BY = attribution, yaitu wajib menyebut penciptanya." },
@@ -484,7 +484,7 @@ window.QUIZ_BANK_V2 = {
       explain: "Karya gabungan tetap wajib menghormati lisensi dan menyebut sumber." },
     { difficulty: "HOTS", q: "Infografis kelas akan disebar ke media sosial sekolah. Langkah paling bertanggung jawab adalah...",
       options: ["Cek akurasi, pakai aset berlisensi + sebut sumber, lindungi data pribadi, pertimbangkan dampak", "Sebar cepat agar viral", "Tambah gambar acak tanpa kredit", "Cantumkan data semua siswa"], correct: 0,
-      explain: "Diseminasi etis menggabungkan akurasi, hak cipta, privasi, dan dampak." },
+      explain: "Proyek multimedia terintegrasi perlu menggabungkan akurasi, hak cipta, privasi, dan dampak." },
     { difficulty: "HOTS", q: "Dua karya: A memakai aset berlisensi dan menyebut sumber; B mengambil gambar acak tanpa kredit. Yang etis dan aman adalah...",
       options: ["A, karena menghormati hak cipta dan dapat dipertanggungjawabkan", "B, karena lebih cepat dibuat", "Keduanya sama saja", "B, karena tidak ada yang tahu"], correct: 0,
       explain: "Menghormati lisensi dan sumber menjadikan karya aman dan etis." },
@@ -888,7 +888,7 @@ window.QUIZ_BANK_V2 = {
       explain: "AVERAGE menghitung nilai rata-rata dari rentang." },
     { difficulty: "Mudah", q: "Fitur Filter pada spreadsheet berguna untuk...",
       options: ["Menampilkan hanya baris yang memenuhi kriteria tertentu", "Mengganti warna seluruh sel", "Menghapus semua rumus", "Menambah kolom otomatis"], correct: 0,
-      explain: "Filter menyaring data sehingga fokus pada yang dibutuhkan." },
+      explain: "Filtering data menyaring tampilan sehingga fokus pada baris yang dibutuhkan." },
     { difficulty: "Sedang", q: "Referensi sel RELATIF seperti =A1*2, ketika disalin ke baris di bawahnya, akan...",
       options: ["Ikut berubah mengikuti baris (A2*2, A3*2, dst)", "Tetap selalu =A1*2", "Menjadi error", "Berubah jadi teks"], correct: 0,
       explain: "Referensi relatif menyesuaikan diri saat rumus disalin." },
@@ -897,13 +897,13 @@ window.QUIZ_BANK_V2 = {
       explain: "Tanda $ mengunci kolom/baris agar tetap saat rumus disalin." },
     { difficulty: "Sedang", q: "Untuk mengurutkan nilai dari terbesar ke terkecil dipakai...",
       options: ["Sort (pengurutan) menurun pada kolom nilai", "Filter berdasarkan warna", "Fungsi SUM", "Salin-tempel acak"], correct: 0,
-      explain: "Sort menurun menyusun data dari nilai tertinggi ke terendah." },
+      explain: "Sorting data menurun menyusun data dari nilai tertinggi ke terendah." },
     { difficulty: "Sedang", q: "Pesan error #DIV/0! biasanya menunjukkan...",
       options: ["Ada pembagian dengan nol atau sel pembagi kosong", "Teks terlalu panjang", "Warna sel salah", "File rusak"], correct: 0,
       explain: "#DIV/0! muncul saat membagi dengan nol atau sel kosong." },
     { difficulty: "Sedang", q: "Untuk menghitung BANYAK siswa yang nilainya >= 75 dipakai fungsi...",
       options: ["COUNTIF", "SUM", "AVERAGE", "MAX"], correct: 0,
-      explain: "COUNTIF menghitung jumlah sel yang memenuhi kriteria." },
+      explain: "COUNTIF adalah fungsi ringkasan untuk menghitung jumlah sel yang memenuhi kriteria." },
     { difficulty: "Sedang", q: "Grafik batang paling cocok dipakai untuk...",
       options: ["Membandingkan nilai antar kategori", "Menunjukkan satu angka tunggal", "Menyimpan rumus", "Menyembunyikan data"], correct: 0,
       explain: "Grafik batang membandingkan besaran antar kategori." },
@@ -918,7 +918,7 @@ window.QUIZ_BANK_V2 = {
       explain: "Filter multi-kriteria menyaring data sesuai beberapa syarat sekaligus." },
     { difficulty: "HOTS", q: "Guru ingin tahu apakah rata-rata nilai meningkat tiap bulan. Langkah spreadsheet paling tepat adalah...",
       options: ["Susun data per bulan, buat grafik garis, lalu tafsirkan trennya dengan hati-hati", "Langsung menyimpulkan tanpa data", "Mengurutkan nama siswa saja", "Menghapus bulan yang nilainya rendah"], correct: 0,
-      explain: "Tren waktu dianalisis dengan data terstruktur dan grafik garis." },
+      explain: "Proyek mini spreadsheet memakai data terstruktur, fungsi ringkasan, dan grafik garis untuk membaca tren." },
     { difficulty: "HOTS", q: "Dua tabel nilai: A memakai referensi absolut untuk bobot dan berlabel jelas; B menyalin angka manual berulang-ulang. Yang lebih baik adalah...",
       options: ["A, karena otomatis, konsisten, dan mudah diperbaiki", "B, karena terlihat lebih banyak kerja", "Keduanya sama saja", "B, karena tanpa rumus lebih aman"], correct: 0,
       explain: "Rumus dengan referensi yang benar mengurangi kesalahan dan memudahkan revisi." },
@@ -930,7 +930,7 @@ window.QUIZ_BANK_V2 = {
       explain: "Struktur yang jelas memudahkan pembaca mengikuti isi." },
     { difficulty: "Mudah", q: "Gaya 'Heading' (Heading 1, 2) pada pengolah kata berguna untuk...",
       options: ["Menstrukturkan dokumen dan membuat daftar isi otomatis", "Mengganti warna kertas", "Menghapus halaman", "Memutar musik"], correct: 0,
-      explain: "Heading membentuk hierarki dokumen dan mendukung daftar isi otomatis." },
+      explain: "Pada Google Docs atau word processing lanjutan, heading membentuk hierarki dokumen dan mendukung daftar isi otomatis." },
     { difficulty: "Mudah", q: "Slide presentasi yang efektif sebaiknya...",
       options: ["Berisi poin ringkas dan visual pendukung", "Penuh paragraf panjang", "Tanpa judul", "Memakai 6 jenis font"], correct: 0,
       explain: "Slide mendukung penjelasan lisan, cukup poin inti dan visual." },
@@ -1309,3 +1309,275 @@ window.QUIZ_BANK_V2 = {
       explain: "Projek kuat berbasis masalah nyata, bukti, dan refleksi." },
   ],
 };
+
+// Supplement untuk modul Informatika yang belum punya bank v2 eksplisit.
+// Disusun agar semua 36 modul memakai jalur QUIZ_BANK_V2, bukan fallback pendek.
+(function addInformatikaSupplements() {
+  const supplements = {
+    "inf7-1": [
+      { difficulty: "Mudah", q: "Dalam berpikir komputasional, dekomposisi berarti...", options: ["Memecah masalah besar menjadi bagian kecil yang lebih mudah dikerjakan", "Menghapus masalah agar terlihat selesai", "Menebak solusi tanpa melihat data", "Membuat tampilan tabel lebih berwarna"], correct: 0, explain: "Dekomposisi membantu masalah besar menjadi beberapa bagian yang lebih jelas." },
+      { difficulty: "Mudah", q: "Saat membuat jadwal piket, contoh pola yang bisa dicari adalah...", options: ["Hari yang paling sering kosong petugasnya", "Warna spidol di papan tulis", "Merek sepatu petugas piket", "Judul lagu saat piket"], correct: 0, explain: "Pola ditemukan dari kejadian yang berulang dan relevan dengan masalah." },
+      { difficulty: "Sedang", q: "Detail yang perlu diabaikan saat membuat denah menuju lab komputer adalah...", options: ["Warna tas siswa yang lewat di koridor", "Titik awal perjalanan", "Arah belok", "Ruang yang dilewati"], correct: 0, explain: "Abstraksi mengabaikan detail yang tidak membantu mencapai tujuan." },
+      { difficulty: "Sedang", q: "Algoritma yang baik harus bisa...", options: ["Diikuti orang lain secara runtut dan diuji hasilnya", "Dibaca hanya oleh pembuatnya", "Selalu panjang walau tugas sederhana", "Menghindari kondisi jika/maka"], correct: 0, explain: "Algoritma adalah urutan langkah yang jelas dan dapat dievaluasi." },
+      { difficulty: "Sulit", q: "Solusi 'kelas harus sadar kebersihan' masih lemah karena...", options: ["Belum memuat langkah konkret, pembagian tugas, dan cara mengecek hasil", "Terlalu banyak memakai kata kelas", "Tidak memakai komputer", "Tidak menyebut warna tempat sampah"], correct: 0, explain: "Solusi BK perlu langkah nyata yang bisa dijalankan dan dinilai." },
+    ],
+    "inf7-2": [
+      { difficulty: "Mudah", q: "Pola kerja dasar komputer dapat diringkas sebagai...", options: ["Input, proses, penyimpanan, dan output", "Warna, suara, layar, dan kabel", "Internet, aplikasi, video, dan gim", "Teks, gambar, musik, dan printer"], correct: 0, explain: "Komputer menerima input, memproses, menyimpan bila perlu, lalu menghasilkan output." },
+      { difficulty: "Mudah", q: "Keyboard pada laptop termasuk perangkat...", options: ["Input", "Output", "Penyimpanan", "Jaringan"], correct: 0, explain: "Keyboard memasukkan data atau perintah ke komputer." },
+      { difficulty: "Sedang", q: "SSD atau flashdisk berfungsi terutama untuk...", options: ["Menyimpan data agar bisa dipakai kembali", "Menampilkan gambar di layar", "Mengeluarkan suara", "Mengetik huruf"], correct: 0, explain: "Perangkat penyimpanan menjaga data tetap tersedia walau perangkat dimatikan." },
+      { difficulty: "Sedang", q: "Bilangan biner penting karena komputer digital bekerja dengan...", options: ["Dua keadaan dasar: 0 dan 1", "Sepuluh warna utama", "Kalimat panjang", "Gambar bebas tanpa kode"], correct: 0, explain: "Komputer digital merepresentasikan data dengan pola bit 0 dan 1." },
+      { difficulty: "Sulit", q: "Jika aplikasi lambat saat membuka banyak tab, komponen yang mungkin terbebani adalah...", options: ["Prosesor/RAM karena banyak proses aktif", "Kabel charger saja", "Warna wallpaper", "Nama folder"], correct: 0, explain: "Banyak proses aktif membutuhkan CPU dan memori yang cukup." },
+    ],
+    "inf7-3": [
+      { difficulty: "Mudah", q: "Saat membuka situs, data dari perangkat biasanya melewati...", options: ["Router, jaringan internet/ISP, lalu server", "Buku tulis, meja, lalu papan tulis", "Kamera, speaker, lalu printer", "Folder, ikon, lalu wallpaper"], correct: 0, explain: "Permintaan web bergerak melalui perangkat jaringan hingga server tujuan." },
+      { difficulty: "Mudah", q: "Router di rumah/sekolah berfungsi untuk...", options: ["Menghubungkan perangkat lokal ke jaringan lain atau internet", "Mencetak dokumen", "Mengganti isi website", "Membuat file gambar"], correct: 0, explain: "Router meneruskan paket data antarjaringan." },
+      { difficulty: "Sedang", q: "Jika nama situs tidak bisa diterjemahkan menjadi alamat IP, bagian yang perlu dicurigai adalah...", options: ["DNS", "Keyboard", "Speaker", "Tema browser"], correct: 0, explain: "DNS menerjemahkan nama domain menjadi alamat IP." },
+      { difficulty: "Sedang", q: "Packet loss dapat menyebabkan...", options: ["Video tersendat atau permintaan data gagal lengkap", "Layar menjadi lebih terang", "Keyboard mengetik sendiri", "File berubah warna"], correct: 0, explain: "Packet loss berarti sebagian paket tidak sampai ke tujuan." },
+      { difficulty: "Sulit", q: "Jika WiFi tersambung tetapi hanya satu situs yang gagal dibuka, kemungkinan yang paling masuk akal adalah...", options: ["Server atau layanan situs tersebut bermasalah", "Semua perangkat pasti rusak", "Mouse tidak terpasang", "Resolusi layar terlalu kecil"], correct: 0, explain: "Jika situs lain normal, masalah mungkin berada pada server/layanan tujuan." },
+    ],
+    "inf7-4": [
+      { difficulty: "Mudah", q: "Kata kunci pencarian yang baik sebaiknya...", options: ["Spesifik sesuai kebutuhan informasi", "Acak dan sangat umum", "Hanya satu huruf", "Selalu berupa kalimat panjang tanpa fokus"], correct: 0, explain: "Kata kunci spesifik membantu mesin pencari menampilkan hasil relevan." },
+      { difficulty: "Mudah", q: "Tanda kutip pada mesin pencari berguna untuk...", options: ["Mencari frasa yang persis sama", "Menghapus semua hasil pencarian", "Membuka kamera", "Mengurutkan file komputer"], correct: 0, explain: "Tanda kutip mencari susunan kata yang sama persis." },
+      { difficulty: "Sedang", q: "Sumber informasi lebih kredibel jika...", options: ["Penulis, tanggal, dan rujukannya jelas", "Judulnya paling heboh", "Tidak ada sumber pembanding", "Banyak huruf kapital"], correct: 0, explain: "Kredibilitas dibantu identitas penulis, tanggal, dan bukti." },
+      { difficulty: "Sedang", q: "Hasil pencarian lama perlu dicek karena...", options: ["Informasi bisa berubah sesuai waktu dan konteks", "Semua informasi lama pasti salah", "Tanggal tidak pernah penting", "Mesin pencari tidak punya arsip"], correct: 0, explain: "Sebagian topik berubah, jadi tanggal publikasi memengaruhi relevansi." },
+      { difficulty: "Sulit", q: "Untuk tugas tentang kebijakan pemerintah terbaru, strategi pencarian yang lebih tepat adalah...", options: ["Menambahkan tahun dan memilih sumber resmi", "Memilih judul paling sensasional", "Mengambil komentar pertama", "Menghindari semua tanggal"], correct: 0, explain: "Sumber resmi dan batas waktu membantu memastikan informasi mutakhir." },
+    ],
+    "inf7-5": [
+      { difficulty: "Mudah", q: "Kalimat yang bisa dicek benar-salahnya disebut...", options: ["Fakta atau klaim faktual", "Opini murni", "Selera pribadi", "Candaan tanpa konteks"], correct: 0, explain: "Fakta atau klaim faktual dapat diverifikasi dengan bukti." },
+      { difficulty: "Mudah", q: "Contoh opini adalah...", options: ["Aplikasi ini paling nyaman digunakan", "Sekolah mulai pukul 07.00", "Air mendidih pada suhu tertentu", "Jumlah siswa 30 orang"], correct: 0, explain: "Opini memuat penilaian atau selera." },
+      { difficulty: "Sedang", q: "Ciri informasi yang perlu dicurigai sebagai hoaks adalah...", options: ["Judul provokatif, sumber tidak jelas, dan meminta segera disebarkan", "Ada tanggal dan rujukan jelas", "Mencantumkan data resmi", "Menjelaskan batas informasi"], correct: 0, explain: "Hoaks sering memakai emosi kuat dan sumber kabur." },
+      { difficulty: "Sedang", q: "Sebelum membagikan klaim viral, langkah paling tepat adalah...", options: ["Cek sumber, konteks, dan bukti pembanding", "Langsung sebar agar cepat tahu", "Tambahkan judul lebih heboh", "Percaya karena banyak yang share"], correct: 0, explain: "Verifikasi mencegah penyebaran informasi keliru." },
+      { difficulty: "Sulit", q: "Foto bencana lama dipakai sebagai kejadian hari ini. Cara mengeceknya adalah...", options: ["Cek tanggal, lokasi, sumber pertama, dan pencarian gambar balik", "Melihat jumlah emoji komentar", "Mengganti warna foto", "Menghapus caption"], correct: 0, explain: "Foto lama sering dipakai ulang; konteks waktu dan lokasi perlu dilacak." },
+    ],
+    "inf7-6": [
+      { difficulty: "Mudah", q: "Ruang publik virtual berarti...", options: ["Ruang online tempat orang berinteraksi dan meninggalkan jejak", "Lapangan sekolah tanpa internet", "Folder pribadi tanpa akses", "Buku catatan offline"], correct: 0, explain: "Interaksi digital tetap terjadi di ruang sosial dan meninggalkan dampak." },
+      { difficulty: "Mudah", q: "Netiket menekankan bahwa saat online kita perlu...", options: ["Sopan, empatik, dan menghormati privasi", "Bebas mengejek siapa saja", "Selalu membalas dengan marah", "Menyebarkan data teman"], correct: 0, explain: "Netiket adalah etika berkomunikasi di ruang digital." },
+      { difficulty: "Sedang", q: "Jika melihat cyberbullying di grup kelas, respons aman adalah...", options: ["Tidak ikut menyebarkan, simpan bukti, dan laporkan ke orang dewasa tepercaya", "Ikut menertawakan korban", "Membalas dengan hinaan", "Menyebarkan tangkapan layar ke grup lain"], correct: 0, explain: "Respons aman membantu menghentikan dampak tanpa memperparah keadaan." },
+      { difficulty: "Sedang", q: "Mengapa komentar singkat di internet bisa berdampak panjang?", options: ["Karena mudah disimpan, disalin, dan disebarkan", "Karena komentar selalu hilang dalam satu menit", "Karena tidak pernah dibaca orang lain", "Karena internet tidak menyimpan data"], correct: 0, explain: "Jejak digital dapat bertahan dan menyebar di luar kendali pengirim." },
+      { difficulty: "Sulit", q: "Sebelum mengunggah foto kegiatan kelas, tindakan bertanggung jawab adalah...", options: ["Meminta izin orang yang tampak jelas dan menghindari data pribadi", "Mengunggah semua foto tanpa cek", "Menandai semua orang agar ramai", "Membagikan kartu pelajar agar lengkap"], correct: 0, explain: "Privasi dan persetujuan perlu dijaga saat menyebarkan konten." },
+    ],
+    "inf8-1": [
+      { difficulty: "Mudah", q: "List di Python paling tepat digunakan untuk...", options: ["Menyimpan beberapa data dalam satu urutan", "Mengganti semua fungsi", "Menyambungkan internet", "Menghapus variabel"], correct: 0, explain: "List menyimpan banyak elemen yang bisa diakses berdasarkan indeks." },
+      { difficulty: "Mudah", q: "Queue memakai prinsip...", options: ["FIFO: yang masuk lebih dulu keluar lebih dulu", "LIFO: yang terakhir masuk keluar dulu", "Acak sepenuhnya", "Selalu data terbesar dulu"], correct: 0, explain: "Queue seperti antrean: first in, first out." },
+      { difficulty: "Sedang", q: "Contoh nyata queue adalah...", options: ["Antrean siswa di kantin", "Tumpukan piring yang diambil dari atas", "Folder rahasia", "Warna tema aplikasi"], correct: 0, explain: "Antrean melayani yang datang lebih dulu." },
+      { difficulty: "Sedang", q: "Operasi append pada list biasanya berarti...", options: ["Menambahkan elemen baru ke akhir list", "Menghapus semua elemen", "Mengurutkan otomatis", "Mengubah list menjadi gambar"], correct: 0, explain: "append menambah item di bagian akhir list." },
+      { difficulty: "Sulit", q: "Jika data antrean dilayani dari belakang, masalahnya adalah...", options: ["Melanggar prinsip FIFO sehingga yang datang dulu bisa terabaikan", "Data menjadi lebih aman", "List selalu lebih cepat", "Program tidak butuh logika"], correct: 0, explain: "Queue harus mempertahankan urutan kedatangan agar adil." },
+    ],
+    "inf8-2": [
+      { difficulty: "Mudah", q: "Stack memakai prinsip...", options: ["LIFO: yang terakhir masuk keluar lebih dulu", "FIFO: yang pertama masuk keluar dulu", "Selalu alfabetis", "Selalu acak"], correct: 0, explain: "Stack seperti tumpukan: item paling atas diambil dulu." },
+      { difficulty: "Mudah", q: "Fitur undo pada aplikasi mirip dengan...", options: ["Stack", "Queue", "Tabel pivot", "DNS"], correct: 0, explain: "Undo mengambil aksi terakhir terlebih dahulu." },
+      { difficulty: "Sedang", q: "Graf cocok dipakai untuk memodelkan...", options: ["Hubungan antar titik seperti kota dan jalan", "Satu angka tunggal", "Warna latar dokumen", "Password pribadi"], correct: 0, explain: "Graf terdiri dari node dan edge yang merepresentasikan hubungan." },
+      { difficulty: "Sedang", q: "Pada stack, operasi pop berarti...", options: ["Mengambil/menghapus elemen paling atas", "Menambah elemen di bawah", "Mengurutkan semua data", "Mengganti nama variabel"], correct: 0, explain: "pop mengambil item terakhir yang masuk." },
+      { difficulty: "Sulit", q: "Jika browser Back membuka halaman terakhir yang dikunjungi, konsep yang dipakai adalah...", options: ["Stack karena riwayat terakhir diproses lebih dulu", "Queue karena halaman pertama selalu keluar dulu", "Graf tanpa urutan", "Spreadsheet filter"], correct: 0, explain: "Tombol Back mengikuti pola LIFO dari riwayat kunjungan." },
+    ],
+    "inf9-1": [
+      { difficulty: "Mudah", q: "Fungsi Python berguna untuk...", options: ["Mengelompokkan langkah agar bisa dipanggil ulang", "Menghapus semua variabel", "Mewarnai layar", "Mengganti internet"], correct: 0, explain: "Fungsi membuat kode lebih terstruktur dan dapat digunakan kembali." },
+      { difficulty: "Mudah", q: "Dictionary menyimpan data dalam bentuk...", options: ["Pasangan key dan value", "Urutan angka saja", "Gambar dan warna", "Komentar tanpa nilai"], correct: 0, explain: "Dictionary menyimpan nilai yang diakses melalui key." },
+      { difficulty: "Sedang", q: "Modul random di Python cocok dipakai untuk...", options: ["Memilih item acak atau membuat angka acak", "Menghitung akar kuadrat saja", "Mengubah huruf menjadi besar", "Menyimpan password"], correct: 0, explain: "random menyediakan fungsi untuk proses acak." },
+      { difficulty: "Sedang", q: "Binary search hanya tepat digunakan jika...", options: ["Data sudah terurut", "Data berbentuk gambar", "Data tidak boleh punya angka", "Data selalu rahasia"], correct: 0, explain: "Binary search membandingkan titik tengah dan butuh urutan data." },
+      { difficulty: "Sulit", q: "Pada fungsi dengan parameter default, argumen default dipakai ketika...", options: ["Pemanggilan fungsi tidak memberi nilai untuk parameter tersebut", "Semua parameter dihapus", "Fungsi tidak punya return", "Dictionary kosong"], correct: 0, explain: "Parameter default menyediakan nilai cadangan jika argumen tidak dikirim." },
+    ],
+  };
+
+  const difficulty = index => index < 4 ? "Mudah" : index < 9 ? "Sedang" : index < 13 ? "Sulit" : "HOTS";
+  const topicQuestion = (mod, topic, index) => {
+    const text = `${topic}`.toLowerCase();
+    const item = getSupplementTopicQuizItem(text, topic);
+    return { difficulty: difficulty(index), ...item };
+  };
+
+  function getSupplementTopicQuizItem(text, topic) {
+    if (text.includes("dekomposisi")) return {
+      q: "Saat tugas terasa terlalu besar, langkah dekomposisi yang paling tepat adalah...",
+      options: ["Memecah tugas menjadi bagian kecil dengan urutan kerja jelas", "Mengerjakan bagian paling menarik saja", "Menunggu teman menentukan semua langkah", "Menghapus bagian yang sulit tanpa alasan"],
+      correct: 0, explain: "Dekomposisi membuat masalah besar lebih mudah dikelola dan dievaluasi.",
+    };
+    if (text.includes("pola")) return {
+      q: "Data kunjungan perpustakaan selalu naik setelah ada pameran buku. Ini menunjukkan...",
+      options: ["Ada pola yang perlu diuji dengan data tambahan", "Pameran pasti satu-satunya penyebab", "Data tidak perlu diperiksa lagi", "Kunjungan perpustakaan tidak bisa dianalisis"],
+      correct: 0, explain: "Pola membantu membuat dugaan, tetapi tetap perlu diuji dengan bukti yang cukup.",
+    };
+    if (text.includes("abstraksi")) return {
+      q: "Dalam membuat peta rute ke ruang komputer, detail yang sebaiknya dihilangkan adalah...",
+      options: ["Warna sepatu siswa yang lewat", "Titik awal perjalanan", "Arah belok", "Nama ruang yang dilewati"],
+      correct: 0, explain: "Abstraksi mempertahankan informasi penting dan membuang detail yang tidak relevan.",
+    };
+    if (text.includes("algoritma") || text.includes("flowchart") || text.includes("pseudocode")) return {
+      q: "Flowchart atau pseudocode paling berguna ketika siswa perlu...",
+      options: ["Menjelaskan urutan langkah dan keputusan sebelum membuat solusi", "Menghias laporan agar terlihat penuh", "Mengganti semua proses pengujian", "Menyembunyikan logika dari pembaca"],
+      correct: 0, explain: "Representasi algoritma membantu alur solusi terlihat runtut dan bisa diperiksa.",
+    };
+    if (text.includes("evaluasi") || text.includes("uji coba") || text.includes("iterasi")) return {
+      q: "Sebuah solusi sudah berjalan, tetapi belum pernah diuji dengan kasus berbeda. Risiko utamanya adalah...",
+      options: ["Solusi tampak benar, padahal bisa gagal pada kondisi lain", "Solusi pasti menjadi lebih cepat", "Semua pengguna langsung paham", "Tidak ada bagian yang perlu diperbaiki"],
+      correct: 0, explain: "Evaluasi dan iterasi membuktikan apakah solusi tetap kuat di berbagai kondisi.",
+    };
+    if (text.includes("proyek") || text.includes("dokumentasi") || text.includes("presentasi")) return {
+      q: "Produk proyek yang kuat sebaiknya disertai dokumentasi yang menunjukkan...",
+      options: ["Masalah, proses, bukti uji, perbaikan, dan refleksi", "Hanya foto hasil akhir", "Hanya nama anggota kelompok", "Hanya daftar warna desain"],
+      correct: 0, explain: "Dokumentasi membuat proses belajar dan alasan keputusan bisa dipertanggungjawabkan.",
+    };
+    if (text.includes("komponen komputer") || text.includes("hardware") || text.includes("software")) return {
+      q: "Contoh hubungan hardware dan software yang tepat adalah...",
+      options: ["Printer membutuhkan perangkat fisik dan driver/aplikasi untuk mencetak", "Software tetap berjalan tanpa perangkat apa pun", "Hardware hanya berarti ikon di desktop", "Monitor termasuk aplikasi pengolah kata"],
+      correct: 0, explain: "Hardware adalah perangkat fisik, sedangkan software memberi instruksi agar perangkat bekerja.",
+    };
+    if (text.includes("input-proses-output")) return {
+      q: "Saat siswa mengetik jawaban lalu layar menampilkan hasil kuis, urutan IPO-nya adalah...",
+      options: ["Keyboard sebagai input, komputer memproses, layar menampilkan output", "Layar sebagai input, keyboard sebagai output", "Printer memproses semua data", "Internet selalu menjadi input utama"],
+      correct: 0, explain: "Model IPO membantu membaca alur kerja komputer dari masukan sampai keluaran.",
+    };
+    if (text.includes("cpu") || text.includes("fetch")) return {
+      q: "Fetch-decode-execute pada CPU menggambarkan proses...",
+      options: ["Mengambil instruksi, menafsirkannya, lalu menjalankannya", "Menyimpan foto di flashdisk", "Mengganti tampilan wallpaper", "Mengirim pesan lewat WiFi"],
+      correct: 0, explain: "CPU bekerja dengan mengambil, menerjemahkan, dan mengeksekusi instruksi.",
+    };
+    if (text.includes("penyimpanan") || text.includes("memori")) return {
+      q: "Perbedaan RAM dan penyimpanan permanen yang paling tepat adalah...",
+      options: ["RAM untuk kerja sementara, penyimpanan menyimpan data lebih lama", "RAM hanya untuk mencetak kertas", "Penyimpanan hilang setiap listrik mati", "Keduanya selalu punya fungsi sama"],
+      correct: 0, explain: "RAM membantu proses aktif, sedangkan storage menyimpan file dan data.",
+    };
+    if (text.includes("spesifikasi")) return {
+      q: "Saat memilih laptop untuk edit video ringan, spesifikasi yang perlu dibandingkan adalah...",
+      options: ["CPU, RAM, penyimpanan, layar, dan kebutuhan aplikasi", "Warna stiker pada casing saja", "Jumlah folder di desktop", "Nama wallpaper bawaan"],
+      correct: 0, explain: "Evaluasi spesifikasi harus dikaitkan dengan kebutuhan penggunaan.",
+    };
+    if (text.includes("topologi") || text.includes("lan") || text.includes("wan") || text.includes("pan")) return {
+      q: "Jaringan komputer di satu ruang lab sekolah paling tepat disebut...",
+      options: ["LAN karena mencakup area lokal", "WAN karena mencakup seluruh dunia", "PAN karena selalu memakai satelit", "MAN karena hanya untuk satu ponsel"],
+      correct: 0, explain: "LAN dipakai untuk area terbatas seperti rumah, kelas, atau lab.",
+    };
+    if (text.includes("internet") || text.includes("tcp/ip")) return {
+      q: "TCP/IP membantu komunikasi internet karena...",
+      options: ["Mengatur pengalamatan dan pengiriman paket data antarperangkat", "Menghapus kebutuhan router", "Mengubah semua file menjadi gambar", "Menjamin semua situs selalu benar"],
+      correct: 0, explain: "TCP/IP adalah dasar komunikasi data di internet.",
+    };
+    if (text.includes("kabel") || text.includes("nirkabel") || text.includes("koneksi")) return {
+      q: "Jika koneksi WiFi lemah di sudut kelas, tindakan awal yang masuk akal adalah...",
+      options: ["Cek jarak, penghalang, kekuatan sinyal, dan coba posisi lebih dekat", "Mengganti semua nama file", "Menghapus browser", "Mencetak halaman web"],
+      correct: 0, explain: "Koneksi praktis perlu membandingkan kabel vs nirkabel; WiFi dipengaruhi jarak, penghalang, dan kualitas sinyal.",
+    };
+    if (text.includes("troubleshooting")) return {
+      q: "Urutan troubleshooting jaringan yang rapi adalah...",
+      options: ["Cek perangkat, koneksi lokal, DNS/internet, lalu server tujuan", "Langsung menyalahkan server tanpa cek", "Mengganti warna tema browser", "Mematikan semua perangkat permanen"],
+      correct: 0, explain: "Troubleshooting dilakukan bertahap dari sisi pengguna sampai layanan tujuan.",
+    };
+    if (text.includes("mesin pencari") || text.includes("pencarian")) return {
+      q: "Untuk mencari artikel tentang hoaks kesehatan terbaru, kueri yang lebih efektif adalah...",
+      options: ["hoaks kesehatan terbaru sumber resmi 2026", "kesehatan", "artikel apa saja yang viral", "tolong carikan semuanya"],
+      correct: 0, explain: "Kata kunci spesifik, konteks waktu, dan sumber membantu hasil lebih relevan.",
+    };
+    if (text.includes("sift") || text.includes("kredibilitas") || text.includes("multi-sumber") || text.includes("sintesis")) return {
+      q: "Saat dua sumber memberi informasi berbeda, langkah SIFT yang tepat adalah...",
+      options: ["Berhenti sejenak, cek sumber, cari liputan lain, lalu telusuri asal klaim", "Memilih sumber yang judulnya paling heboh", "Langsung membagikan keduanya", "Menghapus tanggal agar netral"],
+      correct: 0, explain: "Metode SIFT membantu analisis multi-sumber sampai sintesis informasi yang lebih layak dipercaya.",
+    };
+    if (text.includes("fakta") || text.includes("opini")) return {
+      q: "Kalimat 'aplikasi ini paling menyenangkan' termasuk opini karena...",
+      options: ["Berisi penilaian pribadi yang bisa berbeda antarorang", "Selalu bisa dibuktikan dengan angka", "Memuat tanggal kejadian", "Tidak memakai kata sifat"],
+      correct: 0, explain: "Opini adalah penilaian atau pendapat, bukan klaim faktual yang langsung diverifikasi.",
+    };
+    if (text.includes("hoaks") || text.includes("berita kritis") || text.includes("verifikasi")) return {
+      q: "Berita viral meminta pembaca menyebarkan segera tanpa sumber jelas. Sikap terbaik adalah...",
+      options: ["Tahan diri, cek sumber awal, cari pembanding, dan lihat konteksnya", "Langsung sebar agar cepat ramai", "Tambahkan judul yang lebih kuat", "Percaya karena banyak komentar"],
+      correct: 0, explain: "Verifikasi adalah inti analisis berita kritis agar siswa tidak ikut menyebarkan informasi yang belum terbukti.",
+    };
+    if (text.includes("media digital")) return {
+      q: "Ekosistem media digital membuat informasi cepat menyebar karena...",
+      options: ["Platform, algoritma, pengguna, dan iklan saling memengaruhi arus informasi", "Semua informasi otomatis diperiksa guru", "Komentar tidak memengaruhi penyebaran", "Berita lama selalu hilang sendiri"],
+      correct: 0, explain: "Ekosistem media digital perlu dipahami sebelum menilai mengapa konten bisa viral atau menyesatkan.",
+    };
+    if (text.includes("produksi konten")) return {
+      q: "Produksi konten bertanggung jawab berarti siswa perlu...",
+      options: ["Memastikan akurasi, izin, sumber, dan dampak sebelum mempublikasikan", "Mengejar viral walaupun data belum jelas", "Menghapus sumber agar terlihat orisinal", "Memakai semua foto teman tanpa izin"],
+      correct: 0, explain: "Konten bertanggung jawab menjaga kebenaran, privasi, dan dampak sosial.",
+    };
+    if (text.includes("ruang publik") || text.includes("netiket") || text.includes("empati")) return {
+      q: "Komentar di grup kelas tetap perlu dijaga karena...",
+      options: ["Ruang digital tetap berisi manusia yang bisa terdampak", "Komentar online selalu hilang sendiri", "Netiket hanya berlaku untuk orang dewasa", "Akun kelas tidak punya jejak digital"],
+      correct: 0, explain: "Etika digital menjaga komunikasi tetap aman dan menghormati orang lain.",
+    };
+    if (text.includes("perundungan")) return {
+      q: "Ketika melihat teman diejek berulang di grup, tindakan paling aman adalah...",
+      options: ["Tidak ikut mengejek, simpan bukti, dukung korban, dan lapor orang dewasa tepercaya", "Ikut bercanda agar tidak dianggap kaku", "Menyebarkan tangkapan layar ke grup lain", "Membalas pelaku dengan hinaan"],
+      correct: 0, explain: "Respons aman membantu menghentikan perundungan digital dan mengurangi dampak perundungan digital pada korban.",
+    };
+    if (text.includes("identitas") || text.includes("jejak")) return {
+      q: "Unggahan lama bisa memengaruhi reputasi karena...",
+      options: ["Jejak digital dapat disimpan, dicari kembali, dan disebarkan", "Semua unggahan pasti terhapus otomatis", "Internet tidak menyimpan komentar", "Hanya foto formal yang meninggalkan jejak"],
+      correct: 0, explain: "Identitas digital terbentuk dari aktivitas yang tertinggal di ruang online.",
+    };
+    if (text.includes("list")) return {
+      q: "List Python cocok untuk menyimpan data nilai karena...",
+      options: ["Banyak nilai dapat disimpan berurutan dan diakses dengan indeks", "List hanya bisa berisi satu angka", "List otomatis membuat grafik", "List mengganti kebutuhan variabel"],
+      correct: 0, explain: "List adalah data terstruktur dengan representasi berurutan untuk banyak elemen.",
+    };
+    if (text.includes("queue") || text.includes("fifo")) return {
+      q: "Jika antrean kantin memakai queue, siswa yang harus dilayani lebih dulu adalah...",
+      options: ["Siswa yang masuk antrean paling awal", "Siswa yang paling belakang", "Siswa yang namanya paling pendek", "Siswa yang membawa tas paling besar"],
+      correct: 0, explain: "Queue memakai prinsip FIFO: first in, first out.",
+    };
+    if (text.includes("stack") || text.includes("lifo")) return {
+      q: "Tombol Undo mirip stack karena...",
+      options: ["Aksi terakhir biasanya dibatalkan lebih dulu", "Aksi pertama selalu dihapus dulu", "Semua aksi dipilih acak", "Undo hanya bekerja untuk angka"],
+      correct: 0, explain: "Stack memakai prinsip LIFO: last in, first out.",
+    };
+    if (text.includes("tree") || text.includes("hierarki")) return {
+      q: "Struktur folder dalam komputer cocok dimodelkan sebagai tree karena...",
+      options: ["Ada folder induk, subfolder, dan cabang berlapis", "Semua folder harus saling terhubung bebas", "Data keluar berdasarkan antrean", "Tidak ada hubungan antara folder"],
+      correct: 0, explain: "Tree cocok untuk data bertingkat atau hierarkis.",
+    };
+    if (text.includes("graf") || text.includes("simpul")) return {
+      q: "Peta jalan antar kota lebih cocok sebagai graf karena...",
+      options: ["Kota dapat menjadi simpul dan jalan menjadi sisi penghubung", "Semua kota harus berada dalam satu garis", "Jalan selalu berbentuk tabel nilai", "Graf tidak boleh punya koneksi melingkar"],
+      correct: 0, explain: "Graf memodelkan hubungan antarobjek yang saling terhubung.",
+    };
+    if (text.includes("fungsi")) return {
+      q: "Fungsi Python membuat program lebih rapi karena...",
+      options: ["Langkah yang sering dipakai dapat diberi nama dan dipanggil ulang", "Semua error otomatis hilang", "Program tidak perlu input", "Variabel tidak lagi diperlukan"],
+      correct: 0, explain: "Fungsi membantu modularitas dan penggunaan ulang kode.",
+    };
+    if (text.includes("dictionary")) return {
+      q: "Dictionary cocok untuk menyimpan data kontak karena...",
+      options: ["Nilai dapat dicari memakai key seperti nama atau nomor induk", "Data selalu harus diurutkan angka", "Dictionary hanya menyimpan gambar", "Setiap data keluar berdasarkan FIFO"],
+      correct: 0, explain: "Dictionary menyimpan pasangan key-value untuk akses cepat berdasarkan kunci.",
+    };
+    if (text.includes("random")) return {
+      q: "Modul random cocok dipakai dalam gim tebak angka untuk...",
+      options: ["Membuat angka target yang berbeda secara acak", "Menghapus semua input pemain", "Mengubah kode menjadi gambar", "Menyimpan password pemain"],
+      correct: 0, explain: "random membantu membuat variasi acak dalam program.",
+    };
+    if (text.includes("sort") || text.includes("bubble")) return {
+      q: "Bubble sort bekerja dengan cara...",
+      options: ["Membandingkan elemen bersebelahan lalu menukar jika urutannya salah", "Membagi data menjadi dua terus-menerus", "Menghapus data yang tidak urut", "Memilih angka acak sebagai jawaban"],
+      correct: 0, explain: "Bubble sort mengurutkan data lewat perbandingan dan pertukaran berulang.",
+    };
+    if (text.includes("search")) return {
+      q: "Binary search lebih cepat daripada linear search ketika...",
+      options: ["Data sudah terurut sehingga pencarian bisa membuang separuh kemungkinan", "Data berbentuk gambar acak", "Data tidak memiliki pola urutan", "Jumlah data selalu satu"],
+      correct: 0, explain: "Binary search membutuhkan data terurut agar bisa membagi ruang pencarian.",
+    };
+    if (text.includes("problem solving")) return {
+      q: "Problem solving integratif pada Python berarti siswa perlu...",
+      options: ["Menggabungkan fungsi, struktur data, modul, sorting/searching, dan pengujian", "Memakai satu perintah saja untuk semua masalah", "Menghindari semua data contoh", "Menilai program hanya dari panjang kode"],
+      correct: 0, explain: "Problem solving integratif menggabungkan beberapa konsep Python untuk menyelesaikan masalah nyata.",
+    };
+    return {
+      q: `Pada topik "${topic}", bukti pemahaman paling kuat terlihat ketika siswa...`,
+      options: ["Menerapkan konsep pada kasus baru dan menjelaskan alasannya", "Menghafal judul tanpa contoh", "Menyalin jawaban teman", "Melewati umpan balik setelah kuis"],
+      correct: 0, explain: "Pemahaman terlihat dari penerapan konsep, alasan, dan perbaikan berdasarkan umpan balik.",
+    };
+  }
+
+  Object.entries(supplements).forEach(([id, seeds]) => {
+    const mod = window.CURRICULUM?.modules?.find(m => m.id === id);
+    if (!mod) return;
+    const bank = [...seeds];
+    (mod.topics || []).forEach(topic => bank.push(topicQuestion(mod, topic, bank.length)));
+    while (bank.length < 15) {
+      const topic = (mod.topics || [mod.title])[bank.length % Math.max(1, (mod.topics || []).length)] || mod.title;
+      bank.push(topicQuestion(mod, topic, bank.length));
+    }
+    window.QUIZ_BANK_V2[id] = bank.slice(0, 15).map((q, index) => ({ ...q, difficulty: q.difficulty || difficulty(index) }));
+  });
+})();

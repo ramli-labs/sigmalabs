@@ -17,6 +17,7 @@ const files = [
   "js/pages/playground.jsx",
   "js/pages/lab-list.jsx",
   "js/pages/game-list.jsx",
+  "js/pages/teacher.jsx",
   "js/labs/sorting.jsx",
   "js/labs/binary.jsx",
   "js/labs/logic-gates.jsx",

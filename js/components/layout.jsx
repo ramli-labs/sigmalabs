@@ -39,21 +39,50 @@ window.navigate = navigate;
 window.Link = Link;
 
 // ---------- Brand / Logo ----------
-const LabschoolLogo = ({ size = 36, showText = true, invert = false }) => (
-  <Link to="/" className="brand-logo" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-    <img
-      src="assets/logo-labschool.png"
-      alt="SMP Labschool Jakarta"
-      style={{ height: size, width: "auto", display: "block", filter: invert ? "brightness(0) invert(1)" : "none" }}
-    />
+const LabschoolLogo = ({ size = 36, showText = true, showKicker = true, invert = false }) => (
+  <Link to="/" className="brand-logo" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", minWidth: 0 }}>
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: 10,
+      background: invert ? "var(--gold-400)" : "var(--navy-950)",
+      color: invert ? "var(--navy-950)" : "white",
+      border: invert ? "1.5px solid rgba(255,255,255,0.18)" : "2px solid var(--ink)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "var(--font-display)",
+      fontWeight: 800,
+      fontSize: Math.max(18, Math.round(size * 0.58)),
+      lineHeight: 1,
+      flexShrink: 0,
+    }}>
+      S
+    </div>
     {showText && (
-      <div className="brand-logo-text" style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-        <span className="brand-logo-kicker" style={{ fontSize: 9, letterSpacing: "0.14em", fontWeight: 700, color: invert ? "rgba(255,255,255,0.6)" : "var(--ink-muted)" }}>
-          SISTEM INFORMATIKA • GENERASI MAHIR ARTIFISIAL
-        </span>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: invert ? "white" : "var(--navy-950)", marginTop: 3, letterSpacing: "-0.01em" }}>
+      <div className="brand-logo-text" style={{ display: "grid", gap: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 800,
+          fontSize: Math.max(24, Math.round(size * 0.82)),
+          lineHeight: 0.92,
+          color: invert ? "white" : "var(--navy-950)",
+          letterSpacing: 0,
+        }}>
           SIGMA<span style={{ color: "var(--gold-500)" }}>.</span>
-        </span>
+        </div>
+        {showKicker && (
+          <div className="brand-logo-kicker" style={{
+            fontSize: 10,
+            fontWeight: 900,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: invert ? "rgba(255,255,255,0.58)" : "var(--ink-subtle)",
+            whiteSpace: "nowrap",
+          }}>
+            SMP Labschool Jakarta
+          </div>
+        )}
       </div>
     )}
   </Link>
@@ -63,7 +92,7 @@ const BrandStrip = ({ variant = "light" }) => {
   const invert = variant === "dark";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-      <img src="assets/logo-labschool.png" style={{ height: 28, filter: invert ? "brightness(0) invert(1)" : "none", opacity: 0.9 }} alt="Labschool"/>
+      <img src="assets/logo labschool lengkap.png" style={{ height: 44, width: "auto", filter: invert ? "brightness(0) invert(1)" : "none", opacity: 0.9 }} alt="Labschool"/>
       <img src="assets/logo-maju.png" style={{ height: 26, opacity: invert ? 0.85 : 1 }} alt="MAJU"/>
       <img src="assets/logo-pemudajuara.png" style={{ height: 26, opacity: invert ? 0.85 : 1 }} alt="Pemuda Juara"/>
     </div>
@@ -100,7 +129,16 @@ const Navbar = ({ variant = "light" }) => {
       backgroundColor: dark ? "rgba(11,22,51,0.95)" : "rgba(247,248,252,0.92)",
     }}>
       <div className="site-nav-inner" style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
-        <LabschoolLogo invert={dark} size={36}/>
+        <div className="header-brand-lockup" style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+          <img
+            src="assets/logo labschool lengkap.png"
+            alt="SMP Labschool Jakarta"
+            className="header-labschool-logo"
+            style={{ height: 48, width: "auto", display: "block", filter: dark ? "brightness(0) invert(1)" : "none", flexShrink: 0 }}
+          />
+          <div style={{ width: 1, height: 32, background: dark ? "rgba(255,255,255,0.16)" : "var(--line-strong)", flexShrink: 0 }}/>
+          <LabschoolLogo invert={dark} size={36}/>
+        </div>
 
         <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {links.map(l => (
@@ -145,17 +183,34 @@ window.Navbar = Navbar;
 
 // ---------- Footer ----------
 const Footer = () => (
-  <footer style={{ padding: "40px 32px", background: "var(--navy-950)", color: "rgba(255,255,255,0.7)" }}>
+  <footer style={{ padding: "28px 32px", background: "var(--navy-950)", color: "rgba(255,255,255,0.72)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
     <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
-        <LabschoolLogo invert={true}/>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 13 }}>
-        <div>© 2026 SMP Labschool Jakarta • Iman • Ilmu • Amal • by RJM (Ramli Jainal Muttaqin)</div>
-        <div style={{ display: "flex", gap: 20 }}>
-          <a style={{ opacity: 0.7 }}>Tentang</a>
-          <a style={{ opacity: 0.7 }}>Kebijakan Privasi</a>
-          <a style={{ opacity: 0.7 }}>Bantuan</a>
+      <div className="footer-main-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+          <LabschoolLogo invert={true} size={34} showKicker={false}/>
+          <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.14)" }}/>
+          <div style={{ display: "grid", gap: 5 }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.9)" }}>SMP Labschool Jakarta</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--gold-400)" }}>
+              <span>Kreatif</span><span style={{ opacity: 0.45 }}>•</span><span>Berprestasi</span><span style={{ opacity: 0.45 }}>•</span><span>Berkarakter</span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.52)", fontWeight: 700 }}>
+            © 2026 SIGMA Labschool
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 11px", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 12, background: "rgba(255,255,255,0.94)", boxShadow: "0 8px 24px -18px rgba(0,0,0,0.7)" }}>
+            <img
+              src="assets/LOGO RJM Credit.png"
+              alt="RJM"
+              style={{ height: 26, width: "auto", opacity: 0.96 }}
+            />
+            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--navy-950)", whiteSpace: "nowrap" }}>
+              RamliJM
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ const ResourceModuleLinks = ({ item, compact = false }) => {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: skills.length ? 10 : 0 }}>
           {refs.slice(0, compact ? 2 : 4).map(mod => (
             <span key={mod.id} className="tag" style={{ background: "white", color: "var(--navy-950)", border: "1px solid var(--line)" }}>
-              Kelas {mod.level} • Unit {mod.unit}
+              {window.CURRICULUM.subjects[mod.subject]?.shortName || window.CURRICULUM.subjects[mod.subject]?.name || mod.subject} • Kelas {mod.level} • Unit {mod.unit}
             </span>
           ))}
         </div>
@@ -55,7 +55,7 @@ const ResourceModuleLinks = ({ item, compact = false }) => {
 window.ResourceModuleLinks = ResourceModuleLinks;
 
 const LabList = () => {
-  const labs = window.CURRICULUM.labs.filter(l => l.level.includes(window.USER.level));
+  const labs = window.CURRICULUM.labs.filter(l => (l.primaryLevel || l.level[0]) === window.USER.level);
   const [filter, setFilter] = useState("all");
 
   const filtered = filter === "all" ? labs : labs.filter(l => l.subject === filter);
@@ -139,7 +139,7 @@ const LabCard = ({ lab, delay = 0 }) => {
       </div>
       <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
         <span className={`tag ${subj.tagClass}`}>{subj.shortName || subj.name}</span>
-        {lab.level.map(l => (
+        {[lab.primaryLevel || lab.level[0]].map(l => (
           <span key={l} className="tag" style={{ background: "var(--line)", color: "var(--ink-muted)" }}>{l}</span>
         ))}
       </div>

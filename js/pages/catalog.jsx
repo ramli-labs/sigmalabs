@@ -6,10 +6,15 @@
 const { Icon, Navbar, Footer, Link, useRoute, navigate, SectionHeader, Breadcrumb, EmptyState, ModuleCard, LabschoolLogo, BrandStrip, ControlField } = window;
 const { useState, useEffect, useRef } = React;
 
-const Catalog = ({ level }) => {
+const Catalog = ({ level, initialFilter = "all" }) => {
   const levelNum = parseInt(level);
-  const [filter, setFilter] = useState("all"); // all | informatika | kka
+  const safeInitialFilter = ["all", "informatika", "kka"].includes(initialFilter) ? initialFilter : "all";
+  const [filter, setFilter] = useState(safeInitialFilter); // all | informatika | kka
   const userLevel = window.USER.level;
+
+  useEffect(() => {
+    setFilter(safeInitialFilter);
+  }, [safeInitialFilter, levelNum]);
 
   if (levelNum !== userLevel) {
     return (

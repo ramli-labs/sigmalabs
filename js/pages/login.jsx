@@ -41,6 +41,9 @@ const LoginPage = () => {
             <p style={{ fontSize: 16, color: "var(--ink-muted)", lineHeight: 1.6, maxWidth: 620, marginTop: 14 }}>
               Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini.
             </p>
+            <Link to="/guru" className="btn btn-sm" style={{ marginTop: 14 }}>
+              <Icon.Users width="14" height="14"/> Dashboard Guru
+            </Link>
 
             <div className="learning-guide-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10, marginTop: 22 }}>
               {[

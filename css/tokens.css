@@ -223,6 +223,13 @@ input, textarea { font-family: inherit; }
 .container-sm { max-width: 960px; margin: 0 auto; padding: 0 24px; }
 .mobile-menu-button { display: none; }
 .mobile-nav-panel { display: none; }
+.header-brand-lockup {
+  flex: 0 1 auto;
+}
+.header-labschool-logo {
+  max-width: 210px;
+  object-fit: contain;
+}
 
 /* ============================================
    FORMS
@@ -338,6 +345,7 @@ input, textarea { font-family: inherit; }
   }
   .module-card-grid,
   .dashboard-module-grid,
+  .dashboard-subject-track-grid,
   .profile-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -371,11 +379,32 @@ input, textarea { font-family: inherit; }
   .site-nav-inner {
     gap: 12px !important;
   }
+  .footer-main-row {
+    align-items: flex-start !important;
+  }
+  .footer-main-row > div {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+  .footer-main-row > div:first-child > div:nth-child(2) {
+    display: none;
+  }
   .profile-avatar {
     display: none !important;
   }
   .brand-logo-kicker {
     display: none !important;
+  }
+  .header-brand-lockup {
+    gap: 10px !important;
+  }
+  .header-labschool-logo {
+    height: 34px !important;
+    max-width: 132px;
+    object-fit: contain;
+  }
+  .header-brand-lockup > div:nth-child(2) {
+    height: 26px !important;
   }
   .dashboard-shell {
     padding-left: 20px !important;
@@ -477,9 +506,11 @@ input, textarea { font-family: inherit; }
   .dashboard-top-grid,
   .dashboard-split-grid,
   .dashboard-module-grid,
+  .dashboard-subject-track-grid,
   .dashboard-top-grid > *,
   .dashboard-split-grid > *,
-  .dashboard-module-grid > * {
+  .dashboard-module-grid > *,
+  .dashboard-subject-track-grid > * {
     min-width: 0;
     max-width: 100%;
   }
@@ -506,6 +537,7 @@ input, textarea { font-family: inherit; }
   .module-card-grid,
   .count-card-grid,
   .dashboard-module-grid,
+  .dashboard-subject-track-grid,
   .profile-grid,
   .learning-guide-grid,
   .module-learning-flow {

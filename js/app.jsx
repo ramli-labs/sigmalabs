@@ -10,8 +10,8 @@ const { useState, useEffect, useRef } = React;
 const {
   Landing, LoginPage, Dashboard, Catalog, ModuleDetail, Playground,
   LabList, GameList,
-  SortingLab, BinaryLab, LogicGatesLab, NeuralLab, ImageClassifierLab, NetworkLab,
-  BugHunterGame, SortRaceGame, CaesarCipherGame, AIEthicsGame, PatternQuizGame, BinaryTypingGame,
+  SortingLab, BinaryLab, LogicGatesLab, NeuralLab, ImageClassifierLab, NetworkLab, SiftCheckLab, DatasetLabelingLab, SpreadsheetMiniLab, AIBiasAuditLab, DigitalFootprintLab, PythonTraceLab, SearchQualityLab, InstructionStudioLab,
+  BugHunterGame, SortRaceGame, CaesarCipherGame, AIEthicsGame, PatternQuizGame, PromptCraftGame, BinaryTypingGame, FlowchartBuilderGame, LicenseQuestGame, StoryboardSprintGame, DeepfakeDetectiveGame, SearchRescueGame,
 } = window;
 
 const App = () => {
@@ -35,11 +35,12 @@ const App = () => {
   if (route === "/login") return <LoginPage/>;
   if (!window.SIGMA_AUTH.hasProfiles()) return <LoginPage/>;
   if (route === "/dashboard") return <Dashboard/>;
+  if (route === "/guru") return <window.TeacherDashboard/>;
   if (route === "/playground") return <Playground/>;
 
-  // Kelas catalog: /kelas/7, /kelas/8, /kelas/9
-  const kelasMatch = route.match(/^\/kelas\/(\d+)$/);
-  if (kelasMatch) return <Catalog level={kelasMatch[1]}/>;
+  // Kelas catalog: /kelas/7, /kelas/8, /kelas/9, optional subject filter.
+  const kelasMatch = route.match(/^\/kelas\/(\d+)(?:\/(informatika|kka))?$/);
+  if (kelasMatch) return <Catalog level={kelasMatch[1]} initialFilter={kelasMatch[2] || "all"}/>;
 
   // Module: /modul/:id
   const modulMatch = route.match(/^\/modul\/([\w-]+)$/);
@@ -81,6 +82,14 @@ const App = () => {
   if (route === "/lab/neural-playground") return canOpenLab("neural-playground") || <NeuralLab/>;
   if (route === "/lab/image-classifier") return canOpenLab("image-classifier") || <ImageClassifierLab/>;
   if (route === "/lab/network-sim") return canOpenLab("network-sim") || <NetworkLab/>;
+  if (route === "/lab/sift-check") return canOpenLab("sift-check") || <SiftCheckLab/>;
+  if (route === "/lab/dataset-labeling") return canOpenLab("dataset-labeling") || <DatasetLabelingLab/>;
+  if (route === "/lab/spreadsheet-mini") return canOpenLab("spreadsheet-mini") || <SpreadsheetMiniLab/>;
+  if (route === "/lab/ai-bias-audit") return canOpenLab("ai-bias-audit") || <AIBiasAuditLab/>;
+  if (route === "/lab/digital-footprint") return canOpenLab("digital-footprint") || <DigitalFootprintLab/>;
+  if (route === "/lab/python-trace") return canOpenLab("python-trace") || <PythonTraceLab/>;
+  if (route === "/lab/search-quality") return canOpenLab("search-quality") || <SearchQualityLab/>;
+  if (route === "/lab/instruction-studio") return canOpenLab("instruction-studio") || <InstructionStudioLab/>;
 
   // Game list
   if (route === "/gim") return <GameList/>;
@@ -91,7 +100,13 @@ const App = () => {
   if (route === "/gim/caesar-cipher") return canOpenGame("caesar-cipher") || <CaesarCipherGame/>;
   if (route === "/gim/ai-ethics") return canOpenGame("ai-ethics") || <AIEthicsGame/>;
   if (route === "/gim/pattern-quiz") return canOpenGame("pattern-quiz") || <PatternQuizGame/>;
+  if (route === "/gim/prompt-craft") return canOpenGame("prompt-craft") || <PromptCraftGame/>;
   if (route === "/gim/typing-binary") return canOpenGame("typing-binary") || <BinaryTypingGame/>;
+  if (route === "/gim/flowchart-builder") return canOpenGame("flowchart-builder") || <FlowchartBuilderGame/>;
+  if (route === "/gim/license-quest") return canOpenGame("license-quest") || <LicenseQuestGame/>;
+  if (route === "/gim/storyboard-sprint") return canOpenGame("storyboard-sprint") || <StoryboardSprintGame/>;
+  if (route === "/gim/deepfake-detective") return canOpenGame("deepfake-detective") || <DeepfakeDetectiveGame/>;
+  if (route === "/gim/search-rescue") return canOpenGame("search-rescue") || <SearchRescueGame/>;
 
   // 404
   return (

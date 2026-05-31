@@ -7,7 +7,7 @@ const { Icon, Navbar, Footer, Link, useRoute, navigate, SectionHeader, Breadcrum
 const { useState, useEffect, useRef } = React;
 
 const GameList = () => {
-  const games = window.CURRICULUM.games.filter(g => g.level.includes(window.USER.level));
+  const games = window.CURRICULUM.games.filter(g => (g.primaryLevel || g.level[0]) === window.USER.level);
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? games : games.filter(g => g.subject === filter);
   const todayStr = new Date().toDateString();
@@ -94,7 +94,7 @@ const GameCard = ({ game, delay = 0 }) => {
       </div>
       <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
         <span className={`tag ${subj.tagClass}`}>{subj.shortName || subj.name}</span>
-        {game.level.map(l => (
+        {[game.primaryLevel || game.level[0]].map(l => (
           <span key={l} className="tag" style={{ background: "var(--line)", color: "var(--ink-muted)" }}>{l}</span>
         ))}
       </div>

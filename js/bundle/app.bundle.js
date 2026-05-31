@@ -416,6 +416,7 @@ window.Link = Link;
 const LabschoolLogo = ({
   size = 36,
   showText = true,
+  showKicker = true,
   invert = false
 }) => React.createElement(Link, {
   to: "/",
@@ -423,47 +424,58 @@ const LabschoolLogo = ({
   style: {
     display: "flex",
     alignItems: "center",
-    gap: 10,
-    textDecoration: "none"
+    gap: 12,
+    textDecoration: "none",
+    minWidth: 0
   }
-}, React.createElement("img", {
-  src: "assets/logo-labschool.png",
-  alt: "SMP Labschool Jakarta",
+}, React.createElement("div", {
   style: {
+    width: size,
     height: size,
-    width: "auto",
-    display: "block",
-    filter: invert ? "brightness(0) invert(1)" : "none"
+    borderRadius: 10,
+    background: invert ? "var(--gold-400)" : "var(--navy-950)",
+    color: invert ? "var(--navy-950)" : "white",
+    border: invert ? "1.5px solid rgba(255,255,255,0.18)" : "2px solid var(--ink)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "var(--font-display)",
+    fontWeight: 800,
+    fontSize: Math.max(18, Math.round(size * 0.58)),
+    lineHeight: 1,
+    flexShrink: 0
   }
-}), showText && React.createElement("div", {
+}, "S"), showText && React.createElement("div", {
   className: "brand-logo-text",
   style: {
-    display: "flex",
-    flexDirection: "column",
-    lineHeight: 1
+    display: "grid",
+    gap: 1,
+    minWidth: 0
   }
-}, React.createElement("span", {
-  className: "brand-logo-kicker",
-  style: {
-    fontSize: 9,
-    letterSpacing: "0.14em",
-    fontWeight: 700,
-    color: invert ? "rgba(255,255,255,0.6)" : "var(--ink-muted)"
-  }
-}, "SISTEM INFORMATIKA \u2022 GENERASI MAHIR ARTIFISIAL"), React.createElement("span", {
+}, React.createElement("div", {
   style: {
     fontFamily: "var(--font-display)",
-    fontSize: 22,
     fontWeight: 800,
+    fontSize: Math.max(24, Math.round(size * 0.82)),
+    lineHeight: 0.92,
     color: invert ? "white" : "var(--navy-950)",
-    marginTop: 3,
-    letterSpacing: "-0.01em"
+    letterSpacing: 0
   }
 }, "SIGMA", React.createElement("span", {
   style: {
     color: "var(--gold-500)"
   }
-}, "."))));
+}, ".")), showKicker && React.createElement("div", {
+  className: "brand-logo-kicker",
+  style: {
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: invert ? "rgba(255,255,255,0.58)" : "var(--ink-subtle)",
+    whiteSpace: "nowrap"
+  }
+}, "SMP Labschool Jakarta")));
 const BrandStrip = ({
   variant = "light"
 }) => {
@@ -476,9 +488,10 @@ const BrandStrip = ({
       flexWrap: "wrap"
     }
   }, React.createElement("img", {
-    src: "assets/logo-labschool.png",
+    src: "assets/logo labschool lengkap.png",
     style: {
-      height: 28,
+      height: 44,
+      width: "auto",
       filter: invert ? "brightness(0) invert(1)" : "none",
       opacity: 0.9
     },
@@ -549,10 +562,36 @@ const Navbar = ({
       justifyContent: "space-between",
       gap: 24
     }
-  }, React.createElement(LabschoolLogo, {
+  }, React.createElement("div", {
+    className: "header-brand-lockup",
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      minWidth: 0
+    }
+  }, React.createElement("img", {
+    src: "assets/logo labschool lengkap.png",
+    alt: "SMP Labschool Jakarta",
+    className: "header-labschool-logo",
+    style: {
+      height: 48,
+      width: "auto",
+      display: "block",
+      filter: dark ? "brightness(0) invert(1)" : "none",
+      flexShrink: 0
+    }
+  }), React.createElement("div", {
+    style: {
+      width: 1,
+      height: 32,
+      background: dark ? "rgba(255,255,255,0.16)" : "var(--line-strong)",
+      flexShrink: 0
+    }
+  }), React.createElement(LabschoolLogo, {
     invert: dark,
     size: 36
-  }), React.createElement("div", {
+  })), React.createElement("div", {
     className: "hide-mobile",
     style: {
       display: "flex",
@@ -636,9 +675,10 @@ const Navbar = ({
 window.Navbar = Navbar;
 const Footer = () => React.createElement("footer", {
   style: {
-    padding: "40px 32px",
+    padding: "28px 32px",
     background: "var(--navy-950)",
-    color: "rgba(255,255,255,0.7)"
+    color: "rgba(255,255,255,0.72)",
+    borderTop: "1px solid rgba(255,255,255,0.08)"
   }
 }, React.createElement("div", {
   style: {
@@ -646,45 +686,103 @@ const Footer = () => React.createElement("footer", {
     margin: "0 auto"
   }
 }, React.createElement("div", {
+  className: "footer-main-row",
   style: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: 20,
-    marginBottom: 24
+    gap: 24,
+    flexWrap: "wrap"
+  }
+}, React.createElement("div", {
+  style: {
+    display: "flex",
+    alignItems: "center",
+    gap: 18,
+    flexWrap: "wrap"
   }
 }, React.createElement(LabschoolLogo, {
-  invert: true
-})), React.createElement("div", {
+  invert: true,
+  size: 34,
+  showKicker: false
+}), React.createElement("div", {
+  style: {
+    width: 1,
+    height: 34,
+    background: "rgba(255,255,255,0.14)"
+  }
+}), React.createElement("div", {
+  style: {
+    display: "grid",
+    gap: 5
+  }
+}, React.createElement("div", {
+  style: {
+    fontSize: 13,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.9)"
+  }
+}, "SMP Labschool Jakarta"), React.createElement("div", {
   style: {
     display: "flex",
-    justifyContent: "space-between",
+    gap: 8,
     alignItems: "center",
     flexWrap: "wrap",
-    gap: 12,
-    paddingTop: 20,
-    borderTop: "1px solid rgba(255,255,255,0.08)",
-    fontSize: 13
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "var(--gold-400)"
   }
-}, React.createElement("div", null, "\xA9 2026 SMP Labschool Jakarta \u2022 Iman \u2022 Ilmu \u2022 Amal \u2022 by RJM (Ramli Jainal Muttaqin)"), React.createElement("div", {
+}, React.createElement("span", null, "Kreatif"), React.createElement("span", {
+  style: {
+    opacity: 0.45
+  }
+}, "\u2022"), React.createElement("span", null, "Berprestasi"), React.createElement("span", {
+  style: {
+    opacity: 0.45
+  }
+}, "\u2022"), React.createElement("span", null, "Berkarakter")))), React.createElement("div", {
   style: {
     display: "flex",
-    gap: 20
+    alignItems: "center",
+    gap: 16,
+    flexWrap: "wrap",
+    justifyContent: "flex-end"
   }
-}, React.createElement("a", {
+}, React.createElement("div", {
   style: {
-    opacity: 0.7
+    fontSize: 12,
+    color: "rgba(255,255,255,0.52)",
+    fontWeight: 700
   }
-}, "Tentang"), React.createElement("a", {
+}, "\xA9 2026 SIGMA Labschool"), React.createElement("div", {
   style: {
-    opacity: 0.7
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "8px 11px",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.94)",
+    boxShadow: "0 8px 24px -18px rgba(0,0,0,0.7)"
   }
-}, "Kebijakan Privasi"), React.createElement("a", {
+}, React.createElement("img", {
+  src: "assets/LOGO RJM Credit.png",
+  alt: "RJM",
   style: {
-    opacity: 0.7
+    height: 26,
+    width: "auto",
+    opacity: 0.96
   }
-}, "Bantuan")))));
+}), React.createElement("div", {
+  style: {
+    fontSize: 12,
+    fontWeight: 900,
+    color: "var(--navy-950)",
+    whiteSpace: "nowrap"
+  }
+}, "RamliJM"))))));
 window.Footer = Footer;
 const ModuleCard = ({
   module: mod,
@@ -1971,7 +2069,16 @@ const LoginPage = () => {
       maxWidth: 620,
       marginTop: 14
     }
-  }, "Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini."), React.createElement("div", {
+  }, "Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini."), React.createElement(Link, {
+    to: "/guru",
+    className: "btn btn-sm",
+    style: {
+      marginTop: 14
+    }
+  }, React.createElement(Icon.Users, {
+    width: "14",
+    height: "14"
+  }), " Dashboard Guru"), React.createElement("div", {
     className: "learning-guide-grid",
     style: {
       display: "grid",
@@ -2297,9 +2404,25 @@ const Dashboard = () => {
   }, []);
   const user = window.USER;
   const modules = window.CURRICULUM.modules;
-  const levelModules = modules.filter(m => m.level === user.level && m.subject === "informatika").sort((a, b) => (a.unit || 0) - (b.unit || 0));
+  const subjectOrder = ["informatika", "kka"];
+  const levelModules = modules.filter(m => m.level === user.level).sort((a, b) => a.subject === b.subject ? (a.unit || 0) - (b.unit || 0) : subjectOrder.indexOf(a.subject) - subjectOrder.indexOf(b.subject));
+  const modulesBySubject = subjectOrder.map(subjectId => {
+    const subjectModules = levelModules.filter(m => m.subject === subjectId);
+    const activeModule = subjectModules.find(m => window.SIGMA_AUTH.isModuleSequenceUnlocked(m.id) && !window.SIGMA_AUTH.isModuleLearningComplete(m.id)) || subjectModules[0];
+    return {
+      subject: window.CURRICULUM.subjects[subjectId],
+      module: activeModule,
+      modules: subjectModules,
+      progress: activeModule ? window.USER.progress[activeModule.id] || {
+        percent: 0,
+        lessonsDone: 0,
+        total: activeModule.lessons || 1
+      } : null,
+      stepStatus: activeModule ? window.SIGMA_AUTH.getLearningStepStatus(activeModule.id) : {}
+    };
+  });
   const continueItem = {
-    module: levelModules.find(m => window.SIGMA_AUTH.isModuleSequenceUnlocked(m.id) && !window.SIGMA_AUTH.isModuleLearningComplete(m.id)) || levelModules[0],
+    module: modulesBySubject.find(track => track.module && track.progress?.lessonsDone > 0 && !window.SIGMA_AUTH.isModuleLearningComplete(track.module.id))?.module || modulesBySubject.find(track => track.module && !window.SIGMA_AUTH.isModuleLearningComplete(track.module.id))?.module || levelModules[0],
     progress: null
   };
   const continueModule = continueItem.module;
@@ -2388,7 +2511,7 @@ const Dashboard = () => {
       marginTop: 6,
       margin: 0
     }
-  }, "Siap lanjut petualangan koding hari ini?")), React.createElement("div", {
+  }, "Pilih jalur Informatika atau Koding & AI, lalu lanjutkan modul sesuai urutan.")), React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
@@ -2515,7 +2638,7 @@ const Dashboard = () => {
   }, React.createElement("div", {
     className: "card",
     style: {
-      padding: 32,
+      padding: 28,
       background: "linear-gradient(135deg, var(--navy-900), var(--navy-700))",
       color: "white",
       position: "relative",
@@ -2553,62 +2676,36 @@ const Dashboard = () => {
       marginBottom: 14,
       position: "relative"
     }
-  }, continueSubject.name, " \u2022 KELAS ", continueModule?.level || user.level, " \u2022 LANJUTKAN"), React.createElement("h2", {
+  }, "KELAS ", user.level, " \u2022 DUA JALUR BELAJAR"), React.createElement("h2", {
     className: "display mobile-safe-title",
     style: {
-      fontSize: 38,
+      fontSize: 36,
       margin: 0,
       lineHeight: 1.05,
       position: "relative"
     }
-  }, continueModule?.title || "Mulai Modul Pertama"), React.createElement("p", {
+  }, "Informatika dan Koding & AI"), React.createElement("p", {
     style: {
       fontSize: 14,
       color: "rgba(255,255,255,0.75)",
       marginTop: 12,
-      maxWidth: 460,
-      position: "relative"
+      maxWidth: 560,
+      position: "relative",
+      lineHeight: 1.55
     }
-  }, continueProgress.lessonsDone > 0 ? `Kamu sudah selesai ${continueProgress.lessonsDone} dari ${continueProgress.total} pelajaran. Lanjutkan sampai tuntas untuk dapat XP dan badge.` : "Mulai modul pengayaan pertama dan simpan progress langsung di browser ini."), React.createElement("div", {
+  }, "Dashboard sekarang menampilkan kedua mapel secara sejajar. Guru bisa langsung mengarahkan siswa ke KKA tanpa harus masuk katalog kelas lebih dulu."), React.createElement("div", {
+    className: "dashboard-subject-track-grid",
     style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      marginTop: 20,
-      position: "relative"
-    }
-  }, React.createElement("div", {
-    style: {
-      flex: 1,
-      maxWidth: 280,
-      height: 10,
-      background: "rgba(255,255,255,0.1)",
-      borderRadius: 10,
-      overflow: "hidden"
-    }
-  }, React.createElement("div", {
-    style: {
-      width: `${continueProgress.percent}%`,
-      height: "100%",
-      background: "linear-gradient(90deg, var(--ai-400), var(--gold-400))"
-    }
-  })), React.createElement("span", {
-    style: {
-      fontSize: 13,
-      fontWeight: 700
-    }
-  }, continueProgress.lessonsDone, "/", continueProgress.total)), React.createElement(Link, {
-    to: `/modul/${continueModule?.id || "inf7-1"}`,
-    className: "btn btn-primary",
-    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+      gap: 14,
       marginTop: 22,
-      padding: "14px 22px",
       position: "relative"
     }
-  }, React.createElement(Icon.Play, {
-    width: "16",
-    height: "16"
-  }), " Lanjut Pelajaran")), React.createElement("div", {
+  }, modulesBySubject.map(track => React.createElement(SubjectTrackCard, {
+    key: track.subject.id,
+    track: track
+  })))), React.createElement("div", {
     className: "card",
     style: {
       padding: 22,
@@ -2674,15 +2771,24 @@ const Dashboard = () => {
       display: "flex",
       alignItems: "baseline",
       justifyContent: "space-between",
-      margin: "24px 0 14px"
+      margin: "24px 0 14px",
+      gap: 12,
+      flexWrap: "wrap"
     }
-  }, React.createElement("h3", {
+  }, React.createElement("div", null, React.createElement("h3", {
     className: "display",
     style: {
       fontSize: 28,
       margin: 0
     }
-  }, "Lanjutkan belajar"), React.createElement(Link, {
+  }, "Modul kelas ", user.level), React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      fontWeight: 700,
+      marginTop: 3
+    }
+  }, "Informatika dan Koding & AI tampil berdampingan.")), React.createElement(Link, {
     to: `/kelas/${user.level}`,
     style: {
       fontSize: 13,
@@ -2693,16 +2799,17 @@ const Dashboard = () => {
     className: "dashboard-module-grid",
     style: {
       display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
+      gridTemplateColumns: "repeat(4, 1fr)",
       gap: 16,
       marginBottom: 32
     }
-  }, levelModules.slice(0, 3).map(m => React.createElement(ModuleCard, {
+  }, modulesBySubject.flatMap(track => track.modules.slice(0, 2)).map(m => React.createElement(ModuleCard, {
     key: m.id,
     module: m,
     progress: window.USER.progress[m.id] || null,
     locked: !window.SIGMA_AUTH.isModuleSequenceUnlocked(m.id),
-    lockReason: window.SIGMA_AUTH.getPreviousModule(m.id) ? `Selesaikan dulu ${window.SIGMA_AUTH.getPreviousModule(m.id).title}.` : ""
+    lockReason: window.SIGMA_AUTH.getPreviousModule(m.id) ? `Selesaikan dulu ${window.SIGMA_AUTH.getPreviousModule(m.id).title}.` : "",
+    compact: true
   }))), React.createElement("div", {
     className: "dashboard-split-grid",
     style: {
@@ -2934,6 +3041,121 @@ const StatPill = ({
     }
   }, value)));
 };
+const SubjectTrackCard = ({
+  track
+}) => {
+  const {
+    subject,
+    module,
+    progress,
+    stepStatus,
+    modules
+  } = track;
+  const IconComp = Icon[subject.icon];
+  const doneCount = modules.filter(m => window.SIGMA_AUTH.isModuleLearningComplete(m.id)).length;
+  const progressText = progress ? `${progress.lessonsDone}/${progress.total} pelajaran` : "0/0 pelajaran";
+  const activeStep = stepStatus.kuisDone ? "Kuis selesai" : stepStatus.misiDone ? "Siap kuis" : stepStatus.materiDone ? "Siap misi" : "Baca materi";
+  return React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "rgba(255,255,255,0.08)",
+      border: "1.5px solid rgba(255,255,255,0.18)",
+      borderRadius: 18
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 12
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      background: subject.colorMid,
+      color: "var(--navy-950)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      border: "2px solid rgba(255,255,255,0.78)",
+      flexShrink: 0
+    }
+  }, React.createElement(IconComp, {
+    width: "22",
+    height: "22"
+  })), React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 15
+    }
+  }, subject.name), React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: "rgba(255,255,255,0.64)",
+      fontWeight: 800,
+      textTransform: "uppercase",
+      letterSpacing: "0.04em"
+    }
+  }, doneCount, "/", modules.length, " modul tuntas"))), React.createElement("div", {
+    style: {
+      fontFamily: "var(--font-display)",
+      fontSize: 20,
+      fontWeight: 800,
+      lineHeight: 1.12,
+      minHeight: 44
+    }
+  }, module?.title || "Modul belum tersedia"), React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "rgba(255,255,255,0.72)",
+      lineHeight: 1.45,
+      marginTop: 8
+    }
+  }, progressText, " \u2022 ", activeStep), React.createElement("div", {
+    style: {
+      height: 7,
+      background: "rgba(255,255,255,0.14)",
+      borderRadius: 10,
+      overflow: "hidden",
+      marginTop: 12
+    }
+  }, React.createElement("div", {
+    style: {
+      width: `${progress?.percent || 0}%`,
+      height: "100%",
+      background: subject.colorMid
+    }
+  })), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 14,
+      flexWrap: "wrap"
+    }
+  }, React.createElement(Link, {
+    to: `/modul/${module?.id || ""}`,
+    className: "btn btn-sm btn-primary",
+    style: {
+      pointerEvents: module ? "auto" : "none",
+      opacity: module ? 1 : 0.5
+    }
+  }, React.createElement(Icon.Play, {
+    width: "13",
+    height: "13"
+  }), " Buka"), React.createElement(Link, {
+    to: `/kelas/${module?.level || window.USER.level}/${subject.id}`,
+    className: "btn btn-sm",
+    style: {
+      background: "white"
+    }
+  }, "Semua ", subject.shortName || subject.name)));
+};
 const QuickShortcut = ({
   title,
   subtitle,
@@ -3046,11 +3268,16 @@ const {
   useRef
 } = React;
 const Catalog = ({
-  level
+  level,
+  initialFilter = "all"
 }) => {
   const levelNum = parseInt(level);
-  const [filter, setFilter] = useState("all");
+  const safeInitialFilter = ["all", "informatika", "kka"].includes(initialFilter) ? initialFilter : "all";
+  const [filter, setFilter] = useState(safeInitialFilter);
   const userLevel = window.USER.level;
+  useEffect(() => {
+    setFilter(safeInitialFilter);
+  }, [safeInitialFilter, levelNum]);
   if (levelNum !== userLevel) {
     return React.createElement("div", {
       className: "page",
@@ -3755,6 +3982,7 @@ const MateriTab = ({
   const savedReflection = window.USER.reflections?.[mod.id]?.[lessonIndex]?.text || "";
   const [reflection, setReflection] = useState(savedReflection);
   const [saved, setSaved] = useState(false);
+  const mastery = getLessonMasteryNotes(mod, lessonIndex, lesson);
   useEffect(() => {
     setReflection(window.USER.reflections?.[mod.id]?.[lessonIndex]?.text || "");
     setSaved(false);
@@ -3926,6 +4154,118 @@ const MateriTab = ({
       lineHeight: 1.65
     }
   }, block.text)))), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+      gap: 14,
+      margin: "24px 0"
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: 20,
+      background: "#F0FDF4",
+      border: "1.5px solid #A7F3D0",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontSize: 12,
+      fontWeight: 900,
+      color: "var(--green-500)",
+      letterSpacing: "0.08em",
+      textTransform: "uppercase",
+      marginBottom: 10
+    }
+  }, React.createElement(Icon.Check, {
+    width: "14",
+    height: "14"
+  }), " Inti yang Harus Dikuasai"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, mastery.core.map((item, i) => React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "flex-start",
+      fontSize: 14,
+      lineHeight: 1.55,
+      color: "var(--navy-950)",
+      fontWeight: 700
+    }
+  }, React.createElement("span", {
+    style: {
+      width: 22,
+      height: 22,
+      borderRadius: 7,
+      background: "var(--green-500)",
+      color: "white",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 11,
+      fontWeight: 900,
+      flexShrink: 0
+    }
+  }, i + 1), React.createElement("span", null, item))))), React.createElement("div", {
+    style: {
+      padding: 20,
+      background: "#FFF7ED",
+      border: "1.5px solid #FDBA74",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontSize: 12,
+      fontWeight: 900,
+      color: "var(--orange-500)",
+      letterSpacing: "0.08em",
+      textTransform: "uppercase",
+      marginBottom: 10
+    }
+  }, React.createElement(Icon.X, {
+    width: "14",
+    height: "14"
+  }), " Kesalahan Umum"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, mastery.misconceptions.map((item, i) => React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "flex-start",
+      fontSize: 14,
+      lineHeight: 1.55,
+      color: "var(--navy-950)",
+      fontWeight: 700
+    }
+  }, React.createElement("span", {
+    style: {
+      width: 22,
+      height: 22,
+      borderRadius: 7,
+      background: "var(--orange-500)",
+      color: "white",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 11,
+      fontWeight: 900,
+      flexShrink: 0
+    }
+  }, "!"), React.createElement("span", null, item)))))), React.createElement("div", {
     style: {
       padding: "20px 24px",
       background: subject.colorLight,
@@ -4192,13 +4532,14 @@ const QuestTab = ({
     return sum + (activityScores[`${lessonIndex}-act-${i}`] || 0);
   }, 0);
   const actScore = actCount > 0 ? Math.min(75, Math.round(actSum / (actCount * 100) * 75)) : 75;
-  const exitTicketMin = 20;
-  const reflScore = reflection.trim().length >= exitTicketMin ? 25 : 0;
+  const reflectionCheck = analyzeReflectionQuality(reflection, mission);
+  const exitTicketMin = reflectionCheck.minLength;
+  const reflScore = reflectionCheck.valid ? 25 : 0;
   const liveScore = actScore + reflScore;
   const storedBest = window.USER.quests?.[mod.id]?.[lessonIndex]?.bestScore || 0;
   const totalScore = isDone ? Math.max(liveScore, storedBest) : liveScore;
   const passed = totalScore >= mission.passScore;
-  const reflValid = reflection.trim().length >= exitTicketMin;
+  const reflValid = reflectionCheck.valid;
   const scoreColor = totalScore >= 70 ? "var(--green-500)" : totalScore >= 50 ? "var(--orange-500)" : "var(--ink-subtle)";
   const scoreBar = totalScore >= 70 ? "var(--green-500)" : totalScore >= 50 ? "var(--orange-500)" : "var(--info-500)";
   const recordScore = (key, sc) => {
@@ -4511,7 +4852,7 @@ const QuestTab = ({
       color: "var(--orange-500)",
       fontWeight: 700
     }
-  }, "Tambahkan sedikit alasan agar refleksimu lebih bermakna."))), React.createElement("div", {
+  }, "Tambahkan ", reflectionCheck.missing.join(", "), " agar refleksimu lebih bermakna."))), React.createElement("div", {
     className: "card",
     style: {
       padding: 24,
@@ -4642,19 +4983,19 @@ const QuestTab = ({
       textTransform: "uppercase",
       letterSpacing: "0.09em"
     }
-  }, "Pengayaan Opsional"), React.createElement("span", {
+  }, "Latihan Penguat Modul Cetak"), React.createElement("span", {
     className: "tag",
     style: {
       marginLeft: "auto",
       fontSize: 11
     }
-  }, "Setelah misi tuntas")), React.createElement("p", {
+  }, "Rekomendasi SIGMA")), React.createElement("p", {
     style: {
       fontSize: 13,
       color: "var(--ink-muted)",
       marginBottom: 14
     }
-  }, "Lab dan gim berikut tersedia sebagai pengayaan setelah misi pemahaman selesai."), React.createElement("div", {
+  }, "Pilih salah satu setelah misi pemahaman selesai. SIGMA menampilkan maksimal dua latihan yang paling dekat dengan unit ini agar siswa tidak asal klik terlalu banyak pilihan."), React.createElement("div", {
     className: "quest-activity-grid",
     style: {
       display: "grid",
@@ -4871,6 +5212,27 @@ const QuestActivity = ({
     }
   }, "Klik untuk mengulang sebagai pengayaan tambahan."));
 };
+function analyzeReflectionQuality(text, mission) {
+  const raw = String(text || "").replace(/\s+/g, " ").trim();
+  const normalized = raw.toLowerCase();
+  const minLength = 70;
+  const summaryWords = (mission?.summaryPoints || []).join(" ").toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/i).filter(w => w.length >= 5);
+  const concepts = [...new Set([...(mission?.concepts || []), ...summaryWords.slice(0, 14)].map(w => String(w).toLowerCase()))].filter(Boolean);
+  const conceptHits = concepts.filter(w => normalized.includes(w)).length;
+  const hasConcept = conceptHits > 0;
+  const hasExample = /contoh|misal|misalnya|seperti|di kelas|di sekolah|pengalaman|ketika|saat/.test(normalized);
+  const hasReason = /karena|sebab|agar|supaya|maka|sehingga|dampak|risiko|manfaat|penting/.test(normalized);
+  const missing = [];
+  if (raw.length < minLength) missing.push("tulisan lebih lengkap");
+  if (!hasConcept) missing.push("kata kunci materi");
+  if (!hasExample) missing.push("contoh nyata");
+  if (!hasReason) missing.push("alasan");
+  return {
+    minLength,
+    valid: missing.length === 0,
+    missing
+  };
+}
 const InteractiveQuestCard = ({
   activity,
   onComplete,
@@ -7123,6 +7485,71 @@ function lessonSummaryPoints(lesson) {
   });
   return pts.slice(0, 4);
 }
+function getLessonMasteryNotes(mod, index, lesson) {
+  const topic = mod.topics[index] || `Pengayaan ${index + 1}`;
+  const tl = topic.toLowerCase();
+  const core = [];
+  const seen = new Set();
+  const addCore = point => {
+    const cleaned = capText(String(point || "").replace(/\s+/g, " ").trim(), 135);
+    const key = cleaned.toLowerCase().replace(/[^a-z0-9]+/g, " ").slice(0, 72);
+    if (!cleaned || seen.has(key)) return;
+    seen.add(key);
+    core.push(cleaned);
+  };
+  lessonSummaryPoints(lesson).forEach(addCore);
+  (lesson.checks || []).forEach(check => addCore(check));
+  while (core.length < 3) {
+    const fallback = [`Jelaskan ${tl} dengan kalimat sendiri, bukan hanya menghafal istilah.`, `Hubungkan ${tl} dengan contoh nyata dari sekolah, rumah, atau ruang digital.`, `Gunakan ${tl} untuk mengambil keputusan atau menyelesaikan masalah sederhana.`][core.length];
+    addCore(fallback);
+  }
+  return {
+    core: core.slice(0, 3),
+    misconceptions: getCommonMisconceptions(topic, mod).slice(0, 3)
+  };
+}
+function getCommonMisconceptions(topic, mod) {
+  const t = `${topic} ${mod.title}`.toLowerCase();
+  const packs = [{
+    test: /dekomposisi|abstraksi|pola|berpikir komputasional|problem solving|pemecahan masalah/.test(t),
+    items: ["Mengira berpikir komputasional hanya untuk membuat program, padahal bisa dipakai untuk masalah sehari-hari.", "Langsung mencari solusi tanpa memecah masalah dan memeriksa data penting terlebih dahulu.", "Menganggap semua detail sama pentingnya, sehingga solusi menjadi terlalu rumit."]
+  }, {
+    test: /algoritma|flowchart|pseudocode|instruksi|percabangan|perulangan|scratch|debug|program visual/.test(t),
+    items: ["Mengira algoritma cukup jelas di kepala, padahal harus bisa diikuti orang lain secara runtut.", "Mencampur percabangan dan perulangan: if/else untuk keputusan, loop untuk pengulangan.", "Tidak menguji instruksi dengan contoh berbeda, sehingga kesalahan logika baru terlihat belakangan."]
+  }, {
+    test: /data|spreadsheet|tabel|grafik|visualisasi|pivot|vlookup|dashboard|analisis/.test(t),
+    items: ["Mengira data yang banyak otomatis benar, padahal data perlu rapi, relevan, dan dicek sumbernya.", "Memakai grafik karena terlihat menarik, bukan karena cocok dengan pertanyaan data.", "Membaca angka tunggal tanpa membandingkan konteks, kategori, atau tren."]
+  }, {
+    test: /list|dictionary|stack|queue|tree|graf|struktur data|sorting|searching|bubble|binary search|linear/.test(t),
+    items: ["Memakai struktur data yang sama untuk semua masalah, padahal list, dictionary, stack, dan queue punya fungsi berbeda.", "Mengira binary search bisa dipakai pada data acak; algoritma ini membutuhkan data yang sudah terurut.", "Fokus pada kode, tetapi lupa menelusuri perubahan nilai dan jumlah langkah algoritma."]
+  }, {
+    test: /komputer|input|proses|output|cpu|hardware|software|memori|penyimpanan/.test(t),
+    items: ["Menyamakan penyimpanan dan memori kerja, padahal keduanya punya peran berbeda.", "Mengira software bisa bekerja tanpa hardware, atau hardware berguna tanpa instruksi software.", "Melihat komputer hanya sebagai perangkat, bukan sebagai sistem input, proses, output, dan penyimpanan."]
+  }, {
+    test: /jaringan|internet|router|topologi|tcp|ip|koneksi|nirkabel/.test(t),
+    items: ["Mengira internet adalah satu komputer besar, padahal internet adalah jaringan dari banyak jaringan.", "Langsung menyalahkan perangkat saat koneksi gagal, padahal gangguan bisa terjadi di router, ISP, server, atau aplikasi.", "Menganggap semua jaringan sama, padahal LAN, WAN, PAN, kabel, dan nirkabel punya konteks penggunaan berbeda."]
+  }, {
+    test: /pencari|search|kata kunci|sift|kredibilitas|sumber|hoaks|fakta|opini|verifikasi|media/.test(t),
+    items: ["Mengira hasil paling atas di mesin pencari pasti paling benar.", "Mencampur fakta dan opini karena keduanya sama-sama ditulis dengan gaya meyakinkan.", "Membagikan informasi viral sebelum memeriksa sumber asli, tanggal, konteks, dan bukti pendukung."]
+  }, {
+    test: /privasi|keamanan|password|phishing|otp|malware|jejak|reputasi|cyberbully|perundungan|identitas|data pribadi|pdp|deepfake/.test(t),
+    items: ["Mengira data pribadi hanya nomor identitas, padahal foto, lokasi, akun, dan kebiasaan online juga bisa sensitif.", "Menganggap unggahan bisa hilang total setelah dihapus, padahal jejak digital dapat disalin atau tersimpan.", "Merespons perundungan digital dengan balasan emosional, bukan menyimpan bukti dan melapor dengan aman."]
+  }, {
+    test: /mindfulness|screen time|fomo|detox|kesejahteraan|seimbang|digital sehat/.test(t),
+    items: ["Mengira penggunaan digital sehat berarti berhenti memakai teknologi sepenuhnya.", "Mengukur produktivitas dari lamanya waktu online, bukan dari tujuan dan kualitas kegiatannya.", "Mengabaikan sinyal tubuh dan relasi sosial saat notifikasi terus mengambil perhatian."]
+  }, {
+    test: /ka|ai|kecerdasan|artifisial|generatif|prompt|halusinasi|bias|dataset|data latih|model|klasifikasi|deepfake/.test(t),
+    items: ["Mengira AI selalu benar karena jawabannya terdengar rapi dan meyakinkan.", "Memasukkan data pribadi ke AI tanpa mempertimbangkan privasi dan jejak data.", "Menganggap bias AI berasal dari niat AI, padahal sering muncul dari data latih dan desain sistem."]
+  }, {
+    test: /konten|infografis|slide|presentasi|audio|video|storytelling|hak cipta|lisensi|diseminasi|platform|analytics|audiens|advokasi/.test(t),
+    items: ["Memulai dari desain yang ramai, bukan dari tujuan, audiens, dan pesan utama.", "Menggunakan aset internet tanpa memeriksa lisensi, atribusi, atau izin penggunaan.", "Menilai konten hanya dari jumlah tayangan, bukan dari ketepatan pesan dan dampaknya."]
+  }, {
+    test: /proyek|projek|sintesis|portofolio|pitch|presentasi akhir/.test(t),
+    items: ["Memulai proyek dari alat yang ingin dipakai, bukan dari masalah yang ingin diselesaikan.", "Menganggap proyek selesai setelah produk jadi, padahal perlu diuji, dievaluasi, dan didokumentasikan.", "Menyembunyikan kendala proyek, padahal refleksi masalah dan perbaikan adalah bagian penting dari pembelajaran."]
+  }];
+  const matched = packs.find(pack => pack.test);
+  return matched ? matched.items : ["Mengira paham karena mengenal istilah, padahal belum tentu bisa menjelaskan dengan contoh.", "Langsung mengerjakan kuis tanpa menghubungkan materi dengan pengalaman nyata.", "Melewatkan aktivitas praktik, padahal praktik membantu menemukan bagian yang belum dipahami."];
+}
 function hashStr(s) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
@@ -7213,6 +7640,7 @@ function buildUnderstandingMission(mod, index) {
   } else {
     extras = (getQuestContent(mod, index).activities || []).filter(a => a.type === "lab" || a.type === "game").slice(0, 2);
   }
+  extras = getModulePracticeExtras(mod, extras, index);
   return {
     id: `${mod.id || mod.slug}-${index}-understanding-mission`,
     title: `Misi Pemahaman: ${topicTitle}`,
@@ -7224,6 +7652,62 @@ function buildUnderstandingMission(mod, index) {
     reflectionPrompt: `Refleksi singkat: tuliskan satu kalimat tentang hal paling penting dari materi "${topicTitle}" dan mengapa itu berguna.`,
     passScore: 70
   };
+}
+function getModulePracticeExtras(mod, seededExtras = [], topicIndex = 0) {
+  const candidates = new Map();
+  const scoreItem = (type, item, sourceBonus = 0) => {
+    const primaryLevel = item.primaryLevel || item.level?.[0];
+    const isCurrentLevel = item.level?.includes(mod.level);
+    const sameSubject = item.subject === mod.subject;
+    const typeBalance = (topicIndex + sourceBonus) % 2 === 0 ? type === "lab" ? 8 : 0 : type === "game" ? 8 : 0;
+    return sourceBonus + (sameSubject ? 80 : 0) + (primaryLevel === mod.level ? 45 : 0) + (isCurrentLevel ? 25 : 0) + typeBalance;
+  };
+  const collect = (activity, sourceBonus = 0) => {
+    if (!activity || !activity.type || !activity.id) return;
+    const item = activity.type === "lab" ? window.CURRICULUM.labs.find(l => l.id === activity.id) : window.CURRICULUM.games.find(g => g.id === activity.id);
+    if (!item || !(item.moduleRefs || []).includes(mod.id)) return;
+    const key = `${activity.type}:${activity.id}`;
+    const score = scoreItem(activity.type, item, sourceBonus);
+    const current = candidates.get(key);
+    if (!current || score > current.score) {
+      candidates.set(key, {
+        activity: {
+          type: activity.type,
+          id: activity.id,
+          reason: activity.reason || getPracticeReason(item, activity.type, mod)
+        },
+        item,
+        score
+      });
+    }
+  };
+  seededExtras.forEach(activity => collect(activity, 18));
+  const resources = [...window.CURRICULUM.labs.map(item => ({
+    type: "lab",
+    item
+  })), ...window.CURRICULUM.games.map(item => ({
+    type: "game",
+    item
+  }))].filter(({
+    item
+  }) => (item.moduleRefs || []).includes(mod.id));
+  resources.forEach(({
+    type,
+    item
+  }) => collect({
+    type,
+    id: item.id,
+    reason: getPracticeReason(item, type, mod)
+  }, 0));
+  return [...candidates.values()].sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title)).slice(0, 2).map(entry => entry.activity);
+}
+function getPracticeReason(item, type, mod) {
+  const skillText = (item.skills || []).slice(0, 2).join(" dan ");
+  const subject = window.CURRICULUM.subjects[item.subject]?.shortName || window.CURRICULUM.subjects[item.subject]?.name || item.subject;
+  if (skillText) {
+    return `${type === "lab" ? "Lab" : "Gim"} ${subject} ini menguatkan ${skillText.toLowerCase()} yang terkait langsung dengan unit ini.`;
+  }
+  return `${type === "lab" ? "Lab" : "Gim"} ini dipilih sebagai penguat praktik untuk ${mod.title}.`;
 }
 function getQuestContent(mod, index) {
   const topic = mod.topics[index] || `Pengayaan ${index + 1}`;
@@ -7310,6 +7794,10 @@ function getQuestContent(mod, index) {
           type: "game",
           id: "bug-hunter",
           reason: "Melatih membaca urutan instruksi dan menemukan langkah yang tidak tepat."
+        }, {
+          type: "game",
+          id: "flowchart-builder",
+          reason: "Mempraktikkan penyusunan alur algoritma dan keputusan bercabang."
         }]
       },
       "Evaluasi Solusi": {
@@ -7325,6 +7813,10 @@ function getQuestContent(mod, index) {
           type: "game",
           id: "sort-race",
           reason: "Melatih evaluasi urutan dan efisiensi langkah."
+        }, {
+          type: "game",
+          id: "flowchart-builder",
+          reason: "Mengubah evaluasi solusi menjadi urutan langkah yang bisa diuji."
         }]
       },
       "Proyek LKPD Komputasional": {
@@ -7363,6 +7855,10 @@ function getQuestContent(mod, index) {
           steps: ["Tulis def nama(param, default=nilai)", "Isi badan fungsi", "Tambahkan return", "Panggil tanpa argumen opsional", "Panggil dengan argumen eksplisit"],
           answer: ["Tulis def nama(param, default=nilai)", "Isi badan fungsi", "Tambahkan return", "Panggil tanpa argumen opsional", "Panggil dengan argumen eksplisit"]
         }, {
+          type: "lab",
+          id: "python-trace",
+          reason: "Melatih trace nilai variabel dan return fungsi sebelum menulis kode mandiri."
+        }, {
           type: "game",
           id: "bug-hunter",
           reason: "Berlatih membaca kode Python dan menemukan kesalahan pada definisi atau pemanggilan fungsi."
@@ -7384,6 +7880,10 @@ function getQuestContent(mod, index) {
             "Urutan langkah algoritma": "List",
             "Pemetaan kode kelas ke wali kelas": "Dictionary"
           }
+        }, {
+          type: "lab",
+          id: "python-trace",
+          reason: "Mempraktikkan pembacaan dictionary, update key, dan output program."
         }, {
           type: "game",
           id: "bug-hunter",
@@ -7445,6 +7945,14 @@ function getQuestContent(mod, index) {
             "List 10.000 elemen sudah diurutkan": "Binary Search"
           }
         }, {
+          type: "lab",
+          id: "python-trace",
+          reason: "Menelusuri jumlah langkah binary search pada data terurut."
+        }, {
+          type: "game",
+          id: "search-rescue",
+          reason: "Berlatih memilih linear atau binary search sesuai kondisi data."
+        }, {
           type: "game",
           id: "bug-hunter",
           reason: "Berlatih menemukan kesalahan dalam implementasi algoritma pencarian Python."
@@ -7460,6 +7968,10 @@ function getQuestContent(mod, index) {
           reason: "Susun urutan yang tepat untuk menyelesaikan masalah dengan Python secara integratif.",
           steps: ["Definisikan masalah dan output yang diinginkan", "Pilih struktur data (list/dictionary)", "Rancang fungsi yang dibutuhkan", "Pilih modul Python yang relevan", "Implementasi dan uji tiap fungsi", "Integrasikan dan uji program lengkap"],
           answer: ["Definisikan masalah dan output yang diinginkan", "Pilih struktur data (list/dictionary)", "Rancang fungsi yang dibutuhkan", "Pilih modul Python yang relevan", "Implementasi dan uji tiap fungsi", "Integrasikan dan uji program lengkap"]
+        }, {
+          type: "lab",
+          id: "python-trace",
+          reason: "Membiasakan membaca alur program sebelum mengintegrasikan fungsi dan struktur data."
         }, {
           type: "game",
           id: "bug-hunter",
@@ -7484,8 +7996,16 @@ function getQuestContent(mod, index) {
       reason: "Pilih objek data dan atribut untuk membangun himpunan data sederhana."
     }, {
       type: "lab",
+      id: "dataset-labeling",
+      reason: "Menguatkan hubungan data, label, pola, dan bias pada sistem AI sederhana."
+    }, {
+      type: "lab",
       id: "sorting",
       reason: "Memperlihatkan bagaimana data bisa diurutkan untuk menemukan pola."
+    }, {
+      type: "lab",
+      id: "spreadsheet-mini",
+      reason: "Menerapkan formula SUM, AVERAGE, IF, dan COUNTIF pada data sederhana."
     }, {
       type: "game",
       id: "sort-race",
@@ -7526,6 +8046,10 @@ function getQuestContent(mod, index) {
       type: "game",
       id: "caesar-cipher",
       reason: "Mengenalkan gagasan dasar perlindungan pesan melalui penyandian."
+    }, {
+      type: "lab",
+      id: "digital-footprint",
+      reason: "Memilih respons saat jejak digital, reputasi, atau data pribadi berisiko."
     }];
   } else if (topicLower.includes("pseudocode") || topicLower.includes("flowchart") || topicLower.includes("percabangan") || topicLower.includes("perulangan") || topicLower.includes("algoritma") || topicLower.includes("dekomposisi")) {
     mission = "Pilih satu rutinitas harian, pecah menjadi langkah bernomor, lalu tandai bagian yang memakai keputusan jika/maka.";
@@ -7545,6 +8069,10 @@ function getQuestContent(mod, index) {
       type: "game",
       id: "sort-race",
       reason: "Mengubah urutan langkah menjadi tantangan algoritmik sederhana."
+    }, {
+      type: "game",
+      id: "flowchart-builder",
+      reason: "Menyusun instruksi menjadi alur algoritma yang runtut."
     }];
   } else if (topicLower.includes("hoaks") || topicLower.includes("fakta") || topicLower.includes("opini") || topicLower.includes("kredibilitas") || topicLower.includes("sumber") || topicLower.includes("media")) {
     mission = "Ambil satu unggahan atau berita pendek. Tandai bagian fakta, opini, klaim yang perlu dicek, dan sumber pembandingnya.";
@@ -7568,6 +8096,10 @@ function getQuestContent(mod, index) {
       type: "game",
       id: "ai-ethics",
       reason: "Membuka diskusi tentang dampak teknologi dan informasi pada orang lain."
+    }, {
+      type: "lab",
+      id: "sift-check",
+      reason: "Mempraktikkan cek klaim dan sumber sebelum membagikan informasi."
     }];
   } else if (topicLower.includes("biner") || topicLower.includes("representasi")) {
     mission = "Pilih 3 angka kecil, ubah ke biner, lalu jelaskan mengapa komputer membutuhkan representasi seperti ini.";
@@ -7643,7 +8175,7 @@ const MODULE_PROFILES = {
       }, {
         type: "lab",
         id: "network-sim",
-        reason: "Memvisualkan paket data saat berpindah dari perangkat ke server."
+        reason: "Mendiagnosis titik masalah saat paket data gagal sampai ke server."
       }]
     })
   },
@@ -7674,6 +8206,10 @@ const MODULE_PROFILES = {
         title: "Racik Kata Kunci",
         reason: "Pilih strategi yang membuat kata kunci pencarian lebih spesifik.",
         choices: ["Tambah lokasi", "Tambah tahun", "Pakai tanda kutip", "Bandingkan sumber"]
+      }, {
+        type: "lab",
+        id: "sift-check",
+        reason: "Mempraktikkan pemilihan sumber pembanding, konteks, dan keputusan sebelum percaya informasi."
       }]
     })
   },
@@ -7701,6 +8237,10 @@ const MODULE_PROFILES = {
         type: "game",
         id: "pattern-quiz",
         reason: "Melatih mengenali pola informasi yang mencurigakan."
+      }, {
+        type: "lab",
+        id: "sift-check",
+        reason: "Melatih investigasi klaim dengan sumber, konteks, dan putusan yang bertanggung jawab."
       }]
     })
   },
@@ -7889,6 +8429,14 @@ const MODULE_PROFILES = {
         steps: ["Mulai", "Ambil input", "Cek kondisi", "Ulangi bila perlu", "Tampilkan output"],
         answer: ["Mulai", "Ambil input", "Cek kondisi", "Ulangi bila perlu", "Tampilkan output"]
       }, {
+        type: "lab",
+        id: "python-trace",
+        reason: "Menghubungkan rancangan pseudocode dengan trace kode Python sederhana."
+      }, {
+        type: "game",
+        id: "search-rescue",
+        reason: "Melatih pemilihan algoritma pencarian berdasarkan kondisi data."
+      }, {
         type: "game",
         id: "bug-hunter",
         reason: "Melatih membaca logika dan menemukan kesalahan instruksi."
@@ -8044,6 +8592,10 @@ const MODULE_PROFILES = {
           "Selalu terlambat Senin": "Pola",
           "Nilai rata-rata naik": "Informasi"
         }
+      }, {
+        type: "lab",
+        id: "dataset-labeling",
+        reason: "Mempraktikkan pemberian label data dan melihat dampaknya pada pola yang dipelajari AI."
       }]
     })
   },
@@ -8066,6 +8618,10 @@ const MODULE_PROFILES = {
         type: "game",
         id: "sort-race",
         reason: "Melatih logika urutan — menyusun elemen dalam susunan yang benar, fondasi dari instruksi sistematis."
+      }, {
+        type: "game",
+        id: "flowchart-builder",
+        reason: "Mengubah instruksi sistematis menjadi alur yang bisa diuji."
       }]
     })
   },
@@ -8096,6 +8652,10 @@ const MODULE_PROFILES = {
         title: "Cek Kualitas Visual",
         reason: "Centang kriteria konten visual yang efektif.",
         items: ["Pesan utama jelas", "Teks ringkas", "Visual relevan", "Audiens sesuai", "Sumber dicantumkan"]
+      }, {
+        type: "game",
+        id: "prompt-craft",
+        reason: "Melatih cara meminta bantuan AI untuk memperbaiki konten tanpa mengorbankan konteks dan etika."
       }]
     })
   },
@@ -8125,6 +8685,14 @@ const MODULE_PROFILES = {
           "Salin gambar tanpa sumber": "Tidak etis",
           "Bagikan video teman tanpa izin": "Perlu izin"
         }
+      }, {
+        type: "lab",
+        id: "sift-check",
+        reason: "Menguatkan kebiasaan menahan, memeriksa, dan memilih keputusan sebelum menyebarkan klaim digital."
+      }, {
+        type: "game",
+        id: "license-quest",
+        reason: "Berlatih memilih kapan aset digital boleh dipakai, perlu atribusi, atau harus izin."
       }]
     })
   },
@@ -8151,6 +8719,10 @@ const MODULE_PROFILES = {
         }
       }, {
         type: "lab",
+        id: "dataset-labeling",
+        reason: "Menunjukkan bahwa AI belajar dari data berlabel dan dapat bias jika datanya kurang baik."
+      }, {
+        type: "lab",
         id: "image-classifier",
         reason: "Melihat langsung bagaimana AI mengenali pola dari gambar yang kamu buat sendiri."
       }, {
@@ -8175,13 +8747,17 @@ const MODULE_PROFILES = {
         reason: "Centang aspek yang perlu dicek sebelum mengandalkan AI tool.",
         items: ["Cek keakuratan jawaban", "Verifikasi ke sumber asli", "Perhatikan batas topiknya", "Tidak bagikan data pribadi ke AI"]
       }, {
+        type: "game",
+        id: "prompt-craft",
+        reason: "Berlatih memilih prompt yang jelas, aman, dan tetap mendukung proses belajar."
+      }, {
+        type: "lab",
+        id: "dataset-labeling",
+        reason: "Menghubungkan batas AI tool dengan kualitas data yang dipakai untuk melatihnya."
+      }, {
         type: "lab",
         id: "image-classifier",
         reason: "Melihat langsung bagaimana AI melakukan klasifikasi dan memahami batasnya."
-      }, {
-        type: "game",
-        id: "pattern-quiz",
-        reason: "Melatih pengenalan pola, dasar cara kerja banyak sistem AI."
       }]
     })
   },
@@ -8210,6 +8786,10 @@ const MODULE_PROFILES = {
         type: "lab",
         id: "sorting",
         reason: "Melihat bagaimana data diurutkan untuk membantu menemukan pola."
+      }, {
+        type: "lab",
+        id: "spreadsheet-mini",
+        reason: "Mempraktikkan formula dan fungsi spreadsheet pada data kelas."
       }]
     })
   },
@@ -8232,6 +8812,10 @@ const MODULE_PROFILES = {
         type: "game",
         id: "bug-hunter",
         reason: "Melatih membaca logika program dan menemukan kesalahan instruksi."
+      }, {
+        type: "game",
+        id: "flowchart-builder",
+        reason: "Menyusun alur program visual dari input, kondisi, perulangan, sampai output."
       }]
     })
   },
@@ -8256,6 +8840,10 @@ const MODULE_PROFILES = {
         title: "Cek Sebelum Publikasi",
         reason: "Pastikan konten memenuhi standar sebelum dipublikasikan.",
         items: ["Kualitas audio jelas", "Tidak ada data pribadi tanpa izin", "Sumber musik/aset legal", "Pesan sesuai audiens"]
+      }, {
+        type: "game",
+        id: "storyboard-sprint",
+        reason: "Mempraktikkan urutan produksi konten dari storyboard sampai publikasi etis."
       }]
     })
   },
@@ -8285,6 +8873,14 @@ const MODULE_PROFILES = {
         title: "Distribusi Konten Aman",
         reason: "Centang langkah yang memastikan konten disebarkan secara etis.",
         items: ["Cek lisensi aset", "Cantumkan sumber", "Pilih platform sesuai audiens", "Hormati privasi orang yang tampil"]
+      }, {
+        type: "game",
+        id: "license-quest",
+        reason: "Menguatkan keputusan penggunaan aset dan lisensi sebelum publikasi konten."
+      }, {
+        type: "game",
+        id: "storyboard-sprint",
+        reason: "Melatih keputusan publikasi konten yang aman, jelas, dan sesuai audiens."
       }]
     })
   },
@@ -8309,6 +8905,10 @@ const MODULE_PROFILES = {
           "AI membuat keputusan tanpa penjelasan": "Transparansi",
           "AI medis tanpa standar keamanan": "Regulasi"
         }
+      }, {
+        type: "lab",
+        id: "ai-bias-audit",
+        reason: "Menguatkan audit risiko bias, privasi, dan transparansi pada sistem AI."
       }, {
         type: "game",
         id: "ai-ethics",
@@ -8335,6 +8935,10 @@ const MODULE_PROFILES = {
         type: "lab",
         id: "neural-playground",
         reason: "Eksperimen melatih jaringan saraf dan melihat akurasi berubah secara langsung."
+      }, {
+        type: "lab",
+        id: "ai-bias-audit",
+        reason: "Mengaudit risiko jika data latih kurang beragam atau labelnya tidak jelas."
       }, {
         type: "lab",
         id: "image-classifier",
@@ -8367,6 +8971,10 @@ const MODULE_PROFILES = {
         type: "lab",
         id: "sorting",
         reason: "Melihat bagaimana pengurutan dan pengelompokan data mendukung analisis."
+      }, {
+        type: "lab",
+        id: "spreadsheet-mini",
+        reason: "Menerapkan operasi spreadsheet mini untuk menghasilkan insight dari data."
       }]
     })
   },
@@ -8389,9 +8997,21 @@ const MODULE_PROFILES = {
         id: "sorting",
         reason: "Membandingkan efisiensi berbagai algoritma sorting secara visual."
       }, {
+        type: "lab",
+        id: "python-trace",
+        reason: "Menelusuri output dan jumlah langkah algoritma sebelum implementasi."
+      }, {
+        type: "game",
+        id: "search-rescue",
+        reason: "Menguatkan pilihan algoritma pencarian yang efisien."
+      }, {
         type: "game",
         id: "bug-hunter",
         reason: "Berlatih menemukan dan memperbaiki kesalahan logika dalam program."
+      }, {
+        type: "game",
+        id: "flowchart-builder",
+        reason: "Menguatkan rancangan algoritma dan pseudocode sebelum implementasi."
       }]
     })
   },
@@ -8419,6 +9039,10 @@ const MODULE_PROFILES = {
         type: "game",
         id: "pattern-quiz",
         reason: "Melatih membaca pola respons audiens dan memilih strategi konten yang lebih terarah."
+      }, {
+        type: "game",
+        id: "license-quest",
+        reason: "Menguatkan keputusan lisensi dan atribusi dalam produksi konten digital."
       }]
     })
   },
@@ -8447,6 +9071,10 @@ const MODULE_PROFILES = {
         type: "game",
         id: "ai-ethics",
         reason: "Membantu menimbang dampak keputusan teknologi sebelum menyusun pesan advokasi literasi digital."
+      }, {
+        type: "lab",
+        id: "sift-check",
+        reason: "Mempraktikkan pemeriksaan klaim sebagai dasar advokasi literasi digital."
       }]
     })
   },
@@ -8481,6 +9109,14 @@ const MODULE_PROFILES = {
         type: "lab",
         id: "image-classifier",
         reason: "Menunjukkan secara langsung bagaimana sistem AI membaca fitur visual dan mengapa hasil prediksi perlu dikritisi."
+      }, {
+        type: "lab",
+        id: "sift-check",
+        reason: "Menguatkan kebiasaan verifikasi konteks saat menghadapi konten manipulatif."
+      }, {
+        type: "game",
+        id: "deepfake-detective",
+        reason: "Melatih keputusan cepat saat menemukan tanda manipulasi AI pada video, foto, atau audio."
       }]
     })
   },
@@ -8593,7 +9229,7 @@ function getCuratedModuleQuest(mod, topic, topicIndex) {
     title: `Misi: ${topic}`,
     mission: quest.mission,
     concepts: quest.concepts || profile.concepts,
-    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 2) : [secondary])]
+    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 3) : [secondary])]
   };
 }
 function getFunFact(id) {
@@ -10792,11 +11428,11 @@ function pythonEval(code) {
       endIdx: i
     };
   }
-  function getBlock(fromIdx, baseIndent) {
+  function getBlock(srcLines, fromIdx, baseIndent) {
     const block = [];
     let i = fromIdx;
-    while (i < lines.length) {
-      const raw = lines[i];
+    while (i < srcLines.length) {
+      const raw = srcLines[i];
       if (raw.trim() === "") {
         block.push(raw);
         i++;
@@ -10827,7 +11463,7 @@ function pythonEval(code) {
       return splitArgs(inner).map(x => evalExpr(x, env));
     }
     const fnMatch = expr.match(/^(\w+)\((.*)\)$/);
-    if (fnMatch) {
+    if (fnMatch && callClosesAtEnd(expr, fnMatch[1].length)) {
       const fn = fnMatch[1];
       const argsStr = fnMatch[2];
       const args = argsStr.trim() === "" ? [] : splitArgs(argsStr).map(a => evalExpr(a, env));
@@ -10852,10 +11488,11 @@ function pythonEval(code) {
       if (fn === "float") return parseFloat(args[0]);
       throw new Error(`Fungsi ${fn}() belum didukung di simulator`);
     }
-    const ops = ["==", "!=", "<=", ">=", "<", ">", "+", "-", "*", "/", "%", "//"];
-    for (const op of ops) {
-      const i = findOpIdx(expr, op);
+    const opGroups = [["==", "!=", "<=", ">=", "<", ">"], ["+", "-"], ["*", "//", "/", "%"]];
+    for (const group of opGroups) {
+      const i = findLastOpIdx(expr, group);
       if (i > 0) {
+        const op = ["//", "==", "!=", "<=", ">="].includes(expr.slice(i, i + 2)) ? expr.slice(i, i + 2) : expr[i];
         const left = evalExpr(expr.slice(0, i), env);
         const right = evalExpr(expr.slice(i + op.length), env);
         switch (op) {
@@ -10902,6 +11539,71 @@ function pythonEval(code) {
     }
     if (expr.startsWith("(") && expr.endsWith(")")) return evalExpr(expr.slice(1, -1), env);
     throw new Error(`Tidak bisa evaluasi: ${expr}`);
+  }
+  function callClosesAtEnd(expr, openIdx) {
+    let depth = 0,
+      inStr = false,
+      strCh = "";
+    for (let i = openIdx; i < expr.length; i++) {
+      const c = expr[i];
+      if (inStr) {
+        if (c === strCh) inStr = false;
+        continue;
+      }
+      if (c === "'" || c === '"') {
+        inStr = true;
+        strCh = c;
+        continue;
+      }
+      if (c === "(" || c === "[") depth++;else if (c === ")" || c === "]") {
+        depth--;
+        if (depth === 0) return i === expr.length - 1;
+      }
+    }
+    return false;
+  }
+  function findLastOpIdx(expr, ops) {
+    let depth = 0,
+      inStr = false,
+      strCh = "",
+      found = -1;
+    for (let i = 0; i < expr.length; i++) {
+      const c = expr[i];
+      if (inStr) {
+        if (c === strCh) inStr = false;
+        continue;
+      }
+      if (c === "'" || c === '"') {
+        inStr = true;
+        strCh = c;
+        continue;
+      }
+      if (c === "(" || c === "[") {
+        depth++;
+        continue;
+      }
+      if (c === ")" || c === "]") {
+        depth--;
+        continue;
+      }
+      if (depth !== 0) continue;
+      const two = expr.slice(i, i + 2);
+      if ((two === "//" || two === "==" || two === "!=" || two === "<=" || two === ">=") && ops.includes(two)) {
+        found = i;
+        i++;
+        continue;
+      }
+      if (ops.includes(c)) {
+        if ((c === "<" || c === ">" || c === "=" || c === "!") && expr[i + 1] === "=") continue;
+        if (c === "/" && expr[i + 1] === "/") continue;
+        if (c === "-" || c === "+") {
+          const prev = expr.slice(0, i).replace(/\s+$/, "");
+          if (prev === "" || /[+\-*/%=<>(,]$/.test(prev)) continue;
+        }
+        found = i;
+      }
+    }
+    return found;
   }
   function findOpIdx(expr, op) {
     let depth = 0,
@@ -11009,7 +11711,7 @@ function pythonEval(code) {
         const bodyStart = i + 1;
         const {
           block
-        } = getBlock(bodyStart, indent);
+        } = getBlock(lines, bodyStart, indent);
         for (const item of iter) {
           env[forM[1]] = item;
           exec(block, env, 0, 0);
@@ -11026,13 +11728,13 @@ function pythonEval(code) {
           const {
             block,
             endIdx
-          } = getBlock(j + 1, indent);
+          } = getBlock(lines, j + 1, indent);
           exec(block, env, 0, 0);
           j = endIdx;
         } else {
           const {
             endIdx
-          } = getBlock(j + 1, indent);
+          } = getBlock(lines, j + 1, indent);
           j = endIdx;
         }
         while (j < lines.length) {
@@ -11051,13 +11753,13 @@ function pythonEval(code) {
               const {
                 block,
                 endIdx
-              } = getBlock(j + 1, indent);
+              } = getBlock(lines, j + 1, indent);
               exec(block, env, 0, 0);
               j = endIdx;
             } else {
               const {
                 endIdx
-              } = getBlock(j + 1, indent);
+              } = getBlock(lines, j + 1, indent);
               j = endIdx;
             }
             continue;
@@ -11067,13 +11769,13 @@ function pythonEval(code) {
               const {
                 block,
                 endIdx
-              } = getBlock(j + 1, indent);
+              } = getBlock(lines, j + 1, indent);
               exec(block, env, 0, 0);
               j = endIdx;
             } else {
               const {
                 endIdx
-              } = getBlock(j + 1, indent);
+              } = getBlock(lines, j + 1, indent);
               j = endIdx;
             }
             break;
@@ -11087,7 +11789,7 @@ function pythonEval(code) {
       if (whM) {
         const {
           block
-        } = getBlock(i + 1, indent);
+        } = getBlock(lines, i + 1, indent);
         let guard = 0;
         while (evalExpr(whM[1], env)) {
           if (guard++ > 10000) throw new Error("Loop terlalu panjang (max 10000 iterasi)");
@@ -11178,7 +11880,7 @@ const ResourceModuleLinks = ({
       color: "var(--navy-950)",
       border: "1px solid var(--line)"
     }
-  }, "Kelas ", mod.level, " \u2022 Unit ", mod.unit))), !compact && refs.length > 0 && React.createElement("div", {
+  }, window.CURRICULUM.subjects[mod.subject]?.shortName || window.CURRICULUM.subjects[mod.subject]?.name || mod.subject, " \u2022 Kelas ", mod.level, " \u2022 Unit ", mod.unit))), !compact && refs.length > 0 && React.createElement("div", {
     style: {
       fontSize: 13,
       color: "var(--ink-muted)",
@@ -11206,7 +11908,7 @@ const ResourceModuleLinks = ({
 };
 window.ResourceModuleLinks = ResourceModuleLinks;
 const LabList = () => {
-  const labs = window.CURRICULUM.labs.filter(l => l.level.includes(window.USER.level));
+  const labs = window.CURRICULUM.labs.filter(l => (l.primaryLevel || l.level[0]) === window.USER.level);
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? labs : labs.filter(l => l.subject === filter);
   return React.createElement("div", {
@@ -11429,7 +12131,7 @@ const LabCard = ({
     }
   }, React.createElement("span", {
     className: `tag ${subj.tagClass}`
-  }, subj.shortName || subj.name), lab.level.map(l => React.createElement("span", {
+  }, subj.shortName || subj.name), [lab.primaryLevel || lab.level[0]].map(l => React.createElement("span", {
     key: l,
     className: "tag",
     style: {
@@ -11501,7 +12203,7 @@ const {
   useRef
 } = React;
 const GameList = () => {
-  const games = window.CURRICULUM.games.filter(g => g.level.includes(window.USER.level));
+  const games = window.CURRICULUM.games.filter(g => (g.primaryLevel || g.level[0]) === window.USER.level);
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? games : games.filter(g => g.subject === filter);
   const todayStr = new Date().toDateString();
@@ -11751,7 +12453,7 @@ const GameCard = ({
     }
   }, React.createElement("span", {
     className: `tag ${subj.tagClass}`
-  }, subj.shortName || subj.name), game.level.map(l => React.createElement("span", {
+  }, subj.shortName || subj.name), [game.primaryLevel || game.level[0]].map(l => React.createElement("span", {
     key: l,
     className: "tag",
     style: {
@@ -11808,6 +12510,448 @@ const GameCard = ({
 window.GameList = GameList;
 
 //# sourceURL=js/pages/game-list.jsx
+})();
+
+// ---- js/pages/teacher.jsx ----
+(function () {
+const {
+  Icon,
+  Navbar,
+  Footer,
+  Link,
+  useRoute,
+  navigate,
+  SectionHeader,
+  Breadcrumb,
+  EmptyState,
+  ControlField
+} = window;
+const {
+  useState,
+  useEffect
+} = React;
+const TeacherDashboard = () => {
+  const readProfiles = () => {
+    try {
+      return window.SIGMA_AUTH.getProfiles() || [];
+    } catch (e) {
+      return [];
+    }
+  };
+  const [profiles, setProfiles] = useState(readProfiles);
+  const [levelFilter, setLevelFilter] = useState("all");
+  const modules = window.CURRICULUM.modules;
+  const moduleComplete = (p, mid) => {
+    try {
+      return window.SIGMA_AUTH.isModuleLearningComplete(mid, p);
+    } catch (e) {
+      return false;
+    }
+  };
+  const quizAvg = p => {
+    const qs = Object.values(p.quizzes || {});
+    if (!qs.length) return null;
+    return Math.round(qs.reduce((a, q) => a + (Number(q.latestPercent) || 0), 0) / qs.length);
+  };
+  const modulesTuntas = p => modules.filter(m => m.level === p.level && moduleComplete(p, m.id)).length;
+  const modulesForLevel = lvl => modules.filter(m => m.level === lvl).length;
+  const started = (p, mid) => !!(p.progress?.[mid]?.lessonsDone || p.quizzes?.[mid] || Object.keys(p.quests?.[mid] || {}).length);
+  const shown = levelFilter === "all" ? profiles : profiles.filter(p => String(p.level) === String(levelFilter));
+  const studentCount = shown.length;
+  const avgXp = studentCount ? Math.round(shown.reduce((a, p) => a + (p.xp || 0), 0) / studentCount) : 0;
+  const qa = shown.map(quizAvg).filter(v => v != null);
+  const avgQuiz = qa.length ? Math.round(qa.reduce((a, b) => a + b, 0) / qa.length) : null;
+  const totalActs = shown.reduce((a, p) => a + (p.completedLabs?.length || 0) + (p.completedGames?.length || 0), 0);
+  const levelNum = levelFilter === "all" ? null : Number(levelFilter);
+  const levelModules = levelNum ? modules.filter(m => m.level === levelNum).sort((a, b) => a.subject === b.subject ? (a.unit || 0) - (b.unit || 0) : a.subject < b.subject ? -1 : 1) : [];
+  const moduleStat = mod => {
+    const mulai = shown.filter(p => started(p, mod.id)).length;
+    const tuntas = shown.filter(p => moduleComplete(p, mod.id)).length;
+    const skor = shown.map(p => p.quizzes?.[mod.id]?.latestPercent).filter(v => v != null);
+    const rata = skor.length ? Math.round(skor.reduce((a, b) => a + b, 0) / skor.length) : null;
+    return {
+      mulai,
+      tuntas,
+      rata,
+      sudahKuis: skor.length
+    };
+  };
+  const colFor = pct => pct == null ? "var(--ink-subtle)" : pct >= 80 ? "var(--green-500)" : pct >= 60 ? "var(--orange-500)" : "var(--red-500)";
+  return React.createElement("div", {
+    className: "page",
+    style: {
+      background: "var(--bg)",
+      minHeight: "100vh"
+    }
+  }, React.createElement(Navbar, null), React.createElement("div", {
+    style: {
+      maxWidth: 1280,
+      margin: "0 auto",
+      padding: "32px 32px 60px"
+    }
+  }, React.createElement(Breadcrumb, {
+    trail: [{
+      to: "/",
+      label: "Beranda"
+    }, {
+      label: "Dashboard Guru"
+    }]
+  }), React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: 16,
+      margin: "16px 0 8px"
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "tag tag-gold",
+    style: {
+      marginBottom: 10
+    }
+  }, "MODE GURU"), React.createElement("h1", {
+    className: "display",
+    style: {
+      fontSize: 48,
+      margin: 0,
+      color: "var(--navy-950)"
+    }
+  }, "Dashboard Guru")), React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: () => setProfiles(readProfiles())
+  }, React.createElement(Icon.Refresh, {
+    width: "14",
+    height: "14"
+  }), " Muat ulang data")), React.createElement("div", {
+    style: {
+      padding: "10px 14px",
+      background: "var(--bg-cream)",
+      border: "1.5px solid var(--gold-400)",
+      borderRadius: 12,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      lineHeight: 1.5,
+      marginBottom: 24
+    }
+  }, "\u2139\uFE0F Rekap di bawah dihitung dari ", React.createElement("strong", null, "profil siswa yang tersimpan di browser/perangkat ini"), " (belum ada sinkronisasi antar-perangkat). Cocok untuk perangkat kelas bersama atau demo."), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 20,
+      flexWrap: "wrap"
+    }
+  }, [{
+    id: "all",
+    label: "Semua Kelas"
+  }, {
+    id: "7",
+    label: "Kelas 7"
+  }, {
+    id: "8",
+    label: "Kelas 8"
+  }, {
+    id: "9",
+    label: "Kelas 9"
+  }].map(f => React.createElement("button", {
+    key: f.id,
+    onClick: () => setLevelFilter(f.id),
+    className: "btn btn-sm",
+    style: {
+      background: levelFilter === f.id ? "var(--navy-900)" : "white",
+      color: levelFilter === f.id ? "white" : "var(--ink)"
+    }
+  }, f.label))), studentCount === 0 ? React.createElement(EmptyState, {
+    icon: "Users",
+    title: "Belum ada profil siswa",
+    subtitle: "Buat profil lewat halaman Profil, atau ganti filter kelas.",
+    action: React.createElement(Link, {
+      to: "/login",
+      className: "btn btn-primary",
+      style: {
+        marginTop: 18
+      }
+    }, "Ke Halaman Profil")
+  }) : React.createElement(React.Fragment, null, React.createElement("div", {
+    className: "responsive-grid-4",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(4, 1fr)",
+      gap: 16,
+      marginBottom: 28
+    }
+  }, React.createElement(SummaryCard, {
+    icon: "Users",
+    label: "Jumlah Siswa",
+    value: studentCount,
+    color: "var(--info-500)"
+  }), React.createElement(SummaryCard, {
+    icon: "Bolt",
+    label: "Rata-rata XP",
+    value: avgXp.toLocaleString(),
+    color: "var(--gold-500)"
+  }), React.createElement(SummaryCard, {
+    icon: "Chart",
+    label: "Rata-rata Kuis",
+    value: avgQuiz == null ? "—" : `${avgQuiz}%`,
+    color: colFor(avgQuiz)
+  }), React.createElement(SummaryCard, {
+    icon: "Beaker",
+    label: "Lab + Gim Selesai",
+    value: totalActs,
+    color: "var(--ai-500)"
+  })), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 0,
+      background: "white",
+      marginBottom: 28,
+      overflow: "hidden"
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: "16px 20px",
+      borderBottom: "1.5px solid var(--line)",
+      fontWeight: 900,
+      fontSize: 16
+    }
+  }, "Daftar Siswa (", studentCount, ")"), React.createElement("div", {
+    style: {
+      overflowX: "auto"
+    }
+  }, React.createElement("table", {
+    style: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: 13,
+      minWidth: 720
+    }
+  }, React.createElement("thead", null, React.createElement("tr", {
+    style: {
+      background: "var(--bg)",
+      textAlign: "left"
+    }
+  }, ["Nama", "Kelas", "XP", "Modul Tuntas", "Rata-rata Kuis", "Lab", "Gim", "Badge"].map((h, i) => React.createElement("th", {
+    key: i,
+    style: {
+      padding: "10px 14px",
+      fontWeight: 800,
+      color: "var(--ink-muted)",
+      whiteSpace: "nowrap",
+      textAlign: i >= 2 ? "center" : "left"
+    }
+  }, h)))), React.createElement("tbody", null, shown.slice().sort((a, b) => (b.xp || 0) - (a.xp || 0)).map(p => {
+    const qv = quizAvg(p);
+    const tuntas = modulesTuntas(p);
+    const total = modulesForLevel(p.level) || 6;
+    return React.createElement("tr", {
+      key: p.id,
+      style: {
+        borderTop: "1px solid var(--line)"
+      }
+    }, React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        fontWeight: 800,
+        color: "var(--navy-950)"
+      }
+    }, p.name), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        color: "var(--ink-muted)"
+      }
+    }, p.class || `${p.level}`), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center",
+        fontWeight: 700
+      }
+    }, (p.xp || 0).toLocaleString()), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center"
+      }
+    }, tuntas, "/", total), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center",
+        fontWeight: 800,
+        color: colFor(qv)
+      }
+    }, qv == null ? "—" : `${qv}%`), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center"
+      }
+    }, p.completedLabs?.length || 0), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center"
+      }
+    }, p.completedGames?.length || 0), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center"
+      }
+    }, p.badges?.length || 0));
+  }))))), levelNum ? React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 0,
+      background: "white",
+      overflow: "hidden"
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: "16px 20px",
+      borderBottom: "1.5px solid var(--line)",
+      fontWeight: 900,
+      fontSize: 16
+    }
+  }, "Rekap per Modul \u2014 Kelas ", levelNum), React.createElement("div", {
+    style: {
+      overflowX: "auto"
+    }
+  }, React.createElement("table", {
+    style: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: 13,
+      minWidth: 640
+    }
+  }, React.createElement("thead", null, React.createElement("tr", {
+    style: {
+      background: "var(--bg)",
+      textAlign: "left"
+    }
+  }, ["Modul", "Mapel", "Mulai", "Tuntas", "Rata-rata Kuis"].map((h, i) => React.createElement("th", {
+    key: i,
+    style: {
+      padding: "10px 14px",
+      fontWeight: 800,
+      color: "var(--ink-muted)",
+      whiteSpace: "nowrap",
+      textAlign: i >= 2 ? "center" : "left"
+    }
+  }, h)))), React.createElement("tbody", null, levelModules.map(mod => {
+    const s = moduleStat(mod);
+    const subj = window.CURRICULUM.subjects[mod.subject];
+    return React.createElement("tr", {
+      key: mod.id,
+      style: {
+        borderTop: "1px solid var(--line)"
+      }
+    }, React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        fontWeight: 700,
+        color: "var(--navy-950)"
+      }
+    }, mod.title), React.createElement("td", {
+      style: {
+        padding: "10px 14px"
+      }
+    }, React.createElement("span", {
+      className: `tag ${subj.tagClass}`
+    }, subj.shortName || subj.name)), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center"
+      }
+    }, s.mulai, "/", studentCount), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center",
+        fontWeight: 700,
+        color: s.tuntas > 0 ? "var(--green-500)" : "var(--ink-subtle)"
+      }
+    }, s.tuntas, "/", studentCount), React.createElement("td", {
+      style: {
+        padding: "10px 14px",
+        textAlign: "center",
+        fontWeight: 800,
+        color: colFor(s.rata)
+      }
+    }, s.rata == null ? "—" : `${s.rata}%`, React.createElement("span", {
+      style: {
+        color: "var(--ink-subtle)",
+        fontWeight: 600,
+        fontSize: 11
+      }
+    }, " (", s.sudahKuis, ")")));
+  })))), React.createElement("div", {
+    style: {
+      padding: "10px 16px",
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      borderTop: "1px solid var(--line)"
+    }
+  }, "Angka dalam ( ) = jumlah siswa yang sudah mengerjakan kuis modul tersebut.")) : React.createElement("div", {
+    style: {
+      padding: "16px 18px",
+      background: "white",
+      border: "1.5px dashed var(--line-strong)",
+      borderRadius: 14,
+      fontSize: 14,
+      color: "var(--ink-muted)"
+    }
+  }, "Pilih satu kelas (7/8/9) di atas untuk melihat ", React.createElement("strong", null, "rekap progres per modul"), "."))), React.createElement(Footer, null));
+};
+const SummaryCard = ({
+  icon,
+  label,
+  value,
+  color
+}) => {
+  const I = Icon[icon] || Icon.Chart;
+  return React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 18,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 8
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 38,
+      height: 38,
+      borderRadius: 10,
+      background: "var(--bg)",
+      border: "1.5px solid var(--line)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color
+    }
+  }, React.createElement(I, {
+    width: "20",
+    height: "20"
+  })), React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      letterSpacing: "0.06em",
+      textTransform: "uppercase",
+      color: "var(--ink-subtle)"
+    }
+  }, label)), React.createElement("div", {
+    className: "display",
+    style: {
+      fontSize: 32,
+      color: "var(--navy-950)",
+      lineHeight: 1
+    }
+  }, value));
+};
+window.TeacherDashboard = TeacherDashboard;
+
+//# sourceURL=js/pages/teacher.jsx
 })();
 
 // ---- js/labs/sorting.jsx ----
@@ -14284,127 +15428,135 @@ const NetworkLab = () => {
   const [sending, setSending] = useState(false);
   const [log, setLog] = useState([]);
   const [packetPos, setPacketPos] = useState(-1);
+  const [caseIdx, setCaseIdx] = useState(0);
+  const [diagnosis, setDiagnosis] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [solvedCases, setSolvedCases] = useState([]);
   const nodes = [{
-    name: "Laptop Kamu",
+    id: "device",
+    name: "Laptop",
     x: 60,
     color: "var(--info-400)",
-    icon: "💻"
+    icon: "PC"
   }, {
-    name: "Router Rumah",
+    id: "wifi",
+    name: "WiFi/Router",
     x: 220,
     color: "var(--gold-400)",
-    icon: "📡"
+    icon: "RT"
   }, {
-    name: "ISP",
+    id: "dns",
+    name: "DNS/ISP",
     x: 380,
     color: "var(--orange-400)",
-    icon: "🏢"
+    icon: "DNS"
   }, {
-    name: "Server YouTube",
+    id: "server",
+    name: "Server",
     x: 540,
     color: "var(--ai-400)",
-    icon: "☁️"
+    icon: "SV"
   }];
+  const cases = [{
+    title: "Halaman sekolah tidak terbuka, tapi WiFi tersambung.",
+    target: "sigma.labschool.sch.id",
+    broken: "dns",
+    answer: "DNS/ISP",
+    fix: "Ganti DNS, coba ulang alamat, atau cek apakah layanan DNS sedang bermasalah.",
+    logs: ["Paket dibuat dari laptop.", "Router menerima paket.", "Permintaan alamat domain dikirim ke DNS.", "DNS tidak memberi alamat IP yang valid."]
+  }, {
+    title: "Video pembelajaran berhenti-berhenti.",
+    target: "video pembelajaran",
+    broken: "wifi",
+    answer: "WiFi/Router",
+    fix: "Dekatkan perangkat ke router, kurangi perangkat aktif, atau restart router.",
+    logs: ["Paket dibuat dari laptop.", "Sinyal WiFi lemah.", "Sebagian paket hilang sebelum sampai router.", "Server tidak menerima permintaan lengkap."]
+  }, {
+    title: "Satu situs tugas tidak bisa dibuka, situs lain normal.",
+    target: "portal tugas",
+    broken: "server",
+    answer: "Server",
+    fix: "Cek pengumuman layanan, tunggu server pulih, atau laporkan ke admin.",
+    logs: ["Paket dibuat dari laptop.", "Router meneruskan paket.", "DNS memberi alamat IP.", "Server tujuan tidak merespons."]
+  }];
+  const currentCase = cases[caseIdx];
+  const choices = ["Laptop", "WiFi/Router", "DNS/ISP", "Server"];
   const sendPacket = async () => {
     setSending(true);
     setLog([]);
     setPacketPos(0);
-    const msgs = ["🔵 Paket HTTP dibuat — GET /video", "→ Dikirim ke Router Rumah via WiFi...", "→ Router meneruskan ke ISP lewat kabel fiber...", "→ ISP route ke data center YouTube...", "✅ Sampai di server! Diproses...", "← Server kirim video kembali (balik jalur sama)"];
-    for (let i = 0; i < msgs.length; i++) {
-      setLog(l => [...l, msgs[i]]);
+    setDiagnosis("");
+    setChecked(false);
+    for (let i = 0; i < currentCase.logs.length; i++) {
+      setLog(l => [...l, currentCase.logs[i]]);
       setPacketPos(i);
       await new Promise(r => setTimeout(r, 900));
     }
-    setPacketPos(-1);
+    setPacketPos(nodes.findIndex(n => n.id === currentCase.broken));
     setSending(false);
-    window.SIGMA_AUTH?.completeLab?.("network-sim");
   };
-  return React.createElement("div", {
-    className: "page",
-    style: {
-      background: "var(--bg)",
-      minHeight: "100vh"
+  const checkDiagnosis = () => {
+    const ok = diagnosis === currentCase.answer;
+    setChecked(true);
+    if (ok) {
+      const nextSolved = solvedCases.includes(caseIdx) ? solvedCases : [...solvedCases, caseIdx];
+      setSolvedCases(nextSolved);
+      if (nextSolved.length >= 2) window.SIGMA_AUTH?.completeLab?.("network-sim");
     }
-  }, React.createElement(Navbar, null), React.createElement("div", {
+  };
+  const nextCase = () => {
+    setCaseIdx((caseIdx + 1) % cases.length);
+    setLog([]);
+    setPacketPos(-1);
+    setDiagnosis("");
+    setChecked(false);
+    setSending(false);
+  };
+  const isCorrect = checked && diagnosis === currentCase.answer;
+  return React.createElement(PracticeLabShell, {
+    labId: "network-sim",
+    title: "Lab Troubleshooting Jaringan",
+    tag: "LAB MAYA \u2022 INFORMATIKA",
+    accent: "var(--info-500)",
+    intro: "Pilih kasus, kirim paket, baca log, lalu tentukan titik masalah. Fokusnya bukan hafalan nama perangkat, tapi menalar jalur data."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
     style: {
-      maxWidth: 1100,
-      margin: "0 auto",
-      padding: "24px 32px 60px"
+      display: "grid",
+      gridTemplateColumns: "1.1fr 0.9fr",
+      gap: 20
     }
-  }, React.createElement(Breadcrumb, {
-    trail: [{
-      to: "/",
-      label: "Beranda"
-    }, {
-      to: "/lab",
-      label: "Lab Maya"
-    }, {
-      label: "Simulasi Jaringan"
-    }]
-  }), (() => {
-    const ref = sessionStorage.getItem("sigma_lab_referrer");
-    if (!ref?.includes("/modul/")) return null;
-    const mod = window.CURRICULUM?.modules?.find(m => m.id === (ref.split("/modul/")[1] || "").split("?")[0]);
-    return React.createElement("button", {
-      onClick: () => {
-        sessionStorage.removeItem("sigma_lab_referrer");
-        navigate(ref);
-      },
-      style: {
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "10px 18px",
-        borderRadius: 12,
-        background: "var(--gold-300)",
-        border: "2px solid var(--ink)",
-        fontWeight: 800,
-        fontSize: 14,
-        cursor: "pointer",
-        marginBottom: 20,
-        color: "var(--navy-950)"
-      }
-    }, "\u2190 Kembali ke ", mod ? mod.title : "Pelajaran");
-  })(), React.createElement("div", {
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "card",
     style: {
-      marginTop: 12,
-      marginBottom: 24
+      padding: 26,
+      background: "white",
+      marginBottom: 18
     }
   }, React.createElement("div", {
     className: "tag tag-info",
     style: {
       marginBottom: 10
     }
-  }, "LAB MAYA \u2022 INFORMATIKA"), React.createElement("h1", {
+  }, "Kasus ", caseIdx + 1), React.createElement("h2", {
     className: "display",
     style: {
-      fontSize: 44,
-      margin: 0,
-      color: "var(--navy-950)"
+      fontSize: 28,
+      margin: "0 0 8px"
     }
-  }, "Simulasi ", React.createElement("span", {
+  }, currentCase.title), React.createElement("div", {
     style: {
-      color: "var(--info-500)",
-      fontStyle: "italic"
-    }
-  }, "Paket Jaringan")), React.createElement("p", {
-    style: {
-      fontSize: 15,
       color: "var(--ink-muted)",
-      marginTop: 10,
-      maxWidth: 680
+      fontWeight: 700
     }
-  }, "Ketika kamu buka YouTube, datanya melewati banyak \"pos pemeriksaan\" sebelum sampai. Ini simulasinya."), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
-    item: window.CURRICULUM.labs.find(l => l.id === "network-sim")
-  })), React.createElement("div", {
+  }, "Tujuan paket: ", currentCase.target)), React.createElement("div", {
     className: "card",
     style: {
-      padding: 40,
-      background: "white",
-      marginBottom: 20
+      padding: 30,
+      background: "white"
     }
   }, React.createElement("svg", {
-    viewBox: "0 0 620 180",
+    viewBox: "0 0 620 190",
     style: {
       width: "100%",
       maxWidth: 620,
@@ -14413,108 +15565,169 @@ const NetworkLab = () => {
     }
   }, React.createElement("line", {
     x1: 100,
-    y1: 90,
+    y1: 92,
     x2: 220,
-    y2: 90,
+    y2: 92,
     stroke: "var(--ink)",
     strokeWidth: "3",
     strokeDasharray: "6,4"
   }), React.createElement("line", {
     x1: 260,
-    y1: 90,
+    y1: 92,
     x2: 380,
-    y2: 90,
+    y2: 92,
     stroke: "var(--ink)",
     strokeWidth: "3",
     strokeDasharray: "6,4"
   }), React.createElement("line", {
     x1: 420,
-    y1: 90,
+    y1: 92,
     x2: 540,
-    y2: 90,
+    y2: 92,
     stroke: "var(--ink)",
     strokeWidth: "3",
     strokeDasharray: "6,4"
-  }), nodes.map((n, i) => React.createElement("g", {
-    key: i
-  }, React.createElement("circle", {
-    cx: n.x + 40,
-    cy: 90,
-    r: 30,
-    fill: n.color,
-    stroke: "var(--ink)",
-    strokeWidth: "3"
-  }), React.createElement("text", {
-    x: n.x + 40,
-    y: 99,
-    fontSize: "24",
-    textAnchor: "middle"
-  }, n.icon), React.createElement("text", {
-    x: n.x + 40,
-    y: 145,
-    fontSize: "12",
-    fontWeight: "700",
-    textAnchor: "middle",
-    fill: "var(--ink)"
-  }, n.name))), packetPos >= 0 && packetPos < 4 && React.createElement("g", null, React.createElement("circle", {
-    cx: nodes[Math.min(packetPos, 3)].x + 40,
-    cy: 90,
-    r: 12,
+  }), nodes.map((n, i) => {
+    const active = packetPos === i;
+    const broken = checked && n.id === currentCase.broken;
+    return React.createElement("g", {
+      key: n.id
+    }, React.createElement("circle", {
+      cx: n.x + 40,
+      cy: 92,
+      r: 32,
+      fill: broken ? "var(--red-500)" : active ? "var(--gold-400)" : n.color,
+      stroke: "var(--ink)",
+      strokeWidth: "3"
+    }), React.createElement("text", {
+      x: n.x + 40,
+      y: 98,
+      fontSize: "13",
+      fontWeight: "900",
+      textAnchor: "middle",
+      fill: broken ? "white" : "var(--navy-950)"
+    }, n.icon), React.createElement("text", {
+      x: n.x + 40,
+      y: 150,
+      fontSize: "12",
+      fontWeight: "800",
+      textAnchor: "middle",
+      fill: "var(--ink)"
+    }, n.name));
+  }), packetPos >= 0 && !checked && React.createElement("circle", {
+    cx: nodes[Math.min(packetPos, nodes.length - 1)].x + 40,
+    cy: 92,
+    r: 10,
     fill: "var(--red-500)",
     stroke: "var(--ink)",
-    strokeWidth: "2",
+    strokeWidth: "2"
+  })), React.createElement("div", {
     style: {
-      transition: "cx 0.8s ease"
-    }
-  }), React.createElement("text", {
-    x: nodes[Math.min(packetPos, 3)].x + 40,
-    y: 95,
-    fontSize: "11",
-    fontWeight: "800",
-    fill: "white",
-    textAnchor: "middle"
-  }, "\uD83D\uDCE6"))), React.createElement("div", {
-    style: {
-      marginTop: 20,
-      textAlign: "center"
+      marginTop: 18,
+      display: "flex",
+      gap: 10,
+      justifyContent: "center",
+      flexWrap: "wrap"
     }
   }, React.createElement("button", {
-    className: "btn btn-info btn-lg",
+    className: "btn btn-info",
     onClick: sendPacket,
     disabled: sending
   }, sending ? "Mengirim..." : React.createElement(React.Fragment, null, React.createElement(Icon.Send, {
     width: "16",
     height: "16"
-  }), " Kirim Paket")))), log.length > 0 && React.createElement("div", {
+  }), " Kirim Paket")), React.createElement("button", {
+    className: "btn",
+    onClick: nextCase
+  }, "Kasus Lain")))), React.createElement("div", null, React.createElement("div", {
     className: "card",
     style: {
       padding: 20,
       background: "var(--navy-950)",
       color: "white",
       fontFamily: "var(--font-mono)",
-      fontSize: 13
+      fontSize: 13,
+      marginBottom: 16
     }
   }, React.createElement("div", {
     style: {
       fontSize: 11,
-      fontWeight: 800,
+      fontWeight: 900,
       letterSpacing: "0.1em",
       color: "var(--gold-400)",
       textTransform: "uppercase",
       marginBottom: 10
     }
-  }, "Log Jaringan"), log.map((l, i) => React.createElement("div", {
+  }, "Log Jaringan"), log.length === 0 ? React.createElement("div", {
+    style: {
+      color: "rgba(255,255,255,0.6)"
+    }
+  }, "Kirim paket untuk melihat jejaknya.") : log.map((l, i) => React.createElement("div", {
     key: i,
     style: {
       padding: "6px 0",
-      color: "rgba(255,255,255,0.85)",
+      color: "rgba(255,255,255,0.86)",
       lineHeight: 1.6
     }
   }, React.createElement("span", {
     style: {
       color: "var(--gold-400)"
     }
-  }, "[", (i * 50).toString().padStart(4, "0"), "ms]"), " ", l))), React.createElement("div", {
+  }, "[", (i * 120).toString().padStart(4, "0"), "ms]"), " ", l))), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Diagnosis"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, choices.map(choice => React.createElement("button", {
+    key: choice,
+    className: "btn",
+    onClick: () => setDiagnosis(choice),
+    disabled: checked || log.length === 0,
+    style: {
+      justifyContent: "flex-start",
+      background: diagnosis === choice ? "var(--gold-300)" : "white"
+    }
+  }, diagnosis === choice ? React.createElement(Icon.Check, {
+    width: "14",
+    height: "14"
+  }) : React.createElement(Icon.Search, {
+    width: "14",
+    height: "14"
+  }), " ", choice))), checked && React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
+      background: isCorrect ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, isCorrect ? "Diagnosis tepat." : "Belum tepat."), " ", currentCase.fix), React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: checkDiagnosis,
+    disabled: !diagnosis || checked,
+    style: {
+      width: "100%",
+      marginTop: 14
+    }
+  }, "Periksa Diagnosis"), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      fontWeight: 800
+    }
+  }, "Kasus benar: ", solvedCases.length, "/3. Lab tuntas setelah minimal 2 kasus.")))), React.createElement("div", {
     className: "responsive-grid-3",
     style: {
       display: "grid",
@@ -14524,14 +15737,14 @@ const NetworkLab = () => {
     }
   }, React.createElement(InfoBox, {
     title: "Latency",
-    desc: "Waktu total perjalanan paket. Internet yang bagus < 50ms, gaming online butuh < 30ms."
+    desc: "Waktu perjalanan paket. Jika tinggi, layanan terasa lambat walau tersambung."
   }), React.createElement(InfoBox, {
     title: "Packet Loss",
-    desc: "Paket kadang hilang di jalan \u2014 TCP akan otomatis kirim ulang, UDP tidak (makanya video streaming kadang nge-freeze)."
+    desc: "Paket hilang membuat video patah-patah atau permintaan web gagal lengkap."
   }), React.createElement(InfoBox, {
-    title: "Routing",
-    desc: "Tiap router pilih jalur tercepat. Kalau ada kabel putus, paket otomatis cari rute alternatif."
-  }))), React.createElement(Footer, null));
+    title: "DNS",
+    desc: "DNS menerjemahkan nama situs menjadi alamat IP. Jika gagal, situs terlihat tidak ditemukan."
+  })));
 };
 const InfoBox = ({
   title,
@@ -14559,6 +15772,1694 @@ const InfoBox = ({
   }
 }, desc));
 window.NetworkLab = NetworkLab;
+const SiftCheckLab = () => {
+  const cases = [{
+    claim: "Minuman dingin bisa menyebabkan semua virus langsung berkembang biak di tubuh.",
+    source: "Akun anonim dengan judul sensasional.",
+    sourcePick: "Artikel rumah sakit/universitas",
+    contextPick: "Bandingkan dengan sumber medis dan tanggal publikasi",
+    tracePick: "Cari rujukan penelitian atau dokter yang disebut",
+    verdict: "Tahan dulu",
+    explain: "Klaim kesehatan perlu rujukan medis. Judul sensasional tanpa penulis tidak cukup kuat."
+  }, {
+    claim: "Foto banjir besar ini terjadi di Jakarta hari ini.",
+    source: "Unggahan ulang tanpa lokasi asli.",
+    sourcePick: "Berita lokal/BPBD",
+    contextPick: "Cek tanggal dan lokasi foto",
+    tracePick: "Reverse image search",
+    verdict: "Perlu konteks",
+    explain: "Foto lama sering dipakai ulang. Tanggal, lokasi, dan sumber pertama harus dicek."
+  }, {
+    claim: "Aplikasi belajar gratis meminta nomor KTP siswa untuk membuka fitur kuis.",
+    source: "Form tidak jelas pemiliknya.",
+    sourcePick: "Situs resmi sekolah/aplikasi",
+    contextPick: "Cek kebutuhan data dan kebijakan privasi",
+    tracePick: "Tanya guru/orang tua sebelum mengisi",
+    verdict: "Jangan isi dulu",
+    explain: "Data pribadi harus dilindungi. Permintaan data harus jelas tujuan dan izinnya."
+  }];
+  const sourceOptions = ["Akun viral", "Artikel rumah sakit/universitas", "Berita lokal/BPBD", "Situs resmi sekolah/aplikasi"];
+  const contextOptions = ["Baca komentar terbanyak", "Cek tanggal dan lokasi foto", "Bandingkan dengan sumber medis dan tanggal publikasi", "Cek kebutuhan data dan kebijakan privasi"];
+  const traceOptions = ["Reverse image search", "Cari rujukan penelitian atau dokter yang disebut", "Tanya guru/orang tua sebelum mengisi", "Sebarkan agar orang lain ikut mengecek"];
+  const verdictOptions = ["Aman dibagikan", "Tahan dulu", "Perlu konteks", "Jangan isi dulu"];
+  const [idx, setIdx] = useState(0);
+  const [answers, setAnswers] = useState({
+    source: "",
+    context: "",
+    trace: "",
+    verdict: ""
+  });
+  const [checked, setChecked] = useState(false);
+  const [solvedCases, setSolvedCases] = useState([]);
+  const c = cases[idx];
+  const score = ["source", "context", "trace", "verdict"].reduce((sum, key) => {
+    const expected = key === "source" ? c.sourcePick : key === "context" ? c.contextPick : key === "trace" ? c.tracePick : c.verdict;
+    return sum + (answers[key] === expected ? 25 : 0);
+  }, 0);
+  const choose = (key, value) => {
+    if (checked) return;
+    setAnswers(v => ({
+      ...v,
+      [key]: value
+    }));
+  };
+  const check = () => {
+    setChecked(true);
+    if (score === 100) {
+      const nextSolved = solvedCases.includes(idx) ? solvedCases : [...solvedCases, idx];
+      setSolvedCases(nextSolved);
+      if (nextSolved.length >= 2) window.SIGMA_AUTH?.completeLab?.("sift-check");
+    }
+  };
+  const next = () => {
+    setIdx((idx + 1) % cases.length);
+    setAnswers({
+      source: "",
+      context: "",
+      trace: "",
+      verdict: ""
+    });
+    setChecked(false);
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "sift-check",
+    title: "Lab Investigasi SIFT",
+    tag: "LAB MAYA \u2022 KKA",
+    accent: "var(--ai-500)",
+    intro: "Pilih bukti paling kuat, konteks yang perlu dicek, cara menelusuri klaim, dan keputusan etis sebelum membagikan informasi."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "0.9fr 1.1fr",
+      gap: 20
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: "white",
+      marginBottom: 16
+    }
+  }, React.createElement("div", {
+    className: "tag tag-ai",
+    style: {
+      marginBottom: 12
+    }
+  }, "Kasus ", idx + 1), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: 0
+    }
+  }, "Klaim yang perlu diinvestigasi"), React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: 18,
+      background: "var(--bg-cream)",
+      borderRadius: 14,
+      border: "1.5px solid var(--gold-400)",
+      fontSize: 16,
+      lineHeight: 1.6,
+      fontWeight: 900
+    }
+  }, c.claim), React.createElement("div", {
+    style: {
+      marginTop: 14,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, "Sumber awal:"), " ", c.source)), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: checked ? score === 100 ? "#D1FAE5" : "#FEE2E2" : "var(--navy-950)",
+      color: checked ? "var(--ink)" : "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      color: checked ? "var(--ink-muted)" : "var(--gold-400)",
+      marginBottom: 8
+    }
+  }, "Hasil Investigasi"), React.createElement("div", {
+    style: {
+      fontSize: 28,
+      fontWeight: 900
+    }
+  }, checked ? `${score}/100` : "Belum diperiksa"), checked && React.createElement("div", {
+    style: {
+      marginTop: 10,
+      lineHeight: 1.55
+    }
+  }, c.explain), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      fontWeight: 800,
+      opacity: 0.75
+    }
+  }, "Kasus kuat: ", solvedCases.length, "/3. Lab tuntas setelah 2 investigasi lengkap."))), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement(InvestigationGroup, {
+    title: "Investigasi Sumber",
+    options: sourceOptions,
+    value: answers.source,
+    answer: c.sourcePick,
+    checked: checked,
+    onPick: v => choose("source", v)
+  }), React.createElement(InvestigationGroup, {
+    title: "Cari Konteks",
+    options: contextOptions,
+    value: answers.context,
+    answer: c.contextPick,
+    checked: checked,
+    onPick: v => choose("context", v)
+  }), React.createElement(InvestigationGroup, {
+    title: "Telusuri Klaim",
+    options: traceOptions,
+    value: answers.trace,
+    answer: c.tracePick,
+    checked: checked,
+    onPick: v => choose("trace", v)
+  }), React.createElement(InvestigationGroup, {
+    title: "Putusan",
+    options: verdictOptions,
+    value: answers.verdict,
+    answer: c.verdict,
+    checked: checked,
+    onPick: v => choose("verdict", v)
+  }), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, React.createElement("button", {
+    className: "btn",
+    onClick: next
+  }, checked ? "Kasus Berikutnya" : "Ganti Kasus"), React.createElement("button", {
+    className: "btn btn-ai",
+    onClick: check,
+    disabled: checked || Object.values(answers).some(v => !v)
+  }, "Periksa Investigasi")))));
+};
+const InvestigationGroup = ({
+  title,
+  options,
+  value,
+  answer,
+  checked,
+  onPick
+}) => React.createElement("div", {
+  style: {
+    marginBottom: 16
+  }
+}, React.createElement("div", {
+  style: {
+    fontWeight: 900,
+    marginBottom: 8
+  }
+}, title), React.createElement("div", {
+  style: {
+    display: "grid",
+    gap: 8
+  }
+}, options.map(opt => {
+  const active = value === opt;
+  const right = checked && opt === answer;
+  const wrong = checked && active && opt !== answer;
+  return React.createElement("button", {
+    key: opt,
+    className: "btn",
+    onClick: () => onPick(opt),
+    disabled: checked,
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left",
+      background: right ? "#D1FAE5" : wrong ? "#FEE2E2" : active ? "var(--ai-100)" : "white"
+    }
+  }, active ? React.createElement(Icon.Check, {
+    width: "14",
+    height: "14"
+  }) : React.createElement(Icon.Search, {
+    width: "14",
+    height: "14"
+  }), " ", opt);
+})));
+window.SiftCheckLab = SiftCheckLab;
+const DatasetLabelingLab = () => {
+  const items = [{
+    text: "Foto tugas dengan cahaya terang dan objek jelas",
+    answer: "Mudah dikenali"
+  }, {
+    text: "Foto blur, sebagian objek tertutup tangan",
+    answer: "Sulit dikenali"
+  }, {
+    text: "Contoh data hanya dari satu jenis objek",
+    answer: "Berpotensi bias"
+  }, {
+    text: "Dataset berisi contoh dari banyak kondisi",
+    answer: "Data beragam"
+  }, {
+    text: "Label gambar salah tetapi tetap dipakai melatih AI",
+    answer: "Label keliru"
+  }];
+  const choices = ["Mudah dikenali", "Sulit dikenali", "Berpotensi bias", "Data beragam", "Label keliru"];
+  const [labels, setLabels] = useState({});
+  const [checked, setChecked] = useState(false);
+  const correct = items.filter((item, i) => labels[i] === item.answer).length;
+  const complete = Object.keys(labels).length === items.length;
+  const bias = items.length - correct;
+  const check = () => {
+    setChecked(true);
+    if (correct >= 4) window.SIGMA_AUTH?.completeLab?.("dataset-labeling");
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "dataset-labeling",
+    title: "Dataset Labeling Lab",
+    tag: "LAB MAYA \u2022 KKA",
+    accent: "var(--ai-500)",
+    intro: "Latih konsep data latih: AI belajar dari contoh. Jika label keliru atau data tidak beragam, prediksi AI ikut bermasalah."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1.1fr 0.9fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 12
+    }
+  }, "Labeli contoh data"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 12
+    }
+  }, items.map((item, i) => React.createElement("div", {
+    key: item.text,
+    style: {
+      padding: 14,
+      borderRadius: 14,
+      border: "1.5px solid var(--line)",
+      background: "var(--bg)"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      lineHeight: 1.45,
+      marginBottom: 10
+    }
+  }, item.text), React.createElement("select", {
+    className: "input",
+    value: labels[i] || "",
+    onChange: e => setLabels(v => ({
+      ...v,
+      [i]: e.target.value
+    })),
+    disabled: checked
+  }, React.createElement("option", {
+    value: ""
+  }, "Pilih label..."), choices.map(c => React.createElement("option", {
+    key: c
+  }, c))), checked && React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontSize: 13,
+      fontWeight: 800,
+      color: labels[i] === item.answer ? "var(--green-500)" : "var(--red-500)"
+    }
+  }, labels[i] === item.answer ? "Tepat" : `Seharusnya: ${item.answer}`))))), React.createElement("div", null, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: checked ? correct >= 4 ? "#D1FAE5" : "#FEE2E2" : "var(--navy-950)",
+      color: checked ? "var(--ink)" : "white",
+      marginBottom: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      color: checked ? "var(--ink-muted)" : "var(--gold-400)",
+      marginBottom: 8
+    }
+  }, "Kualitas Dataset"), React.createElement("div", {
+    className: "display",
+    style: {
+      fontSize: 34,
+      margin: 0
+    }
+  }, checked ? `${correct}/${items.length}` : "Siap dilatih"), React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, React.createElement(Meter, {
+    label: "Label tepat",
+    value: Math.round(correct / items.length * 100),
+    color: "var(--green-500)"
+  }), React.createElement(Meter, {
+    label: "Risiko bias/salah",
+    value: Math.round(bias / items.length * 100),
+    color: "var(--red-500)"
+  }))), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Kesimpulan KKA"), React.createElement("div", {
+    style: {
+      color: "var(--ink-muted)",
+      lineHeight: 1.6
+    }
+  }, "AI tidak otomatis pintar. Ia meniru pola dari data latih. Data yang beragam, label yang benar, dan contoh yang cukup membuat hasil AI lebih adil dan lebih bisa dipercaya."), React.createElement("button", {
+    className: "btn btn-ai",
+    onClick: check,
+    disabled: !complete || checked,
+    style: {
+      width: "100%",
+      marginTop: 16
+    }
+  }, "Cek Label"), checked && React.createElement("button", {
+    className: "btn",
+    onClick: () => {
+      setLabels({});
+      setChecked(false);
+    },
+    style: {
+      width: "100%",
+      marginTop: 10
+    }
+  }, "Ulangi")))));
+};
+window.DatasetLabelingLab = DatasetLabelingLab;
+const SpreadsheetMiniLab = () => {
+  const baseRows = [{
+    nama: "Alya",
+    kelas: "8A",
+    tugas: 88,
+    kuis: 82,
+    hadir: 96
+  }, {
+    nama: "Bima",
+    kelas: "8A",
+    tugas: 74,
+    kuis: 78,
+    hadir: 92
+  }, {
+    nama: "Citra",
+    kelas: "8B",
+    tugas: 91,
+    kuis: 88,
+    hadir: 98
+  }, {
+    nama: "Dimas",
+    kelas: "8B",
+    tugas: 69,
+    kuis: 72,
+    hadir: 86
+  }, {
+    nama: "Eka",
+    kelas: "8A",
+    tugas: 95,
+    kuis: 90,
+    hadir: 100
+  }, {
+    nama: "Fajar",
+    kelas: "8B",
+    tugas: 80,
+    kuis: 84,
+    hadir: 90
+  }];
+  const [filter, setFilter] = useState("Semua");
+  const [sortKey, setSortKey] = useState("nama");
+  const [challengeIdx, setChallengeIdx] = useState(0);
+  const [formulaParts, setFormulaParts] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [solvedChallenges, setSolvedChallenges] = useState([]);
+  const rows = baseRows.filter(r => filter === "Semua" || r.kelas === filter).sort((a, b) => typeof a[sortKey] === "string" ? a[sortKey].localeCompare(b[sortKey]) : b[sortKey] - a[sortKey]);
+  const avg = key => Math.round(rows.reduce((sum, r) => sum + r[key], 0) / Math.max(rows.length, 1));
+  const countIf = key => rows.filter(r => r[key] >= 85).length;
+  const status = r => (r.tugas + r.kuis) / 2 >= 85 && r.hadir >= 90 ? "Tuntas" : "Perlu latihan";
+  const formulaTokens = ["=", "SUM", "AVERAGE", "IF", "AND", "COUNTIF", "(", ")", "C2:D2", "D2:D7", "E2>=90", '">=85"', '>=85', '"Tuntas"', '"Perlu latihan"', ","];
+  const challenges = [{
+    title: "Rata-rata kuis",
+    ask: "Susun formula untuk menghitung rata-rata nilai kuis pada baris yang tampil.",
+    answer: ["=", "AVERAGE", "(", "D2:D7", ")"],
+    result: `${avg("kuis")}`
+  }, {
+    title: "Total tugas + kuis",
+    ask: "Susun formula untuk menjumlahkan tugas dan kuis Alya di baris pertama.",
+    answer: ["=", "SUM", "(", "C2:D2", ")"],
+    result: `${rows[0]?.tugas + rows[0]?.kuis || 0}`
+  }, {
+    title: "Status belajar",
+    ask: "Susun formula status tuntas jika rata-rata tugas-kuis minimal 85 dan hadir minimal 90%.",
+    answer: ["=", "IF", "(", "AND", "(", "AVERAGE", "(", "C2:D2", ")", ">=85", ",", "E2>=90", ")", ",", '"Tuntas"', ",", '"Perlu latihan"', ")"],
+    result: rows[0] ? status(rows[0]) : "-"
+  }, {
+    title: "Jumlah nilai kuat",
+    ask: "Susun formula untuk menghitung berapa siswa dengan kuis minimal 85.",
+    answer: ["=", "COUNTIF", "(", "D2:D7", ",", '">=85"', ")"],
+    result: `${countIf("kuis")}`
+  }];
+  const current = challenges[challengeIdx];
+  const formula = formulaParts.join("");
+  const isCorrect = checked && formula === current.answer.join("");
+  const check = () => {
+    setChecked(true);
+    if (formula === current.answer.join("")) {
+      const nextSolved = solvedChallenges.includes(challengeIdx) ? solvedChallenges : [...solvedChallenges, challengeIdx];
+      setSolvedChallenges(nextSolved);
+      if (nextSolved.length >= 3) window.SIGMA_AUTH?.completeLab?.("spreadsheet-mini");
+    }
+  };
+  const next = () => {
+    setChallengeIdx((challengeIdx + 1) % challenges.length);
+    setFormulaParts([]);
+    setChecked(false);
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "spreadsheet-mini",
+    title: "Spreadsheet Formula Lab",
+    tag: "LAB MAYA \u2022 KKA",
+    accent: "var(--ai-500)",
+    intro: "Gunakan formula SUM, AVERAGE, IF, AND, dan COUNTIF untuk menjawab pertanyaan dari data kelas."
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white",
+      marginBottom: 18
+    }
+  }, React.createElement("div", {
+    className: "responsive-tool-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
+      gap: 14
+    }
+  }, React.createElement(ControlField, {
+    label: "Filter kelas"
+  }, React.createElement("select", {
+    className: "input",
+    value: filter,
+    onChange: e => {
+      setFilter(e.target.value);
+      setChecked(false);
+    }
+  }, ["Semua", "8A", "8B"].map(v => React.createElement("option", {
+    key: v
+  }, v)))), React.createElement(ControlField, {
+    label: "Urutkan berdasarkan"
+  }, React.createElement("select", {
+    className: "input",
+    value: sortKey,
+    onChange: e => {
+      setSortKey(e.target.value);
+      setChecked(false);
+    }
+  }, React.createElement("option", {
+    value: "nama"
+  }, "Nama A-Z"), React.createElement("option", {
+    value: "tugas"
+  }, "Tugas tertinggi"), React.createElement("option", {
+    value: "kuis"
+  }, "Kuis tertinggi"), React.createElement("option", {
+    value: "hadir"
+  }, "Kehadiran tertinggi"))))), React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1.2fr 0.8fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white",
+      overflowX: "auto"
+    }
+  }, React.createElement("table", {
+    style: {
+      width: "100%",
+      borderCollapse: "collapse",
+      minWidth: 520
+    }
+  }, React.createElement("thead", null, React.createElement("tr", null, ["Nama", "Kelas", "Tugas", "Kuis", "Hadir"].map(h => React.createElement("th", {
+    key: h,
+    style: sheetTh
+  }, h)))), React.createElement("tbody", null, rows.map(r => React.createElement("tr", {
+    key: r.nama
+  }, React.createElement("td", {
+    style: sheetTd
+  }, r.nama), React.createElement("td", {
+    style: sheetTd
+  }, r.kelas), React.createElement("td", {
+    style: sheetTd
+  }, r.tugas), React.createElement("td", {
+    style: sheetTd
+  }, r.kuis), React.createElement("td", {
+    style: sheetTd
+  }, r.hadir, "%")))))), React.createElement("div", null, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: checked ? isCorrect ? "#D1FAE5" : "#FEE2E2" : "var(--navy-950)",
+      color: checked ? "var(--ink)" : "white",
+      marginBottom: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      color: checked ? "var(--ink-muted)" : "var(--gold-400)",
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      marginBottom: 10
+    }
+  }, "Tantangan Formula ", challengeIdx + 1), React.createElement("div", {
+    style: {
+      fontSize: 21,
+      fontWeight: 900,
+      lineHeight: 1.25
+    }
+  }, current.title), React.createElement("div", {
+    style: {
+      marginTop: 10,
+      fontSize: 13,
+      lineHeight: 1.55,
+      color: checked ? "var(--ink-muted)" : "rgba(255,255,255,0.72)"
+    }
+  }, current.ask), React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: 12,
+      borderRadius: 12,
+      background: checked ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.08)",
+      border: "1.5px solid rgba(255,255,255,0.18)",
+      fontFamily: "var(--font-mono)",
+      minHeight: 48,
+      overflowX: "auto"
+    }
+  }, formulaParts.length ? formula : React.createElement("span", {
+    style: {
+      opacity: 0.65
+    }
+  }, "Klik potongan formula di bawah...")), React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 7,
+      marginTop: 12
+    }
+  }, formulaTokens.map((token, i) => React.createElement("button", {
+    key: `${token}-${i}`,
+    className: "btn btn-sm",
+    onClick: () => setFormulaParts(v => [...v, token]),
+    disabled: checked,
+    style: {
+      fontFamily: "var(--font-mono)",
+      background: "white",
+      color: "var(--ink)"
+    }
+  }, token))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 10,
+      flexWrap: "wrap"
+    }
+  }, React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: () => setFormulaParts(v => v.slice(0, -1)),
+    disabled: checked || !formulaParts.length
+  }, "Hapus 1"), React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: () => setFormulaParts([]),
+    disabled: checked || !formulaParts.length
+  }, "Kosongkan")), checked && React.createElement("div", {
+    style: {
+      marginTop: 14,
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, isCorrect ? "Formula tepat." : "Formula belum tepat."), " Hasil pada data tampil: ", React.createElement("strong", null, current.result)), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      marginTop: 14,
+      flexWrap: "wrap"
+    }
+  }, React.createElement("button", {
+    className: "btn btn-ai",
+    onClick: check,
+    disabled: !formulaParts.length || checked
+  }, "Periksa Formula"), React.createElement("button", {
+    className: "btn",
+    onClick: next
+  }, checked ? "Tantangan Berikutnya" : "Ganti Tantangan")), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      fontWeight: 800,
+      opacity: 0.72
+    }
+  }, "Formula benar: ", solvedChallenges.length, "/4. Lab tuntas setelah 3 formula berbeda.")), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 18,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 12
+    }
+  }, "Grafik kuis"), rows.map(r => React.createElement("div", {
+    key: r.nama,
+    style: {
+      display: "grid",
+      gridTemplateColumns: "58px 1fr 34px",
+      gap: 8,
+      alignItems: "center",
+      marginBottom: 9
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800
+    }
+  }, r.nama), React.createElement("div", {
+    style: {
+      height: 12,
+      background: "var(--line)",
+      borderRadius: 999,
+      overflow: "hidden"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: `${r.kuis}%`,
+      height: "100%",
+      background: "var(--info-500)"
+    }
+  })), React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 900
+    }
+  }, r.kuis)))))));
+};
+const sheetTh = {
+  padding: "10px 12px",
+  textAlign: "left",
+  borderBottom: "2px solid var(--line-strong)",
+  fontSize: 12,
+  color: "var(--ink-muted)",
+  textTransform: "uppercase"
+};
+const sheetTd = {
+  padding: "11px 12px",
+  borderBottom: "1px solid var(--line)",
+  fontWeight: 700,
+  fontSize: 14
+};
+window.SpreadsheetMiniLab = SpreadsheetMiniLab;
+const AIBiasAuditLab = () => {
+  const cases = [{
+    system: "AI memilih kandidat ketua OSIS dari data aktivitas organisasi.",
+    risk: "Data hanya berisi siswa yang sering tampil di panggung.",
+    answer: "Bias data",
+    fix: "Tambah data kontribusi di balik layar, kehadiran rapat, dan rekomendasi teman/guru.",
+    scores: {
+      bias: 88,
+      privacy: 45,
+      transparency: 62
+    }
+  }, {
+    system: "Aplikasi kebugaran kelas membaca lokasi dan jam tidur siswa.",
+    risk: "Data pribadi dikumpulkan tanpa penjelasan kebutuhan.",
+    answer: "Privasi",
+    fix: "Batasi data yang dikumpulkan, minta izin jelas, dan sediakan pilihan tidak ikut.",
+    scores: {
+      bias: 38,
+      privacy: 92,
+      transparency: 60
+    }
+  }, {
+    system: "AI memberi nilai kreativitas poster tanpa menunjukkan alasan.",
+    risk: "Siswa tidak tahu kenapa nilainya rendah atau tinggi.",
+    answer: "Transparansi",
+    fix: "Tampilkan rubrik penilaian, contoh hasil, dan ruang banding manusia.",
+    scores: {
+      bias: 55,
+      privacy: 32,
+      transparency: 90
+    }
+  }];
+  const choices = ["Bias data", "Privasi", "Transparansi"];
+  const [idx, setIdx] = useState(0);
+  const [choice, setChoice] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [solvedCases, setSolvedCases] = useState([]);
+  const c = cases[idx];
+  const ok = checked && choice === c.answer;
+  const check = () => {
+    setChecked(true);
+    if (choice === c.answer) {
+      const nextSolved = solvedCases.includes(idx) ? solvedCases : [...solvedCases, idx];
+      setSolvedCases(nextSolved);
+      if (nextSolved.length >= 2) window.SIGMA_AUTH?.completeLab?.("ai-bias-audit");
+    }
+  };
+  const next = () => {
+    setIdx((idx + 1) % cases.length);
+    setChoice("");
+    setChecked(false);
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "ai-bias-audit",
+    title: "AI Bias Audit Lab",
+    tag: "LAB MAYA \u2022 KKA",
+    accent: "var(--ai-500)",
+    intro: "Audit sistem AI sederhana: identifikasi apakah masalah utamanya bias data, privasi, atau transparansi, lalu lihat mitigasinya."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-ai",
+    style: {
+      marginBottom: 12
+    }
+  }, "Kasus Audit ", idx + 1), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: "0 0 12px"
+    }
+  }, c.system), React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg-cream)",
+      borderRadius: 14,
+      border: "1.5px solid var(--gold-400)",
+      fontWeight: 800,
+      lineHeight: 1.55
+    }
+  }, c.risk), React.createElement("div", {
+    style: {
+      marginTop: 18,
+      display: "grid",
+      gap: 9
+    }
+  }, choices.map(x => React.createElement("button", {
+    key: x,
+    className: "btn",
+    onClick: () => setChoice(x),
+    disabled: checked,
+    style: {
+      justifyContent: "flex-start",
+      background: choice === x ? "var(--ai-100)" : "white"
+    }
+  }, choice === x ? React.createElement(Icon.Check, {
+    width: "14",
+    height: "14"
+  }) : React.createElement(Icon.Search, {
+    width: "14",
+    height: "14"
+  }), " ", x))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, React.createElement("button", {
+    className: "btn btn-ai",
+    onClick: check,
+    disabled: !choice || checked
+  }, "Periksa Audit"), React.createElement("button", {
+    className: "btn",
+    onClick: next
+  }, checked ? "Kasus Berikutnya" : "Ganti Kasus"))), React.createElement("div", null, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: checked ? ok ? "#D1FAE5" : "#FEE2E2" : "var(--navy-950)",
+      color: checked ? "var(--ink)" : "white",
+      marginBottom: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      color: checked ? "var(--ink-muted)" : "var(--gold-400)",
+      marginBottom: 8
+    }
+  }, "Hasil Audit"), React.createElement("div", {
+    className: "display",
+    style: {
+      fontSize: 30,
+      margin: 0
+    }
+  }, checked ? ok ? "Tepat" : "Tinjau Lagi" : "Belum dipilih"), checked && React.createElement("div", {
+    style: {
+      marginTop: 12,
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, "Mitigasi:"), " ", c.fix), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      fontWeight: 800,
+      opacity: 0.72
+    }
+  }, "Audit benar: ", solvedCases.length, "/3. Lab tuntas setelah 2 kasus.")), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 12
+    }
+  }, "Peta risiko"), React.createElement(Meter, {
+    label: "Bias data",
+    value: c.scores.bias,
+    color: "var(--red-500)"
+  }), React.createElement(Meter, {
+    label: "Privasi",
+    value: c.scores.privacy,
+    color: "var(--orange-500)"
+  }), React.createElement(Meter, {
+    label: "Transparansi",
+    value: c.scores.transparency,
+    color: "var(--ai-500)"
+  })))));
+};
+window.AIBiasAuditLab = AIBiasAuditLab;
+const DigitalFootprintLab = () => {
+  const cases = [{
+    incident: "Foto kartu pelajar terunggah di grup umum.",
+    answer: "Hapus dan laporkan",
+    explain: "Data identitas perlu segera ditarik, minta admin menghapus salinan, dan laporkan ke guru/orang tua.",
+    reach: 92,
+    risk: 90
+  }, {
+    incident: "Komentar marahmu sudah di-screenshot teman.",
+    answer: "Minta maaf dan klarifikasi",
+    explain: "Jejak digital tidak selalu hilang. Respons terbaik adalah memperbaiki dampak, bukan menyalahkan penyebar.",
+    reach: 70,
+    risk: 72
+  }, {
+    incident: "Akun meminta OTP untuk klaim hadiah sekolah.",
+    answer: "Jangan beri OTP",
+    explain: "OTP adalah kunci akun. Jangan dibagikan, cek kanal resmi, dan amankan akun.",
+    reach: 50,
+    risk: 95
+  }, {
+    incident: "Konten lama yang memalukan muncul lagi saat seleksi panitia.",
+    answer: "Audit dan batasi akses",
+    explain: "Kelola reputasi digital: cek unggahan lama, batasi audiens, dan siapkan penjelasan jujur bila perlu.",
+    reach: 78,
+    risk: 66
+  }];
+  const choices = ["Abaikan saja", "Hapus dan laporkan", "Minta maaf dan klarifikasi", "Jangan beri OTP", "Audit dan batasi akses"];
+  const [idx, setIdx] = useState(0);
+  const [choice, setChoice] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [solvedCases, setSolvedCases] = useState([]);
+  const selected = cases[idx];
+  const safe = selected.risk < 40;
+  const ok = checked && choice === selected.answer;
+  const check = () => {
+    setChecked(true);
+    if (choice === selected.answer) {
+      const nextSolved = solvedCases.includes(idx) ? solvedCases : [...solvedCases, idx];
+      setSolvedCases(nextSolved);
+      if (nextSolved.length >= 2) window.SIGMA_AUTH?.completeLab?.("digital-footprint");
+    }
+  };
+  const next = () => {
+    setIdx((idx + 1) % cases.length);
+    setChoice("");
+    setChecked(false);
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "digital-footprint",
+    title: "Lab Respons Jejak Digital",
+    tag: "LAB MAYA \u2022 INFORMATIKA",
+    accent: "var(--gold-500)",
+    intro: "Analisis insiden digital, pilih respons, lalu lihat dampaknya terhadap reputasi, privasi, dan pemulihan."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "0.9fr 1.1fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-info",
+    style: {
+      marginBottom: 12
+    }
+  }, "Insiden ", idx + 1), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: "0 0 14px"
+    }
+  }, selected.incident), React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 12
+    }
+  }, "Pilih respons"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 10
+    }
+  }, choices.map(c => React.createElement("button", {
+    key: c,
+    onClick: () => setChoice(c),
+    disabled: checked,
+    style: {
+      padding: 14,
+      borderRadius: 12,
+      textAlign: "left",
+      border: `2px solid ${choice === c ? "var(--gold-500)" : "var(--line-strong)"}`,
+      background: checked && c === selected.answer ? "#D1FAE5" : checked && choice === c ? "#FEE2E2" : choice === c ? "var(--bg-cream)" : "white",
+      fontWeight: 800
+    }
+  }, c))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: check,
+    disabled: !choice || checked
+  }, "Periksa Respons"), React.createElement("button", {
+    className: "btn",
+    onClick: next
+  }, checked ? "Insiden Berikutnya" : "Ganti Insiden"))), React.createElement("div", null, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: checked ? ok ? "#D1FAE5" : "#FEE2E2" : safe ? "linear-gradient(135deg,#D1FAE5,white)" : "linear-gradient(135deg,#FEE2E2,white)",
+      marginBottom: 16
+    }
+  }, React.createElement("div", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: 0
+    }
+  }, checked ? ok ? "Respons tepat" : "Respons perlu ditinjau" : safe ? "Risiko terkendali" : "Risiko tinggi"), React.createElement("div", {
+    style: {
+      marginTop: 16
+    }
+  }, React.createElement(Meter, {
+    label: "Jangkauan jejak",
+    value: selected.reach,
+    color: "var(--info-500)"
+  }), React.createElement(Meter, {
+    label: "Risiko privasi/reputasi",
+    value: selected.risk,
+    color: safe ? "var(--green-500)" : "var(--red-500)"
+  }))), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      marginBottom: 8
+    }
+  }, "Langkah pemulihan"), React.createElement("div", {
+    style: {
+      fontSize: 15,
+      color: "var(--ink)",
+      lineHeight: 1.6,
+      fontWeight: 700
+    }
+  }, checked ? selected.explain : "Pilih dan periksa respons untuk melihat langkah pemulihan yang paling tepat."), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      fontWeight: 800
+    }
+  }, "Respons benar: ", solvedCases.length, "/4. Lab tuntas setelah 2 insiden.")))));
+};
+const Meter = ({
+  label,
+  value,
+  color
+}) => React.createElement("div", {
+  style: {
+    marginBottom: 12
+  }
+}, React.createElement("div", {
+  style: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: 12,
+    fontWeight: 900,
+    marginBottom: 6
+  }
+}, React.createElement("span", null, label), React.createElement("span", null, value, "%")), React.createElement("div", {
+  style: {
+    height: 12,
+    background: "rgba(11,22,51,0.12)",
+    borderRadius: 999,
+    overflow: "hidden"
+  }
+}, React.createElement("div", {
+  style: {
+    width: `${value}%`,
+    height: "100%",
+    background: color
+  }
+})));
+window.DigitalFootprintLab = DigitalFootprintLab;
+const PythonTraceLab = () => {
+  const tasks = [{
+    title: "Fungsi dan return",
+    code: "def skor(a, b):\n    return (a + b) / 2\n\nhasil = skor(80, 90)",
+    question: "Nilai variabel hasil adalah...",
+    options: ["85", "170", "80", "90"],
+    answer: "85",
+    explain: "Fungsi mengembalikan rata-rata dari 80 dan 90."
+  }, {
+    title: "Dictionary",
+    code: "profil = {'nama': 'Alya', 'kelas': '9A'}\nprofil['kelas'] = '9B'\nprint(profil['kelas'])",
+    question: "Output program adalah...",
+    options: ["9A", "9B", "kelas", "Alya"],
+    answer: "9B",
+    explain: "Nilai key kelas diperbarui dari 9A menjadi 9B."
+  }, {
+    title: "Binary search",
+    code: "data = [3, 8, 12, 20, 31]\ntarget = 20\n# cek tengah: 12, lalu kanan: 20",
+    question: "Berapa kali pengecekan sampai target ditemukan?",
+    options: ["1", "2", "3", "5"],
+    answer: "2",
+    explain: "Binary search mengecek 12 dulu, lalu 20 pada bagian kanan."
+  }];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [solvedCases, setSolvedCases] = useState([]);
+  const t = tasks[idx];
+  const ok = checked && picked === t.answer;
+  const check = () => {
+    setChecked(true);
+    if (picked === t.answer) {
+      const nextSolved = solvedCases.includes(idx) ? solvedCases : [...solvedCases, idx];
+      setSolvedCases(nextSolved);
+      if (nextSolved.length >= 2) window.SIGMA_AUTH?.completeLab?.("python-trace");
+    }
+  };
+  const next = () => {
+    setIdx((idx + 1) % tasks.length);
+    setPicked("");
+    setChecked(false);
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "python-trace",
+    title: "Python Trace Lab",
+    tag: "LAB MAYA \u2022 INFORMATIKA",
+    accent: "var(--info-500)",
+    intro: "Baca kode pelan-pelan, trace nilai variabel, lalu prediksi output atau jumlah langkah algoritma."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "var(--navy-950)",
+      color: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      color: "var(--gold-400)",
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      marginBottom: 10
+    }
+  }, t.title), React.createElement("pre", {
+    style: {
+      margin: 0,
+      whiteSpace: "pre-wrap",
+      fontFamily: "var(--font-mono)",
+      fontSize: 14,
+      lineHeight: 1.7
+    }
+  }, t.code)), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: "0 0 14px"
+    }
+  }, t.question), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 10
+    }
+  }, t.options.map(opt => React.createElement("button", {
+    key: opt,
+    className: "btn",
+    onClick: () => setPicked(opt),
+    disabled: checked,
+    style: {
+      justifyContent: "flex-start",
+      background: checked && opt === t.answer ? "#D1FAE5" : checked && picked === opt ? "#FEE2E2" : picked === opt ? "var(--bg-cream)" : "white"
+    }
+  }, picked === opt ? React.createElement(Icon.Check, {
+    width: "14",
+    height: "14"
+  }) : React.createElement(Icon.Search, {
+    width: "14",
+    height: "14"
+  }), " ", opt))), checked && React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
+      background: ok ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, ok ? "Trace tepat." : "Trace belum tepat."), " ", t.explain), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, React.createElement("button", {
+    className: "btn btn-info",
+    onClick: check,
+    disabled: !picked || checked
+  }, "Periksa Trace"), React.createElement("button", {
+    className: "btn",
+    onClick: next
+  }, checked ? "Trace Berikutnya" : "Ganti Kode")), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      fontWeight: 800
+    }
+  }, "Trace benar: ", solvedCases.length, "/3. Lab tuntas setelah 2 trace."))));
+};
+window.PythonTraceLab = PythonTraceLab;
+const SearchQualityLab = () => {
+  const tasks = [{
+    need: "Cari informasi apakah sekolah libur karena cuaca ekstrem.",
+    query: "pengumuman resmi sekolah libur cuaca ekstrem Labschool",
+    source: "Kanal resmi sekolah / dinas terkait",
+    reason: "Informasi jadwal sekolah harus dicek ke kanal resmi, bukan unggahan ulang."
+  }, {
+    need: "Cari penjelasan sederhana tentang DNS untuk tugas Informatika.",
+    query: "DNS penjelasan sederhana untuk siswa SMP site:edu OR site:ac.id",
+    source: "Artikel edukasi dengan penulis/sumber jelas",
+    reason: "Materi teknis lebih kuat jika sumbernya edukatif dan bisa dibandingkan."
+  }, {
+    need: "Cek klaim video viral yang katanya terjadi hari ini.",
+    query: "kata kunci peristiwa tanggal lokasi sumber resmi",
+    source: "Berita tepercaya dan pencarian gambar/video balik",
+    reason: "Konten viral perlu tanggal, lokasi, dan sumber pertama sebelum dipercaya."
+  }];
+  const queryOptions = ["viral banget hari ini", "pengumuman resmi sekolah libur cuaca ekstrem Labschool", "DNS penjelasan sederhana untuk siswa SMP site:edu OR site:ac.id", "kata kunci peristiwa tanggal lokasi sumber resmi"];
+  const sourceOptions = ["Komentar paling ramai", "Kanal resmi sekolah / dinas terkait", "Artikel edukasi dengan penulis/sumber jelas", "Berita tepercaya dan pencarian gambar/video balik"];
+  const [idx, setIdx] = useState(0);
+  const [query, setQuery] = useState("");
+  const [source, setSource] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [solved, setSolved] = useState([]);
+  const t = tasks[idx];
+  const score = (query === t.query ? 50 : 0) + (source === t.source ? 50 : 0);
+  const ok = checked && score === 100;
+  const check = () => {
+    setChecked(true);
+    if (score === 100) {
+      const next = solved.includes(idx) ? solved : [...solved, idx];
+      setSolved(next);
+      if (next.length >= 2) window.SIGMA_AUTH?.completeLab?.("search-quality");
+    }
+  };
+  const next = () => {
+    setIdx((idx + 1) % tasks.length);
+    setQuery("");
+    setSource("");
+    setChecked(false);
+  };
+  return React.createElement(PracticeLabShell, {
+    labId: "search-quality",
+    title: "Search Quality Lab",
+    tag: "LAB MAYA \u2022 INFORMATIKA",
+    accent: "var(--info-500)",
+    intro: "Latih strategi mencari informasi: pilih kata kunci yang spesifik, sumber yang tepat, lalu jelaskan kenapa hasilnya layak dipercaya."
+  }, React.createElement("div", {
+    className: "lab-main-grid",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "0.95fr 1.05fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-info",
+    style: {
+      marginBottom: 12
+    }
+  }, "Kasus Pencarian ", idx + 1), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: "0 0 14px"
+    }
+  }, t.need), React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg-cream)",
+      borderRadius: 14,
+      border: "1.5px solid var(--gold-400)",
+      lineHeight: 1.55,
+      fontWeight: 800
+    }
+  }, "Tugasmu: jangan pilih kata kunci terlalu umum. Pilih query dan jenis sumber yang paling bisa dipertanggungjawabkan.")), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 22,
+      background: "white"
+    }
+  }, React.createElement(SearchChoiceGroup, {
+    title: "Strategi kata kunci",
+    options: queryOptions,
+    value: query,
+    answer: t.query,
+    checked: checked,
+    onPick: setQuery
+  }), React.createElement(SearchChoiceGroup, {
+    title: "Sumber pembanding",
+    options: sourceOptions,
+    value: source,
+    answer: t.source,
+    checked: checked,
+    onPick: setSource
+  }), checked && React.createElement("div", {
+    style: {
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
+      background: ok ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, ok ? "Strategi kuat." : "Strategi belum kuat."), " ", t.reason), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, React.createElement("button", {
+    className: "btn btn-info",
+    onClick: check,
+    disabled: !query || !source || checked
+  }, "Periksa Strategi"), React.createElement("button", {
+    className: "btn",
+    onClick: next
+  }, checked ? "Kasus Berikutnya" : "Ganti Kasus")), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      fontWeight: 800
+    }
+  }, "Strategi kuat: ", solved.length, "/3. Lab tuntas setelah 2 kasus."))));
+};
+const SearchChoiceGroup = ({
+  title,
+  options,
+  value,
+  answer,
+  checked,
+  onPick
+}) => React.createElement("div", {
+  style: {
+    marginBottom: 16
+  }
+}, React.createElement("div", {
+  style: {
+    fontWeight: 900,
+    marginBottom: 8
+  }
+}, title), React.createElement("div", {
+  style: {
+    display: "grid",
+    gap: 8
+  }
+}, options.map(opt => {
+  const active = value === opt;
+  const right = checked && opt === answer;
+  const wrong = checked && active && opt !== answer;
+  return React.createElement("button", {
+    key: opt,
+    className: "btn",
+    disabled: checked,
+    onClick: () => onPick(opt),
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left",
+      whiteSpace: "normal",
+      background: right ? "#D1FAE5" : wrong ? "#FEE2E2" : active ? "var(--info-100)" : "white"
+    }
+  }, active ? React.createElement(Icon.Check, {
+    width: "14",
+    height: "14"
+  }) : React.createElement(Icon.Search, {
+    width: "14",
+    height: "14"
+  }), " ", opt);
+})));
+window.SearchQualityLab = SearchQualityLab;
+const InstructionStudioLab = () => {
+  const cases = [{
+    goal: "Robot kelas mengambil buku jika tersedia, lalu mencatat peminjam.",
+    answer: ["Mulai", "Cari buku", "Cek tersedia?", "Jika ya: catat peminjam", "Jika tidak: pilih buku lain", "Selesai"],
+    distractors: ["Warnai sampul", "Hitung jumlah meja"],
+    explain: "Instruksi baik punya tujuan, percabangan, dan langkah akhir yang jelas."
+  }, {
+    goal: "Scratch menampilkan pesan jika skor minimal 80.",
+    answer: ["Mulai", "Input skor", "Cek skor >= 80?", "Jika ya: tampilkan 'Tuntas'", "Jika tidak: tampilkan 'Latihan lagi'", "Selesai"],
+    distractors: ["Ubah ukuran panggung", "Acak semua blok"],
+    explain: "Percabangan if/else harus punya kondisi dan dua kemungkinan keluaran."
+  }, {
+    goal: "Program mencari nama pada daftar presensi yang belum terurut.",
+    answer: ["Mulai", "Ambil nama target", "Cek nama satu per satu", "Nama ditemukan?", "Tampilkan hasil", "Selesai"],
+    distractors: ["Gunakan binary search dulu", "Hapus daftar"],
+    explain: "Untuk daftar belum terurut, pencarian satu per satu lebih aman daripada binary search."
+  }];
+  const [idx, setIdx] = useState(0);
+  const [bank, setBank] = useState([]);
+  const [answer, setAnswer] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [solved, setSolved] = useState([]);
+  const c = cases[idx];
+  useEffect(() => {
+    const pool = [...c.answer, ...c.distractors].sort(() => Math.random() - 0.5);
+    setBank(pool);
+    setAnswer([]);
+    setChecked(false);
+  }, [idx]);
+  const add = step => {
+    if (checked) return;
+    setBank(bank.filter(x => x !== step));
+    setAnswer([...answer, step]);
+  };
+  const undo = step => {
+    if (checked) return;
+    setAnswer(answer.filter(x => x !== step));
+    setBank([...bank, step]);
+  };
+  const correct = answer.length === c.answer.length && answer.every((x, i) => x === c.answer[i]);
+  const check = () => {
+    setChecked(true);
+    if (correct) {
+      const next = solved.includes(idx) ? solved : [...solved, idx];
+      setSolved(next);
+      if (next.length >= 2) window.SIGMA_AUTH?.completeLab?.("instruction-studio");
+    }
+  };
+  const next = () => setIdx((idx + 1) % cases.length);
+  return React.createElement(PracticeLabShell, {
+    labId: "instruction-studio",
+    title: "Instruction Studio Lab",
+    tag: "LAB MAYA \u2022 KKA",
+    accent: "var(--ai-500)",
+    intro: "Susun instruksi yang runtut, pilih blok yang relevan, dan hindari langkah yang tidak membantu tujuan program."
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24,
+      background: "white",
+      marginBottom: 18
+    }
+  }, React.createElement("div", {
+    className: "tag tag-ai",
+    style: {
+      marginBottom: 12
+    }
+  }, "Skenario Instruksi ", idx + 1), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: 0
+    }
+  }, c.goal)), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 20,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Bank blok"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, bank.map(step => React.createElement("button", {
+    key: step,
+    className: "btn",
+    onClick: () => add(step),
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left"
+    }
+  }, step)), !bank.length && React.createElement("div", {
+    style: {
+      padding: 14,
+      color: "var(--ink-subtle)",
+      border: "1.5px dashed var(--line-strong)",
+      borderRadius: 12
+    }
+  }, "Semua blok sudah dipakai."))), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 20,
+      background: "var(--bg-cream)"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Urutan instruksi"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, answer.map((step, i) => React.createElement("button", {
+    key: step,
+    className: "btn",
+    onClick: () => undo(step),
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left",
+      background: checked ? c.answer[i] === step ? "#D1FAE5" : "#FEE2E2" : "white"
+    }
+  }, React.createElement("span", {
+    style: {
+      fontWeight: 900
+    }
+  }, i + 1, "."), " ", step)), !answer.length && React.createElement("div", {
+    style: {
+      padding: 14,
+      color: "var(--ink-subtle)",
+      border: "1.5px dashed var(--line-strong)",
+      borderRadius: 12
+    }
+  }, "Pilih blok dari kiri.")))), checked && React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: 14,
+      borderRadius: 12,
+      background: correct ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, correct ? "Instruksi runtut." : "Instruksi belum runtut."), " ", c.explain), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, !checked ? React.createElement("button", {
+    className: "btn btn-ai",
+    onClick: check,
+    disabled: !answer.length
+  }, "Periksa Instruksi") : React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next
+  }, "Skenario Berikutnya")), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      fontWeight: 800
+    }
+  }, "Instruksi tuntas: ", solved.length, "/3. Lab tuntas setelah 2 skenario."));
+};
+window.InstructionStudioLab = InstructionStudioLab;
+const PracticeLabShell = ({
+  labId,
+  title,
+  tag,
+  accent,
+  intro,
+  children
+}) => {
+  const lab = window.CURRICULUM.labs.find(l => l.id === labId);
+  return React.createElement("div", {
+    className: "page",
+    style: {
+      background: "var(--bg)",
+      minHeight: "100vh"
+    }
+  }, React.createElement(Navbar, null), React.createElement("div", {
+    style: {
+      maxWidth: 1100,
+      margin: "0 auto",
+      padding: "24px 32px 60px"
+    }
+  }, React.createElement(Breadcrumb, {
+    trail: [{
+      to: "/",
+      label: "Beranda"
+    }, {
+      to: "/lab",
+      label: "Lab Maya"
+    }, {
+      label: title
+    }]
+  }), React.createElement("div", {
+    style: {
+      marginTop: 12,
+      marginBottom: 24
+    }
+  }, React.createElement("div", {
+    className: "tag",
+    style: {
+      marginBottom: 10,
+      background: "white",
+      color: accent,
+      border: "1.5px solid var(--line)"
+    }
+  }, tag), React.createElement("h1", {
+    className: "display",
+    style: {
+      fontSize: 44,
+      margin: 0,
+      color: "var(--navy-950)"
+    }
+  }, title), React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: "var(--ink-muted)",
+      marginTop: 10,
+      maxWidth: 720,
+      lineHeight: 1.55
+    }
+  }, intro), window.ResourceModuleLinks && React.createElement(window.ResourceModuleLinks, {
+    item: lab
+  })), children), React.createElement(Footer, null));
+};
 
 //# sourceURL=js/labs/advanced-labs.jsx
 })();
@@ -15468,6 +18369,126 @@ const PatternQuizGame = () => {
   }, p.explain)));
 };
 window.PatternQuizGame = PatternQuizGame;
+const PromptCraftGame = () => {
+  const rounds = [{
+    task: "Minta AI membantu membuat ringkasan materi jaringan komputer.",
+    answer: "Buat ringkasan 5 poin tentang jaringan komputer untuk siswa kelas 7, pakai bahasa sederhana dan contoh di sekolah.",
+    options: ["Ringkas dong.", "Buat ringkasan 5 poin tentang jaringan komputer untuk siswa kelas 7, pakai bahasa sederhana dan contoh di sekolah.", "Buatkan jawaban ulangan jaringan komputer."],
+    explain: "Prompt terbaik memberi konteks, tujuan, batas panjang, dan audiens. Ia tidak meminta jawaban curang."
+  }, {
+    task: "Minta AI mengecek ide poster etika digital tanpa membocorkan data pribadi.",
+    answer: "Nilai ide poster ini secara umum: tema sopan di grup kelas, tanpa menyebut nama teman. Beri 3 saran perbaikan.",
+    options: ["Ini nama teman saya dan chat lengkapnya, tolong nilai.", "Buat poster viral yang mempermalukan teman.", "Nilai ide poster ini secara umum: tema sopan di grup kelas, tanpa menyebut nama teman. Beri 3 saran perbaikan."],
+    explain: "Prompt aman tidak membagikan data pribadi dan tetap menjaga dampak pada orang lain."
+  }, {
+    task: "Minta AI membantu belajar, bukan menggantikan proses berpikir.",
+    answer: "Beri petunjuk bertahap untuk menyelesaikan soal ini, jangan langsung berikan jawaban akhir.",
+    options: ["Beri petunjuk bertahap untuk menyelesaikan soal ini, jangan langsung berikan jawaban akhir.", "Jawab semua soal ini sekarang.", "Buat jawaban yang terlihat seperti tulisan saya."],
+    explain: "Prompt belajar yang baik meminta petunjuk atau umpan balik, bukan mengambil alih tugas siswa."
+  }];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const r = rounds[idx];
+  const pick = opt => {
+    if (picked) return;
+    setPicked(opt);
+    if (opt === r.answer) setCorrect(v => v + 1);
+  };
+  const next = () => {
+    if (idx < rounds.length - 1) {
+      setIdx(idx + 1);
+      setPicked(null);
+    } else {
+      setDone(true);
+    }
+  };
+  if (done) {
+    return React.createElement(GameEndScreen, {
+      gameId: "prompt-craft",
+      correct: correct,
+      total: rounds.length,
+      xp: Math.max(40, correct * 35),
+      extra: "Prompt sudah ditinjau."
+    });
+  }
+  return React.createElement(GameShell, {
+    title: "Prompt Tepat",
+    subject: "kka",
+    gameId: "prompt-craft",
+    stats: [{
+      label: "Kasus",
+      value: `${idx + 1}/${rounds.length}`
+    }, {
+      label: "Benar",
+      value: correct,
+      color: "var(--green-500)"
+    }]
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 30,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-ai",
+    style: {
+      marginBottom: 12
+    }
+  }, "Prompt AI Bertanggung Jawab"), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 30,
+      margin: "0 0 10px"
+    }
+  }, r.task), React.createElement("p", {
+    style: {
+      color: "var(--ink-muted)",
+      marginTop: 0
+    }
+  }, "Pilih prompt yang paling jelas, aman, dan mendukung proses belajar."), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 12,
+      marginTop: 18
+    }
+  }, r.options.map(opt => {
+    const show = picked !== null;
+    const isRight = opt === r.answer;
+    const isPicked = picked === opt;
+    return React.createElement("button", {
+      key: opt,
+      onClick: () => pick(opt),
+      disabled: show,
+      className: "btn",
+      style: {
+        padding: 16,
+        justifyContent: "flex-start",
+        textAlign: "left",
+        whiteSpace: "normal",
+        background: show && isRight ? "#D1FAE5" : show && isPicked ? "#FEE2E2" : "white",
+        color: "var(--ink)"
+      }
+    }, opt);
+  })), picked && React.createElement("div", {
+    style: {
+      marginTop: 18,
+      padding: 16,
+      borderRadius: 12,
+      background: picked === r.answer ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, picked === r.answer ? "Tepat." : "Belum tepat."), " ", r.explain), picked && React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next,
+    style: {
+      width: "100%",
+      marginTop: 16
+    }
+  }, idx < rounds.length - 1 ? "Kasus Berikutnya" : "Selesai")));
+};
+window.PromptCraftGame = PromptCraftGame;
 const BinaryTypingGame = () => {
   const [num, setNum] = useState(0);
   const [input, setInput] = useState("");
@@ -15618,6 +18639,821 @@ const BinaryTypingGame = () => {
   }, "Tips: 10 = 1010, 42 = 101010, 255 = 11111111")));
 };
 window.BinaryTypingGame = BinaryTypingGame;
+const FlowchartBuilderGame = () => {
+  const puzzles = [{
+    title: "Kuis Sederhana",
+    prompt: "Susun alur program kuis sampai skor ditampilkan.",
+    steps: ["Mulai", "Tampilkan soal", "Ambil jawaban", "Cek benar/salah", "Tambah skor jika benar", "Tampilkan skor"]
+  }, {
+    title: "Login Aman",
+    prompt: "Susun alur pengecekan login dengan percabangan.",
+    steps: ["Mulai", "Input username dan password", "Cek kecocokan data", "Jika benar masuk dashboard", "Jika salah tampilkan pesan", "Selesai"]
+  }, {
+    title: "Jadwal Piket",
+    prompt: "Susun alur membuat jadwal piket yang adil.",
+    steps: ["Daftar anggota", "Daftar hari", "Bagi giliran", "Cek tidak ada yang terlewat", "Publikasikan jadwal"]
+  }];
+  const [idx, setIdx] = useState(0);
+  const [pool, setPool] = useState(() => [...puzzles[0].steps].sort(() => Math.random() - 0.5));
+  const [answer, setAnswer] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const puzzle = puzzles[idx];
+  const resetPuzzle = (nextIdx = idx) => {
+    setIdx(nextIdx);
+    setPool([...puzzles[nextIdx].steps].sort(() => Math.random() - 0.5));
+    setAnswer([]);
+    setChecked(false);
+  };
+  const add = step => {
+    if (checked) return;
+    setPool(pool.filter(s => s !== step));
+    setAnswer([...answer, step]);
+  };
+  const undo = step => {
+    if (checked) return;
+    setAnswer(answer.filter(s => s !== step));
+    setPool([...pool, step]);
+  };
+  const correct = answer.length === puzzle.steps.length && answer.every((s, i) => s === puzzle.steps[i]);
+  const check = () => {
+    if (!checked && correct) setScore(score + 1);
+    setChecked(true);
+  };
+  const finalScore = score;
+  const next = () => {
+    if (idx < puzzles.length - 1) resetPuzzle(idx + 1);else setDone(true);
+  };
+  if (done) {
+    return React.createElement(GameEndScreen, {
+      gameId: "flowchart-builder",
+      correct: finalScore,
+      total: puzzles.length,
+      xp: Math.max(40, finalScore * 35),
+      extra: "Flowchart selesai disusun."
+    });
+  }
+  return React.createElement(GameShell, {
+    title: "Flowchart Builder",
+    subject: "informatika",
+    gameId: "flowchart-builder",
+    stats: [{
+      label: "Puzzle",
+      value: `${idx + 1}/${puzzles.length}`
+    }, {
+      label: "Benar",
+      value: score,
+      color: "var(--green-500)"
+    }]
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 28,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-info",
+    style: {
+      marginBottom: 10
+    }
+  }, puzzle.title), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 28,
+      margin: "0 0 8px"
+    }
+  }, puzzle.prompt), React.createElement("p", {
+    style: {
+      color: "var(--ink-muted)",
+      marginTop: 0
+    }
+  }, "Klik kartu dari bank langkah ke area jawaban. Urutan harus logis seperti flowchart/pseudocode."), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 18,
+      marginTop: 20
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg)",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Bank langkah"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, pool.map(s => React.createElement("button", {
+    key: s,
+    onClick: () => add(s),
+    className: "btn",
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left"
+    }
+  }, s)))), React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg-cream)",
+      borderRadius: 14,
+      border: "1.5px solid var(--gold-400)"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Jawaban"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, answer.map((s, i) => React.createElement("button", {
+    key: s,
+    onClick: () => undo(s),
+    className: "btn",
+    style: {
+      justifyContent: "flex-start",
+      background: checked ? puzzle.steps[i] === s ? "#D1FAE5" : "#FEE2E2" : "white",
+      textAlign: "left"
+    }
+  }, React.createElement("span", {
+    style: {
+      fontWeight: 900
+    }
+  }, i + 1, "."), " ", s)), answer.length === 0 && React.createElement("div", {
+    style: {
+      padding: 18,
+      color: "var(--ink-subtle)",
+      border: "1.5px dashed var(--line-strong)",
+      borderRadius: 12
+    }
+  }, "Belum ada langkah.")))), checked && React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: 14,
+      borderRadius: 12,
+      background: correct ? "#D1FAE5" : "#FEE2E2",
+      fontWeight: 800
+    }
+  }, correct ? "Alurnya sudah tepat." : "Urutannya belum pas. Bandingkan dengan logika input, proses, keputusan, lalu output."), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      marginTop: 18,
+      justifyContent: "flex-end",
+      flexWrap: "wrap"
+    }
+  }, React.createElement("button", {
+    className: "btn",
+    onClick: () => resetPuzzle()
+  }, "Acak Ulang"), !checked ? React.createElement("button", {
+    className: "btn btn-info",
+    onClick: check,
+    disabled: answer.length !== puzzle.steps.length
+  }, "Periksa") : React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next
+  }, idx < puzzles.length - 1 ? "Lanjut" : "Selesai"))));
+};
+window.FlowchartBuilderGame = FlowchartBuilderGame;
+const LicenseQuestGame = () => {
+  const scenarios = [{
+    item: "Foto teman sedang presentasi",
+    context: "Akan dipakai di poster sekolah.",
+    answer: "Perlu izin",
+    explain: "Ada wajah orang lain, jadi perlu persetujuan sebelum disebarkan."
+  }, {
+    item: "Ikon berlisensi CC-BY",
+    context: "Akan dipakai di infografis tugas.",
+    answer: "Boleh dengan atribusi",
+    explain: "CC-BY boleh dipakai jika mencantumkan pembuat/sumber."
+  }, {
+    item: "Lagu populer dari platform streaming",
+    context: "Akan jadi musik latar video publik.",
+    answer: "Tidak boleh sembarang",
+    explain: "Hak cipta musik biasanya perlu lisensi khusus untuk publikasi."
+  }, {
+    item: "Gambar CC0/public domain",
+    context: "Akan dipakai di slide kelas.",
+    answer: "Boleh dipakai",
+    explain: "CC0/public domain dapat dipakai bebas, tetap baik jika mencatat sumber."
+  }, {
+    item: "Artikel blog disalin penuh",
+    context: "Akan ditempel ke caption kampanye.",
+    answer: "Tidak boleh sembarang",
+    explain: "Menyalin karya penuh tanpa izin/atribusi adalah plagiarisme dan pelanggaran hak cipta."
+  }];
+  const choices = ["Boleh dipakai", "Boleh dengan atribusi", "Perlu izin", "Tidak boleh sembarang"];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const s = scenarios[idx];
+  const pick = choice => {
+    if (picked) return;
+    setPicked(choice);
+    if (choice === s.answer) setCorrect(correct + 1);
+  };
+  const next = () => {
+    if (idx < scenarios.length - 1) {
+      setIdx(idx + 1);
+      setPicked(null);
+    } else {
+      setDone(true);
+    }
+  };
+  const finalCorrect = correct;
+  if (done) {
+    return React.createElement(GameEndScreen, {
+      gameId: "license-quest",
+      correct: finalCorrect,
+      total: scenarios.length,
+      xp: finalCorrect * 20,
+      extra: "Keputusan lisensi selesai ditinjau."
+    });
+  }
+  return React.createElement(GameShell, {
+    title: "Quest Lisensi Konten",
+    subject: "kka",
+    gameId: "license-quest",
+    stats: [{
+      label: "Kasus",
+      value: `${idx + 1}/${scenarios.length}`
+    }, {
+      label: "Benar",
+      value: correct,
+      color: "var(--green-500)"
+    }]
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 30,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-ai",
+    style: {
+      marginBottom: 12
+    }
+  }, "Keputusan Konten"), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 30,
+      margin: "0 0 8px"
+    }
+  }, s.item), React.createElement("div", {
+    style: {
+      padding: 16,
+      borderRadius: 14,
+      background: "var(--ai-100)",
+      color: "var(--ink)",
+      fontWeight: 800,
+      marginBottom: 20
+    }
+  }, s.context), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12
+    }
+  }, choices.map(choice => {
+    const show = picked !== null;
+    const isRight = choice === s.answer;
+    const isPicked = picked === choice;
+    return React.createElement("button", {
+      key: choice,
+      onClick: () => pick(choice),
+      disabled: show,
+      className: "btn",
+      style: {
+        padding: 16,
+        background: show && isRight ? "var(--green-500)" : show && isPicked ? "var(--red-500)" : "white",
+        color: show && (isRight || isPicked) ? "white" : "var(--ink)"
+      }
+    }, choice);
+  })), picked && React.createElement("div", {
+    style: {
+      marginTop: 18,
+      padding: 16,
+      borderRadius: 12,
+      background: picked === s.answer ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, picked === s.answer ? "Tepat." : "Belum tepat."), " ", s.explain), picked && React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next,
+    style: {
+      width: "100%",
+      marginTop: 16
+    }
+  }, idx < scenarios.length - 1 ? "Kasus Berikutnya" : "Selesai")));
+};
+window.LicenseQuestGame = LicenseQuestGame;
+const StoryboardSprintGame = () => {
+  const rounds = [{
+    title: "Video tips belajar 30 detik",
+    answer: ["Hook masalah", "Tiga tips utama", "Contoh singkat", "Ajakan refleksi"],
+    pool: ["Ajakan refleksi", "Tiga tips utama", "Hook masalah", "Contoh singkat"],
+    explain: "Video pendek perlu membuka masalah dulu, memberi isi utama, contoh, lalu penutup."
+  }, {
+    title: "Publikasi video kelas",
+    answer: ["Cek wajah dan izin", "Cek musik/aset", "Tulis caption dan sumber", "Pilih platform"],
+    pool: ["Pilih platform", "Cek musik/aset", "Cek wajah dan izin", "Tulis caption dan sumber"],
+    explain: "Sebelum publikasi, privasi dan lisensi harus dicek sebelum memilih platform."
+  }, {
+    title: "Podcast wawancara guru",
+    answer: ["Buat daftar pertanyaan", "Rekam audio jelas", "Potong bagian tidak relevan", "Minta persetujuan publikasi"],
+    pool: ["Rekam audio jelas", "Minta persetujuan publikasi", "Buat daftar pertanyaan", "Potong bagian tidak relevan"],
+    explain: "Produksi audio butuh rencana, kualitas rekaman, editing, dan izin publikasi."
+  }];
+  const [idx, setIdx] = useState(0);
+  const [pool, setPool] = useState(rounds[0].pool);
+  const [answer, setAnswer] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const r = rounds[idx];
+  const isRight = answer.length === r.answer.length && answer.every((x, i) => x === r.answer[i]);
+  const add = item => {
+    if (checked) return;
+    setPool(pool.filter(x => x !== item));
+    setAnswer([...answer, item]);
+  };
+  const undo = item => {
+    if (checked) return;
+    setAnswer(answer.filter(x => x !== item));
+    setPool([...pool, item]);
+  };
+  const check = () => {
+    setChecked(true);
+    if (isRight) setCorrect(v => v + 1);
+  };
+  const next = () => {
+    if (idx < rounds.length - 1) {
+      const nextIdx = idx + 1;
+      setIdx(nextIdx);
+      setPool(rounds[nextIdx].pool);
+      setAnswer([]);
+      setChecked(false);
+    } else {
+      setDone(true);
+    }
+  };
+  if (done) {
+    return React.createElement(GameEndScreen, {
+      gameId: "storyboard-sprint",
+      correct: correct,
+      total: rounds.length,
+      xp: Math.max(40, correct * 35),
+      extra: "Storyboard selesai disusun."
+    });
+  }
+  return React.createElement(GameShell, {
+    title: "Storyboard Sprint",
+    subject: "kka",
+    gameId: "storyboard-sprint",
+    stats: [{
+      label: "Ronde",
+      value: `${idx + 1}/${rounds.length}`
+    }, {
+      label: "Benar",
+      value: correct,
+      color: "var(--green-500)"
+    }]
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 28,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-ai",
+    style: {
+      marginBottom: 10
+    }
+  }, "Produksi Konten"), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 30,
+      margin: "0 0 8px"
+    }
+  }, r.title), React.createElement("p", {
+    style: {
+      color: "var(--ink-muted)",
+      marginTop: 0
+    }
+  }, "Susun urutan scene atau keputusan produksi yang paling aman dan jelas."), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 18,
+      marginTop: 18
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg)",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Bank pilihan"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, pool.map(item => React.createElement("button", {
+    key: item,
+    onClick: () => add(item),
+    className: "btn",
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left"
+    }
+  }, item)))), React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg-cream)",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Storyboard"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, answer.map((item, i) => React.createElement("button", {
+    key: item,
+    onClick: () => undo(item),
+    className: "btn",
+    style: {
+      justifyContent: "flex-start",
+      textAlign: "left",
+      background: checked ? r.answer[i] === item ? "#D1FAE5" : "#FEE2E2" : "white"
+    }
+  }, React.createElement("span", {
+    style: {
+      fontWeight: 900
+    }
+  }, i + 1, "."), " ", item)), answer.length === 0 && React.createElement("div", {
+    style: {
+      padding: 18,
+      color: "var(--ink-subtle)",
+      border: "1.5px dashed var(--line-strong)",
+      borderRadius: 12
+    }
+  }, "Belum ada urutan.")))), checked && React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: 14,
+      borderRadius: 12,
+      background: isRight ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, isRight ? "Urutan tepat." : "Urutan perlu diperbaiki."), " ", r.explain), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+      marginTop: 16
+    }
+  }, !checked ? React.createElement("button", {
+    className: "btn btn-ai",
+    onClick: check,
+    disabled: answer.length !== r.answer.length
+  }, "Periksa") : React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next
+  }, idx < rounds.length - 1 ? "Ronde Berikutnya" : "Selesai"))));
+};
+window.StoryboardSprintGame = StoryboardSprintGame;
+const DeepfakeDetectiveGame = () => {
+  const cases = [{
+    title: "Video pidato viral",
+    clues: ["Gerak bibir tidak sinkron", "Sumber pertama tidak jelas", "Tidak ada media tepercaya yang meliput"],
+    trap: "Jumlah share tinggi",
+    answer: "Perlu verifikasi",
+    explain: "Konten viral tetap perlu dicek. Sinkron bibir, sumber awal, dan liputan pembanding adalah petunjuk penting."
+  }, {
+    title: "Foto kepala sekolah di poster resmi",
+    clues: ["Diunggah akun sekolah", "Ada tanggal dan kegiatan jelas", "Visual konsisten dengan poster lain"],
+    trap: "Warna poster mencolok",
+    answer: "Cukup kredibel",
+    explain: "Sumber resmi, konteks jelas, dan konsistensi visual membuat konten lebih kredibel."
+  }, {
+    title: "Audio guru meminta transfer uang",
+    clues: ["Nomor pengirim tidak dikenal", "Mendesak dan rahasia", "Tidak mau diverifikasi lewat telepon sekolah"],
+    trap: "Suaranya mirip",
+    answer: "Berisiko tinggi",
+    explain: "Voice cloning bisa meniru suara. Permintaan uang mendesak harus diverifikasi lewat kanal resmi."
+  }];
+  const choices = ["Cukup kredibel", "Perlu verifikasi", "Berisiko tinggi"];
+  const [idx, setIdx] = useState(0);
+  const [selected, setSelected] = useState([]);
+  const [picked, setPicked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const c = cases[idx];
+  const relevantPicked = selected.filter(clue => c.clues.includes(clue)).length;
+  const pickedTrap = selected.includes(c.trap);
+  const evidenceReady = relevantPicked >= 2 && !pickedTrap;
+  const toggle = clue => {
+    if (picked) return;
+    setSelected(s => s.includes(clue) ? s.filter(x => x !== clue) : [...s, clue]);
+  };
+  const choose = choice => {
+    if (picked) return;
+    setPicked(choice);
+    if (choice === c.answer && evidenceReady) setCorrect(correct + 1);
+  };
+  const next = () => {
+    if (idx < cases.length - 1) {
+      setIdx(idx + 1);
+      setSelected([]);
+      setPicked(null);
+    } else setDone(true);
+  };
+  if (done) {
+    return React.createElement(GameEndScreen, {
+      gameId: "deepfake-detective",
+      correct: correct,
+      total: cases.length,
+      xp: Math.max(40, correct * 40),
+      extra: "Investigasi konten visual selesai."
+    });
+  }
+  return React.createElement(GameShell, {
+    title: "Deepfake Detective",
+    subject: "kka",
+    gameId: "deepfake-detective",
+    stats: [{
+      label: "Kasus",
+      value: `${idx + 1}/${cases.length}`
+    }, {
+      label: "Benar",
+      value: correct,
+      color: "var(--green-500)"
+    }]
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 30,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-red",
+    style: {
+      marginBottom: 12
+    }
+  }, "Investigasi Konten AI"), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 30,
+      margin: "0 0 8px"
+    }
+  }, c.title), React.createElement("p", {
+    style: {
+      color: "var(--ink-muted)",
+      marginTop: 0
+    }
+  }, "Pilih petunjuk yang relevan, abaikan distraksi, lalu buat keputusan."), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 18,
+      marginTop: 18
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg)",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Petunjuk"), [...c.clues, c.trap].sort().map(clue => {
+    const active = selected.includes(clue);
+    return React.createElement("button", {
+      key: clue,
+      onClick: () => toggle(clue),
+      className: "btn",
+      style: {
+        width: "100%",
+        marginBottom: 8,
+        justifyContent: "flex-start",
+        background: active ? "var(--gold-300)" : "white",
+        textAlign: "left"
+      }
+    }, active ? React.createElement(Icon.Check, {
+      width: "14",
+      height: "14"
+    }) : React.createElement(Icon.Search, {
+      width: "14",
+      height: "14"
+    }), " ", clue);
+  }), React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: evidenceReady ? "var(--green-500)" : "var(--ink-muted)",
+      fontWeight: 800,
+      marginTop: 4
+    }
+  }, "Bukti relevan: ", relevantPicked, "/2 ", pickedTrap ? "- ada distraksi yang ikut dipilih" : "")), React.createElement("div", {
+    style: {
+      padding: 16,
+      background: "var(--bg-cream)",
+      borderRadius: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      marginBottom: 10
+    }
+  }, "Keputusan"), choices.map(choice => {
+    const show = picked !== null;
+    const isRight = choice === c.answer;
+    const isPicked = picked === choice;
+    const countedRight = isRight && evidenceReady;
+    return React.createElement("button", {
+      key: choice,
+      onClick: () => choose(choice),
+      disabled: show || !selected.length,
+      className: "btn",
+      style: {
+        width: "100%",
+        marginBottom: 8,
+        background: show && countedRight ? "var(--green-500)" : show && isPicked ? "var(--red-500)" : "white",
+        color: show && (countedRight || isPicked) ? "white" : "var(--ink)"
+      }
+    }, choice);
+  }), !selected.length && React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "var(--ink-muted)",
+      fontWeight: 800
+    }
+  }, "Pilih petunjuk dulu sebelum membuat keputusan."))), picked && React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: 16,
+      borderRadius: 12,
+      background: picked === c.answer && evidenceReady ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, picked === c.answer && evidenceReady ? "Investigasi tepat." : "Perlu ditinjau lagi."), " ", picked === c.answer && !evidenceReady ? "Keputusanmu benar, tetapi bukti yang dipilih belum cukup kuat atau masih ada distraksi. " : "", c.explain), picked && React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next,
+    style: {
+      width: "100%",
+      marginTop: 16
+    }
+  }, idx < cases.length - 1 ? "Kasus Berikutnya" : "Selesai")));
+};
+window.DeepfakeDetectiveGame = DeepfakeDetectiveGame;
+const SearchRescueGame = () => {
+  const missions = [{
+    title: "Cari nilai 72 di daftar nilai yang sudah terurut 30 data.",
+    answer: "Binary Search",
+    explain: "Data sudah terurut dan cukup besar, jadi binary search lebih efisien."
+  }, {
+    title: "Cari nama siswa di daftar presensi yang belum diurutkan.",
+    answer: "Linear Search",
+    explain: "Karena data belum terurut, linear search lebih aman."
+  }, {
+    title: "Cari kode buku pada katalog besar yang sudah urut abjad.",
+    answer: "Binary Search",
+    explain: "Katalog besar dan terurut cocok untuk binary search."
+  }, {
+    title: "Cari satu benda di laci kecil berisi 4 barang.",
+    answer: "Linear Search",
+    explain: "Untuk data sangat kecil, linear search sederhana dan cukup cepat."
+  }];
+  const choices = ["Linear Search", "Binary Search"];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState("");
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const m = missions[idx];
+  const pick = choice => {
+    if (picked) return;
+    setPicked(choice);
+    if (choice === m.answer) setCorrect(v => v + 1);
+  };
+  const next = () => {
+    if (idx < missions.length - 1) {
+      setIdx(idx + 1);
+      setPicked("");
+    } else {
+      setDone(true);
+    }
+  };
+  if (done) {
+    return React.createElement(GameEndScreen, {
+      gameId: "search-rescue",
+      correct: correct,
+      total: missions.length,
+      xp: Math.max(40, correct * 30),
+      extra: "Strategi pencarian selesai."
+    });
+  }
+  return React.createElement(GameShell, {
+    title: "Search Rescue",
+    subject: "informatika",
+    gameId: "search-rescue",
+    stats: [{
+      label: "Misi",
+      value: `${idx + 1}/${missions.length}`
+    }, {
+      label: "Benar",
+      value: correct,
+      color: "var(--green-500)"
+    }]
+  }, React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 30,
+      background: "white"
+    }
+  }, React.createElement("div", {
+    className: "tag tag-info",
+    style: {
+      marginBottom: 12
+    }
+  }, "Strategi Searching"), React.createElement("h2", {
+    className: "display",
+    style: {
+      fontSize: 30,
+      margin: "0 0 8px"
+    }
+  }, m.title), React.createElement("p", {
+    style: {
+      color: "var(--ink-muted)",
+      marginTop: 0
+    }
+  }, "Pilih algoritma pencarian yang paling masuk akal untuk kondisi data."), React.createElement("div", {
+    className: "responsive-grid-2",
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12,
+      marginTop: 18
+    }
+  }, choices.map(choice => {
+    const show = !!picked;
+    const right = choice === m.answer;
+    const wrong = show && picked === choice && !right;
+    return React.createElement("button", {
+      key: choice,
+      className: "btn btn-lg",
+      onClick: () => pick(choice),
+      disabled: show,
+      style: {
+        background: show && right ? "#D1FAE5" : wrong ? "#FEE2E2" : "white",
+        color: "var(--ink)"
+      }
+    }, choice);
+  })), picked && React.createElement("div", {
+    style: {
+      marginTop: 18,
+      padding: 16,
+      borderRadius: 12,
+      background: picked === m.answer ? "#D1FAE5" : "#FEE2E2",
+      lineHeight: 1.55
+    }
+  }, React.createElement("strong", null, picked === m.answer ? "Tepat." : "Belum tepat."), " ", m.explain), picked && React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: next,
+    style: {
+      width: "100%",
+      marginTop: 16
+    }
+  }, idx < missions.length - 1 ? "Misi Berikutnya" : "Selesai")));
+};
+window.SearchRescueGame = SearchRescueGame;
 const GameShell = ({
   title,
   subject,
@@ -15938,12 +19774,26 @@ const {
   NeuralLab,
   ImageClassifierLab,
   NetworkLab,
+  SiftCheckLab,
+  DatasetLabelingLab,
+  SpreadsheetMiniLab,
+  AIBiasAuditLab,
+  DigitalFootprintLab,
+  PythonTraceLab,
+  SearchQualityLab,
+  InstructionStudioLab,
   BugHunterGame,
   SortRaceGame,
   CaesarCipherGame,
   AIEthicsGame,
   PatternQuizGame,
-  BinaryTypingGame
+  PromptCraftGame,
+  BinaryTypingGame,
+  FlowchartBuilderGame,
+  LicenseQuestGame,
+  StoryboardSprintGame,
+  DeepfakeDetectiveGame,
+  SearchRescueGame
 } = window;
 const App = () => {
   const route = useRoute();
@@ -15962,10 +19812,12 @@ const App = () => {
   if (route === "/login") return React.createElement(LoginPage, null);
   if (!window.SIGMA_AUTH.hasProfiles()) return React.createElement(LoginPage, null);
   if (route === "/dashboard") return React.createElement(Dashboard, null);
+  if (route === "/guru") return React.createElement(window.TeacherDashboard, null);
   if (route === "/playground") return React.createElement(Playground, null);
-  const kelasMatch = route.match(/^\/kelas\/(\d+)$/);
+  const kelasMatch = route.match(/^\/kelas\/(\d+)(?:\/(informatika|kka))?$/);
   if (kelasMatch) return React.createElement(Catalog, {
-    level: kelasMatch[1]
+    level: kelasMatch[1],
+    initialFilter: kelasMatch[2] || "all"
   });
   const modulMatch = route.match(/^\/modul\/([\w-]+)$/);
   if (modulMatch) return React.createElement(ModuleDetail, {
@@ -16012,13 +19864,27 @@ const App = () => {
   if (route === "/lab/neural-playground") return canOpenLab("neural-playground") || React.createElement(NeuralLab, null);
   if (route === "/lab/image-classifier") return canOpenLab("image-classifier") || React.createElement(ImageClassifierLab, null);
   if (route === "/lab/network-sim") return canOpenLab("network-sim") || React.createElement(NetworkLab, null);
+  if (route === "/lab/sift-check") return canOpenLab("sift-check") || React.createElement(SiftCheckLab, null);
+  if (route === "/lab/dataset-labeling") return canOpenLab("dataset-labeling") || React.createElement(DatasetLabelingLab, null);
+  if (route === "/lab/spreadsheet-mini") return canOpenLab("spreadsheet-mini") || React.createElement(SpreadsheetMiniLab, null);
+  if (route === "/lab/ai-bias-audit") return canOpenLab("ai-bias-audit") || React.createElement(AIBiasAuditLab, null);
+  if (route === "/lab/digital-footprint") return canOpenLab("digital-footprint") || React.createElement(DigitalFootprintLab, null);
+  if (route === "/lab/python-trace") return canOpenLab("python-trace") || React.createElement(PythonTraceLab, null);
+  if (route === "/lab/search-quality") return canOpenLab("search-quality") || React.createElement(SearchQualityLab, null);
+  if (route === "/lab/instruction-studio") return canOpenLab("instruction-studio") || React.createElement(InstructionStudioLab, null);
   if (route === "/gim") return React.createElement(GameList, null);
   if (route === "/gim/bug-hunter") return canOpenGame("bug-hunter") || React.createElement(BugHunterGame, null);
   if (route === "/gim/sort-race") return canOpenGame("sort-race") || React.createElement(SortRaceGame, null);
   if (route === "/gim/caesar-cipher") return canOpenGame("caesar-cipher") || React.createElement(CaesarCipherGame, null);
   if (route === "/gim/ai-ethics") return canOpenGame("ai-ethics") || React.createElement(AIEthicsGame, null);
   if (route === "/gim/pattern-quiz") return canOpenGame("pattern-quiz") || React.createElement(PatternQuizGame, null);
+  if (route === "/gim/prompt-craft") return canOpenGame("prompt-craft") || React.createElement(PromptCraftGame, null);
   if (route === "/gim/typing-binary") return canOpenGame("typing-binary") || React.createElement(BinaryTypingGame, null);
+  if (route === "/gim/flowchart-builder") return canOpenGame("flowchart-builder") || React.createElement(FlowchartBuilderGame, null);
+  if (route === "/gim/license-quest") return canOpenGame("license-quest") || React.createElement(LicenseQuestGame, null);
+  if (route === "/gim/storyboard-sprint") return canOpenGame("storyboard-sprint") || React.createElement(StoryboardSprintGame, null);
+  if (route === "/gim/deepfake-detective") return canOpenGame("deepfake-detective") || React.createElement(DeepfakeDetectiveGame, null);
+  if (route === "/gim/search-rescue") return canOpenGame("search-rescue") || React.createElement(SearchRescueGame, null);
   return React.createElement("div", {
     style: {
       minHeight: "100vh",

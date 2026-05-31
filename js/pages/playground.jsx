@@ -243,11 +243,11 @@ function pythonEval(code) {
     return { stmts, endIdx: i };
   }
 
-  function getBlock(fromIdx, baseIndent) {
+  function getBlock(srcLines, fromIdx, baseIndent) {
     const block = [];
     let i = fromIdx;
-    while (i < lines.length) {
-      const raw = lines[i];
+    while (i < srcLines.length) {
+      const raw = srcLines[i];
       if (raw.trim() === "") { block.push(raw); i++; continue; }
       const indent = raw.match(/^ */)[0].length;
       if (indent <= baseIndent) break;
@@ -275,9 +275,10 @@ function pythonEval(code) {
       if (!inner) return [];
       return splitArgs(inner).map(x => evalExpr(x, env));
     }
-    // Function calls
+    // Function calls — hanya jika kurung pembuka menutup tepat di akhir,
+    // agar "sum(a)/len(a)" tidak salah dianggap satu pemanggilan fungsi.
     const fnMatch = expr.match(/^(\w+)\((.*)\)$/);
-    if (fnMatch) {
+    if (fnMatch && callClosesAtEnd(expr, fnMatch[1].length)) {
       const fn = fnMatch[1];
       const argsStr = fnMatch[2];
       const args = argsStr.trim() === "" ? [] : splitArgs(argsStr).map(a => evalExpr(a, env));
@@ -299,11 +300,17 @@ function pythonEval(code) {
       if (fn === "float") return parseFloat(args[0]);
       throw new Error(`Fungsi ${fn}() belum didukung di simulator`);
     }
-    // Operators (very basic left-to-right)
-    const ops = ["==", "!=", "<=", ">=", "<", ">", "+", "-", "*", "/", "%", "//"];
-    for (const op of ops) {
-      const i = findOpIdx(expr, op);
+    // Operators dengan presedensi (rendah->tinggi) & kiri-asosiatif:
+    // dipecah pada operator paling KANAN agar 10-3-2 = (10-3)-2 = 5.
+    const opGroups = [
+      ["==", "!=", "<=", ">=", "<", ">"],
+      ["+", "-"],
+      ["*", "//", "/", "%"],
+    ];
+    for (const group of opGroups) {
+      const i = findLastOpIdx(expr, group);
       if (i > 0) {
+        const op = ["//", "==", "!=", "<=", ">="].includes(expr.slice(i, i + 2)) ? expr.slice(i, i + 2) : expr[i];
         const left = evalExpr(expr.slice(0, i), env);
         const right = evalExpr(expr.slice(i + op.length), env);
         switch (op) {
@@ -342,6 +349,44 @@ function pythonEval(code) {
     // Parenthesized
     if (expr.startsWith("(") && expr.endsWith(")")) return evalExpr(expr.slice(1, -1), env);
     throw new Error(`Tidak bisa evaluasi: ${expr}`);
+  }
+
+  // True jika '(' pada openIdx menutup tepat di akhir expr (pemanggilan fungsi murni).
+  function callClosesAtEnd(expr, openIdx) {
+    let depth = 0, inStr = false, strCh = "";
+    for (let i = openIdx; i < expr.length; i++) {
+      const c = expr[i];
+      if (inStr) { if (c === strCh) inStr = false; continue; }
+      if (c === "'" || c === '"') { inStr = true; strCh = c; continue; }
+      if (c === "(" || c === "[") depth++;
+      else if (c === ")" || c === "]") { depth--; if (depth === 0) return i === expr.length - 1; }
+    }
+    return false;
+  }
+
+  // Cari operator paling KANAN (top-level) dari salah satu di `ops`.
+  function findLastOpIdx(expr, ops) {
+    let depth = 0, inStr = false, strCh = "", found = -1;
+    for (let i = 0; i < expr.length; i++) {
+      const c = expr[i];
+      if (inStr) { if (c === strCh) inStr = false; continue; }
+      if (c === "'" || c === '"') { inStr = true; strCh = c; continue; }
+      if (c === "(" || c === "[") { depth++; continue; }
+      if (c === ")" || c === "]") { depth--; continue; }
+      if (depth !== 0) continue;
+      const two = expr.slice(i, i + 2);
+      if ((two === "//" || two === "==" || two === "!=" || two === "<=" || two === ">=") && ops.includes(two)) { found = i; i++; continue; }
+      if (ops.includes(c)) {
+        if ((c === "<" || c === ">" || c === "=" || c === "!") && expr[i + 1] === "=") continue;
+        if (c === "/" && expr[i + 1] === "/") continue;
+        if (c === "-" || c === "+") {
+          const prev = expr.slice(0, i).replace(/\s+$/, "");
+          if (prev === "" || /[+\-*/%=<>(,]$/.test(prev)) continue; // tanda unary, bukan operator biner
+        }
+        found = i;
+      }
+    }
+    return found;
   }
 
   function findOpIdx(expr, op) {
@@ -433,7 +478,7 @@ function pythonEval(code) {
       if (forM) {
         const iter = evalExpr(forM[2], env);
         const bodyStart = i + 1;
-        const { block } = getBlock(bodyStart, indent);
+        const { block } = getBlock(lines, bodyStart, indent);
         for (const item of iter) {
           env[forM[1]] = item;
           exec(block, env, 0, 0);
@@ -449,11 +494,11 @@ function pythonEval(code) {
         let j = i;
         if (cond) {
           matched = true;
-          const { block, endIdx } = getBlock(j + 1, indent);
+          const { block, endIdx } = getBlock(lines, j + 1, indent);
           exec(block, env, 0, 0);
           j = endIdx;
         } else {
-          const { endIdx } = getBlock(j + 1, indent);
+          const { endIdx } = getBlock(lines, j + 1, indent);
           j = endIdx;
         }
         // check elif/else
@@ -467,22 +512,22 @@ function pythonEval(code) {
           if (elifM) {
             if (!matched && evalExpr(elifM[1], env)) {
               matched = true;
-              const { block, endIdx } = getBlock(j + 1, indent);
+              const { block, endIdx } = getBlock(lines, j + 1, indent);
               exec(block, env, 0, 0);
               j = endIdx;
             } else {
-              const { endIdx } = getBlock(j + 1, indent);
+              const { endIdx } = getBlock(lines, j + 1, indent);
               j = endIdx;
             }
             continue;
           }
           if (nl === "else:") {
             if (!matched) {
-              const { block, endIdx } = getBlock(j + 1, indent);
+              const { block, endIdx } = getBlock(lines, j + 1, indent);
               exec(block, env, 0, 0);
               j = endIdx;
             } else {
-              const { endIdx } = getBlock(j + 1, indent);
+              const { endIdx } = getBlock(lines, j + 1, indent);
               j = endIdx;
             }
             break;
@@ -496,7 +541,7 @@ function pythonEval(code) {
       // while (bounded)
       const whM = line.match(/^while\s+(.+):$/);
       if (whM) {
-        const { block } = getBlock(i + 1, indent);
+        const { block } = getBlock(lines, i + 1, indent);
         let guard = 0;
         while (evalExpr(whM[1], env)) {
           if (guard++ > 10000) throw new Error("Loop terlalu panjang (max 10000 iterasi)");

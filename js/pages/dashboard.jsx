@@ -17,11 +17,25 @@ const Dashboard = () => {
 
   const user = window.USER;
   const modules = window.CURRICULUM.modules;
+  const subjectOrder = ["informatika", "kka"];
   const levelModules = modules
-    .filter(m => m.level === user.level && m.subject === "informatika")
-    .sort((a, b) => (a.unit || 0) - (b.unit || 0));
+    .filter(m => m.level === user.level)
+    .sort((a, b) => (a.subject === b.subject ? (a.unit || 0) - (b.unit || 0) : subjectOrder.indexOf(a.subject) - subjectOrder.indexOf(b.subject)));
+  const modulesBySubject = subjectOrder.map(subjectId => {
+    const subjectModules = levelModules.filter(m => m.subject === subjectId);
+    const activeModule = subjectModules.find(m => window.SIGMA_AUTH.isModuleSequenceUnlocked(m.id) && !window.SIGMA_AUTH.isModuleLearningComplete(m.id)) || subjectModules[0];
+    return {
+      subject: window.CURRICULUM.subjects[subjectId],
+      module: activeModule,
+      modules: subjectModules,
+      progress: activeModule ? (window.USER.progress[activeModule.id] || { percent: 0, lessonsDone: 0, total: activeModule.lessons || 1 }) : null,
+      stepStatus: activeModule ? window.SIGMA_AUTH.getLearningStepStatus(activeModule.id) : {},
+    };
+  });
   const continueItem = {
-    module: levelModules.find(m => window.SIGMA_AUTH.isModuleSequenceUnlocked(m.id) && !window.SIGMA_AUTH.isModuleLearningComplete(m.id)) || levelModules[0],
+    module: modulesBySubject.find(track => track.module && track.progress?.lessonsDone > 0 && !window.SIGMA_AUTH.isModuleLearningComplete(track.module.id))?.module
+      || modulesBySubject.find(track => track.module && !window.SIGMA_AUTH.isModuleLearningComplete(track.module.id))?.module
+      || levelModules[0],
     progress: null,
   };
   const continueModule = continueItem.module;
@@ -48,7 +62,7 @@ const Dashboard = () => {
               Halo, <span style={{ color: "var(--ai-500)" }}>{user.nickname}!</span> 👋
             </h1>
             <p style={{ fontSize: 15, color: "var(--ink-muted)", marginTop: 6, margin: 0 }}>
-              Siap lanjut petualangan koding hari ini?
+              Pilih jalur Informatika atau Koding & AI, lalu lanjutkan modul sesuai urutan.
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -88,26 +102,20 @@ const Dashboard = () => {
 
         {/* Top grid */}
         <div className="dashboard-top-grid" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 24 }}>
-          {/* CTA — continue module */}
-          <div className="card" style={{ padding: 32, background: "linear-gradient(135deg, var(--navy-900), var(--navy-700))", color: "white", position: "relative", overflow: "hidden" }}>
+          {/* CTA — subject learning tracks */}
+          <div className="card" style={{ padding: 28, background: "linear-gradient(135deg, var(--navy-900), var(--navy-700))", color: "white", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: -60, right: -40, width: 220, height: 220, borderRadius: "50%", background: "var(--ai-400)", opacity: 0.3, filter: "blur(20px)" }}/>
             <div style={{ position: "absolute", bottom: -30, left: -20, width: 140, height: 140, borderRadius: "50%", background: "var(--gold-400)", opacity: 0.15, filter: "blur(12px)" }}/>
-            <div className="tag" style={{ background: "rgba(38,211,234,0.18)", color: "var(--info-300)", marginBottom: 14, position: "relative" }}>{continueSubject.name} • KELAS {continueModule?.level || user.level} • LANJUTKAN</div>
-            <h2 className="display mobile-safe-title" style={{ fontSize: 38, margin: 0, lineHeight: 1.05, position: "relative" }}>{continueModule?.title || "Mulai Modul Pertama"}</h2>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 12, maxWidth: 460, position: "relative" }}>
-              {continueProgress.lessonsDone > 0
-                ? `Kamu sudah selesai ${continueProgress.lessonsDone} dari ${continueProgress.total} pelajaran. Lanjutkan sampai tuntas untuk dapat XP dan badge.`
-                : "Mulai modul pengayaan pertama dan simpan progress langsung di browser ini."}
+            <div className="tag" style={{ background: "rgba(38,211,234,0.18)", color: "var(--info-300)", marginBottom: 14, position: "relative" }}>KELAS {user.level} • DUA JALUR BELAJAR</div>
+            <h2 className="display mobile-safe-title" style={{ fontSize: 36, margin: 0, lineHeight: 1.05, position: "relative" }}>Informatika dan Koding & AI</h2>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 12, maxWidth: 560, position: "relative", lineHeight: 1.55 }}>
+              Dashboard sekarang menampilkan kedua mapel secara sejajar. Guru bisa langsung mengarahkan siswa ke KKA tanpa harus masuk katalog kelas lebih dulu.
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 20, position: "relative" }}>
-              <div style={{ flex: 1, maxWidth: 280, height: 10, background: "rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden" }}>
-                <div style={{ width: `${continueProgress.percent}%`, height: "100%", background: "linear-gradient(90deg, var(--ai-400), var(--gold-400))" }}/>
-              </div>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>{continueProgress.lessonsDone}/{continueProgress.total}</span>
+            <div className="dashboard-subject-track-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14, marginTop: 22, position: "relative" }}>
+              {modulesBySubject.map(track => (
+                <SubjectTrackCard key={track.subject.id} track={track}/>
+              ))}
             </div>
-            <Link to={`/modul/${continueModule?.id || "inf7-1"}`} className="btn btn-primary" style={{ marginTop: 22, padding: "14px 22px", position: "relative" }}>
-              <Icon.Play width="16" height="16"/> Lanjut Pelajaran
-            </Link>
           </div>
 
           {/* Badges */}
@@ -141,18 +149,22 @@ const Dashboard = () => {
         </div>
 
         {/* Continue learning */}
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "24px 0 14px" }}>
-          <h3 className="display" style={{ fontSize: 28, margin: 0 }}>Lanjutkan belajar</h3>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "24px 0 14px", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <h3 className="display" style={{ fontSize: 28, margin: 0 }}>Modul kelas {user.level}</h3>
+            <div style={{ fontSize: 13, color: "var(--ink-muted)", fontWeight: 700, marginTop: 3 }}>Informatika dan Koding & AI tampil berdampingan.</div>
+          </div>
           <Link to={`/kelas/${user.level}`} style={{ fontSize: 13, fontWeight: 700, color: "var(--ai-500)" }}>Semua modul →</Link>
         </div>
-        <div className="dashboard-module-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
-          {levelModules.slice(0, 3).map((m) => (
+        <div className="dashboard-module-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
+          {modulesBySubject.flatMap(track => track.modules.slice(0, 2)).map((m) => (
             <ModuleCard
               key={m.id}
               module={m}
               progress={window.USER.progress[m.id] || null}
               locked={!window.SIGMA_AUTH.isModuleSequenceUnlocked(m.id)}
               lockReason={window.SIGMA_AUTH.getPreviousModule(m.id) ? `Selesaikan dulu ${window.SIGMA_AUTH.getPreviousModule(m.id).title}.` : ""}
+              compact
             />
           ))}
         </div>
@@ -240,6 +252,41 @@ const StatPill = ({ icon, label, value, color }) => {
       <div>
         <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-subtle)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
         <div style={{ fontWeight: 800, fontSize: 15 }}>{value}</div>
+      </div>
+    </div>
+  );
+};
+
+const SubjectTrackCard = ({ track }) => {
+  const { subject, module, progress, stepStatus, modules } = track;
+  const IconComp = Icon[subject.icon];
+  const doneCount = modules.filter(m => window.SIGMA_AUTH.isModuleLearningComplete(m.id)).length;
+  const progressText = progress ? `${progress.lessonsDone}/${progress.total} pelajaran` : "0/0 pelajaran";
+  const activeStep = stepStatus.kuisDone ? "Kuis selesai" : stepStatus.misiDone ? "Siap kuis" : stepStatus.materiDone ? "Siap misi" : "Baca materi";
+
+  return (
+    <div style={{ padding: 16, background: "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.18)", borderRadius: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: subject.colorMid, color: "var(--navy-950)", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid rgba(255,255,255,0.78)", flexShrink: 0 }}>
+          <IconComp width="22" height="22"/>
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 900, fontSize: 15 }}>{subject.name}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.64)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em" }}>{doneCount}/{modules.length} modul tuntas</div>
+        </div>
+      </div>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, lineHeight: 1.12, minHeight: 44 }}>{module?.title || "Modul belum tersedia"}</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45, marginTop: 8 }}>{progressText} • {activeStep}</div>
+      <div style={{ height: 7, background: "rgba(255,255,255,0.14)", borderRadius: 10, overflow: "hidden", marginTop: 12 }}>
+        <div style={{ width: `${progress?.percent || 0}%`, height: "100%", background: subject.colorMid }}/>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+        <Link to={`/modul/${module?.id || ""}`} className="btn btn-sm btn-primary" style={{ pointerEvents: module ? "auto" : "none", opacity: module ? 1 : 0.5 }}>
+          <Icon.Play width="13" height="13"/> Buka
+        </Link>
+        <Link to={`/kelas/${module?.level || window.USER.level}/${subject.id}`} className="btn btn-sm" style={{ background: "white" }}>
+          Semua {subject.shortName || subject.name}
+        </Link>
       </div>
     </div>
   );

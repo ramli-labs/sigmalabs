@@ -556,7 +556,109 @@ window.PatternQuizGame = PatternQuizGame;
 
 
 // ============================================
-// GAME 6 — Binary Typing Challenge
+// GAME 6 — Prompt Craft
+// ============================================
+
+const PromptCraftGame = () => {
+  const rounds = [
+    {
+      task: "Minta AI membantu membuat ringkasan materi jaringan komputer.",
+      answer: "Buat ringkasan 5 poin tentang jaringan komputer untuk siswa kelas 7, pakai bahasa sederhana dan contoh di sekolah.",
+      options: [
+        "Ringkas dong.",
+        "Buat ringkasan 5 poin tentang jaringan komputer untuk siswa kelas 7, pakai bahasa sederhana dan contoh di sekolah.",
+        "Buatkan jawaban ulangan jaringan komputer.",
+      ],
+      explain: "Prompt terbaik memberi konteks, tujuan, batas panjang, dan audiens. Ia tidak meminta jawaban curang.",
+    },
+    {
+      task: "Minta AI mengecek ide poster etika digital tanpa membocorkan data pribadi.",
+      answer: "Nilai ide poster ini secara umum: tema sopan di grup kelas, tanpa menyebut nama teman. Beri 3 saran perbaikan.",
+      options: [
+        "Ini nama teman saya dan chat lengkapnya, tolong nilai.",
+        "Buat poster viral yang mempermalukan teman.",
+        "Nilai ide poster ini secara umum: tema sopan di grup kelas, tanpa menyebut nama teman. Beri 3 saran perbaikan.",
+      ],
+      explain: "Prompt aman tidak membagikan data pribadi dan tetap menjaga dampak pada orang lain.",
+    },
+    {
+      task: "Minta AI membantu belajar, bukan menggantikan proses berpikir.",
+      answer: "Beri petunjuk bertahap untuk menyelesaikan soal ini, jangan langsung berikan jawaban akhir.",
+      options: [
+        "Beri petunjuk bertahap untuk menyelesaikan soal ini, jangan langsung berikan jawaban akhir.",
+        "Jawab semua soal ini sekarang.",
+        "Buat jawaban yang terlihat seperti tulisan saya.",
+      ],
+      explain: "Prompt belajar yang baik meminta petunjuk atau umpan balik, bukan mengambil alih tugas siswa.",
+    },
+  ];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const r = rounds[idx];
+
+  const pick = (opt) => {
+    if (picked) return;
+    setPicked(opt);
+    if (opt === r.answer) setCorrect(v => v + 1);
+  };
+  const next = () => {
+    if (idx < rounds.length - 1) {
+      setIdx(idx + 1);
+      setPicked(null);
+    } else {
+      setDone(true);
+    }
+  };
+
+  if (done) {
+    return <GameEndScreen gameId="prompt-craft" correct={correct} total={rounds.length} xp={Math.max(40, correct * 35)} extra="Prompt sudah ditinjau." />;
+  }
+
+  return (
+    <GameShell title="Prompt Tepat" subject="kka" gameId="prompt-craft"
+      stats={[
+        { label: "Kasus", value: `${idx + 1}/${rounds.length}` },
+        { label: "Benar", value: correct, color: "var(--green-500)" },
+      ]}>
+      <div className="card" style={{ padding: 30, background: "white" }}>
+        <div className="tag tag-ai" style={{ marginBottom: 12 }}>Prompt AI Bertanggung Jawab</div>
+        <h2 className="display" style={{ fontSize: 30, margin: "0 0 10px" }}>{r.task}</h2>
+        <p style={{ color: "var(--ink-muted)", marginTop: 0 }}>Pilih prompt yang paling jelas, aman, dan mendukung proses belajar.</p>
+        <div style={{ display: "grid", gap: 12, marginTop: 18 }}>
+          {r.options.map(opt => {
+            const show = picked !== null;
+            const isRight = opt === r.answer;
+            const isPicked = picked === opt;
+            return (
+              <button key={opt} onClick={() => pick(opt)} disabled={show} className="btn" style={{
+                padding: 16,
+                justifyContent: "flex-start",
+                textAlign: "left",
+                whiteSpace: "normal",
+                background: show && isRight ? "#D1FAE5" : show && isPicked ? "#FEE2E2" : "white",
+                color: "var(--ink)",
+              }}>{opt}</button>
+            );
+          })}
+        </div>
+        {picked && (
+          <div style={{ marginTop: 18, padding: 16, borderRadius: 12, background: picked === r.answer ? "#D1FAE5" : "#FEE2E2", lineHeight: 1.55 }}>
+            <strong>{picked === r.answer ? "Tepat." : "Belum tepat."}</strong> {r.explain}
+          </div>
+        )}
+        {picked && <button className="btn btn-primary" onClick={next} style={{ width: "100%", marginTop: 16 }}>{idx < rounds.length - 1 ? "Kasus Berikutnya" : "Selesai"}</button>}
+      </div>
+    </GameShell>
+  );
+};
+
+window.PromptCraftGame = PromptCraftGame;
+
+
+// ============================================
+// GAME 7 — Binary Typing Challenge
 // ============================================
 
 const BinaryTypingGame = () => {
@@ -643,6 +745,477 @@ const BinaryTypingGame = () => {
   );
 };
 window.BinaryTypingGame = BinaryTypingGame;
+
+
+// ============================================
+// GAME 7 — Flowchart Builder
+// ============================================
+
+const FlowchartBuilderGame = () => {
+  const puzzles = [
+    {
+      title: "Kuis Sederhana",
+      prompt: "Susun alur program kuis sampai skor ditampilkan.",
+      steps: ["Mulai", "Tampilkan soal", "Ambil jawaban", "Cek benar/salah", "Tambah skor jika benar", "Tampilkan skor"],
+    },
+    {
+      title: "Login Aman",
+      prompt: "Susun alur pengecekan login dengan percabangan.",
+      steps: ["Mulai", "Input username dan password", "Cek kecocokan data", "Jika benar masuk dashboard", "Jika salah tampilkan pesan", "Selesai"],
+    },
+    {
+      title: "Jadwal Piket",
+      prompt: "Susun alur membuat jadwal piket yang adil.",
+      steps: ["Daftar anggota", "Daftar hari", "Bagi giliran", "Cek tidak ada yang terlewat", "Publikasikan jadwal"],
+    },
+  ];
+  const [idx, setIdx] = useState(0);
+  const [pool, setPool] = useState(() => [...puzzles[0].steps].sort(() => Math.random() - 0.5));
+  const [answer, setAnswer] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+
+  const puzzle = puzzles[idx];
+  const resetPuzzle = (nextIdx = idx) => {
+    setIdx(nextIdx);
+    setPool([...puzzles[nextIdx].steps].sort(() => Math.random() - 0.5));
+    setAnswer([]);
+    setChecked(false);
+  };
+  const add = (step) => {
+    if (checked) return;
+    setPool(pool.filter(s => s !== step));
+    setAnswer([...answer, step]);
+  };
+  const undo = (step) => {
+    if (checked) return;
+    setAnswer(answer.filter(s => s !== step));
+    setPool([...pool, step]);
+  };
+  const correct = answer.length === puzzle.steps.length && answer.every((s, i) => s === puzzle.steps[i]);
+  const check = () => {
+    if (!checked && correct) setScore(score + 1);
+    setChecked(true);
+  };
+  const finalScore = score;
+  const next = () => {
+    if (idx < puzzles.length - 1) resetPuzzle(idx + 1);
+    else setDone(true);
+  };
+
+  if (done) {
+    return <GameEndScreen gameId="flowchart-builder" correct={finalScore} total={puzzles.length} xp={Math.max(40, finalScore * 35)} extra="Flowchart selesai disusun." />;
+  }
+
+  return (
+    <GameShell title="Flowchart Builder" subject="informatika" gameId="flowchart-builder"
+      stats={[
+        { label: "Puzzle", value: `${idx + 1}/${puzzles.length}` },
+        { label: "Benar", value: score, color: "var(--green-500)" },
+      ]}>
+      <div className="card" style={{ padding: 28, background: "white" }}>
+        <div className="tag tag-info" style={{ marginBottom: 10 }}>{puzzle.title}</div>
+        <h2 className="display" style={{ fontSize: 28, margin: "0 0 8px" }}>{puzzle.prompt}</h2>
+        <p style={{ color: "var(--ink-muted)", marginTop: 0 }}>Klik kartu dari bank langkah ke area jawaban. Urutan harus logis seperti flowchart/pseudocode.</p>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 20 }}>
+          <div style={{ padding: 16, background: "var(--bg)", borderRadius: 14 }}>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Bank langkah</div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {pool.map(s => <button key={s} onClick={() => add(s)} className="btn" style={{ justifyContent: "flex-start", textAlign: "left" }}>{s}</button>)}
+            </div>
+          </div>
+          <div style={{ padding: 16, background: "var(--bg-cream)", borderRadius: 14, border: "1.5px solid var(--gold-400)" }}>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Jawaban</div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {answer.map((s, i) => (
+                <button key={s} onClick={() => undo(s)} className="btn" style={{ justifyContent: "flex-start", background: checked ? (puzzle.steps[i] === s ? "#D1FAE5" : "#FEE2E2") : "white", textAlign: "left" }}>
+                  <span style={{ fontWeight: 900 }}>{i + 1}.</span> {s}
+                </button>
+              ))}
+              {answer.length === 0 && <div style={{ padding: 18, color: "var(--ink-subtle)", border: "1.5px dashed var(--line-strong)", borderRadius: 12 }}>Belum ada langkah.</div>}
+            </div>
+          </div>
+        </div>
+        {checked && (
+          <div style={{ marginTop: 16, padding: 14, borderRadius: 12, background: correct ? "#D1FAE5" : "#FEE2E2", fontWeight: 800 }}>
+            {correct ? "Alurnya sudah tepat." : "Urutannya belum pas. Bandingkan dengan logika input, proses, keputusan, lalu output."}
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end", flexWrap: "wrap" }}>
+          <button className="btn" onClick={() => resetPuzzle()}>Acak Ulang</button>
+          {!checked ? <button className="btn btn-info" onClick={check} disabled={answer.length !== puzzle.steps.length}>Periksa</button> : <button className="btn btn-primary" onClick={next}>{idx < puzzles.length - 1 ? "Lanjut" : "Selesai"}</button>}
+        </div>
+      </div>
+    </GameShell>
+  );
+};
+
+window.FlowchartBuilderGame = FlowchartBuilderGame;
+
+
+// ============================================
+// GAME 8 — License Quest
+// ============================================
+
+const LicenseQuestGame = () => {
+  const scenarios = [
+    { item: "Foto teman sedang presentasi", context: "Akan dipakai di poster sekolah.", answer: "Perlu izin", explain: "Ada wajah orang lain, jadi perlu persetujuan sebelum disebarkan." },
+    { item: "Ikon berlisensi CC-BY", context: "Akan dipakai di infografis tugas.", answer: "Boleh dengan atribusi", explain: "CC-BY boleh dipakai jika mencantumkan pembuat/sumber." },
+    { item: "Lagu populer dari platform streaming", context: "Akan jadi musik latar video publik.", answer: "Tidak boleh sembarang", explain: "Hak cipta musik biasanya perlu lisensi khusus untuk publikasi." },
+    { item: "Gambar CC0/public domain", context: "Akan dipakai di slide kelas.", answer: "Boleh dipakai", explain: "CC0/public domain dapat dipakai bebas, tetap baik jika mencatat sumber." },
+    { item: "Artikel blog disalin penuh", context: "Akan ditempel ke caption kampanye.", answer: "Tidak boleh sembarang", explain: "Menyalin karya penuh tanpa izin/atribusi adalah plagiarisme dan pelanggaran hak cipta." },
+  ];
+  const choices = ["Boleh dipakai", "Boleh dengan atribusi", "Perlu izin", "Tidak boleh sembarang"];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const s = scenarios[idx];
+
+  const pick = (choice) => {
+    if (picked) return;
+    setPicked(choice);
+    if (choice === s.answer) setCorrect(correct + 1);
+  };
+  const next = () => {
+    if (idx < scenarios.length - 1) {
+      setIdx(idx + 1);
+      setPicked(null);
+    } else {
+      setDone(true);
+    }
+  };
+  const finalCorrect = correct;
+
+  if (done) {
+    return <GameEndScreen gameId="license-quest" correct={finalCorrect} total={scenarios.length} xp={finalCorrect * 20} extra="Keputusan lisensi selesai ditinjau." />;
+  }
+
+  return (
+    <GameShell title="Quest Lisensi Konten" subject="kka" gameId="license-quest"
+      stats={[
+        { label: "Kasus", value: `${idx + 1}/${scenarios.length}` },
+        { label: "Benar", value: correct, color: "var(--green-500)" },
+      ]}>
+      <div className="card" style={{ padding: 30, background: "white" }}>
+        <div className="tag tag-ai" style={{ marginBottom: 12 }}>Keputusan Konten</div>
+        <h2 className="display" style={{ fontSize: 30, margin: "0 0 8px" }}>{s.item}</h2>
+        <div style={{ padding: 16, borderRadius: 14, background: "var(--ai-100)", color: "var(--ink)", fontWeight: 800, marginBottom: 20 }}>{s.context}</div>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {choices.map(choice => {
+            const show = picked !== null;
+            const isRight = choice === s.answer;
+            const isPicked = picked === choice;
+            return (
+              <button key={choice} onClick={() => pick(choice)} disabled={show} className="btn" style={{
+                padding: 16,
+                background: show && isRight ? "var(--green-500)" : show && isPicked ? "var(--red-500)" : "white",
+                color: show && (isRight || isPicked) ? "white" : "var(--ink)",
+              }}>{choice}</button>
+            );
+          })}
+        </div>
+        {picked && (
+          <div style={{ marginTop: 18, padding: 16, borderRadius: 12, background: picked === s.answer ? "#D1FAE5" : "#FEE2E2", lineHeight: 1.55 }}>
+            <strong>{picked === s.answer ? "Tepat." : "Belum tepat."}</strong> {s.explain}
+          </div>
+        )}
+        {picked && <button className="btn btn-primary" onClick={next} style={{ width: "100%", marginTop: 16 }}>{idx < scenarios.length - 1 ? "Kasus Berikutnya" : "Selesai"}</button>}
+      </div>
+    </GameShell>
+  );
+};
+
+window.LicenseQuestGame = LicenseQuestGame;
+
+
+// ============================================
+// GAME 9 — Storyboard Sprint
+// ============================================
+
+const StoryboardSprintGame = () => {
+  const rounds = [
+    {
+      title: "Video tips belajar 30 detik",
+      answer: ["Hook masalah", "Tiga tips utama", "Contoh singkat", "Ajakan refleksi"],
+      pool: ["Ajakan refleksi", "Tiga tips utama", "Hook masalah", "Contoh singkat"],
+      explain: "Video pendek perlu membuka masalah dulu, memberi isi utama, contoh, lalu penutup.",
+    },
+    {
+      title: "Publikasi video kelas",
+      answer: ["Cek wajah dan izin", "Cek musik/aset", "Tulis caption dan sumber", "Pilih platform"],
+      pool: ["Pilih platform", "Cek musik/aset", "Cek wajah dan izin", "Tulis caption dan sumber"],
+      explain: "Sebelum publikasi, privasi dan lisensi harus dicek sebelum memilih platform.",
+    },
+    {
+      title: "Podcast wawancara guru",
+      answer: ["Buat daftar pertanyaan", "Rekam audio jelas", "Potong bagian tidak relevan", "Minta persetujuan publikasi"],
+      pool: ["Rekam audio jelas", "Minta persetujuan publikasi", "Buat daftar pertanyaan", "Potong bagian tidak relevan"],
+      explain: "Produksi audio butuh rencana, kualitas rekaman, editing, dan izin publikasi.",
+    },
+  ];
+  const [idx, setIdx] = useState(0);
+  const [pool, setPool] = useState(rounds[0].pool);
+  const [answer, setAnswer] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const r = rounds[idx];
+  const isRight = answer.length === r.answer.length && answer.every((x, i) => x === r.answer[i]);
+
+  const add = item => {
+    if (checked) return;
+    setPool(pool.filter(x => x !== item));
+    setAnswer([...answer, item]);
+  };
+  const undo = item => {
+    if (checked) return;
+    setAnswer(answer.filter(x => x !== item));
+    setPool([...pool, item]);
+  };
+  const check = () => {
+    setChecked(true);
+    if (isRight) setCorrect(v => v + 1);
+  };
+  const next = () => {
+    if (idx < rounds.length - 1) {
+      const nextIdx = idx + 1;
+      setIdx(nextIdx);
+      setPool(rounds[nextIdx].pool);
+      setAnswer([]);
+      setChecked(false);
+    } else {
+      setDone(true);
+    }
+  };
+
+  if (done) {
+    return <GameEndScreen gameId="storyboard-sprint" correct={correct} total={rounds.length} xp={Math.max(40, correct * 35)} extra="Storyboard selesai disusun." />;
+  }
+
+  return (
+    <GameShell title="Storyboard Sprint" subject="kka" gameId="storyboard-sprint"
+      stats={[
+        { label: "Ronde", value: `${idx + 1}/${rounds.length}` },
+        { label: "Benar", value: correct, color: "var(--green-500)" },
+      ]}>
+      <div className="card" style={{ padding: 28, background: "white" }}>
+        <div className="tag tag-ai" style={{ marginBottom: 10 }}>Produksi Konten</div>
+        <h2 className="display" style={{ fontSize: 30, margin: "0 0 8px" }}>{r.title}</h2>
+        <p style={{ color: "var(--ink-muted)", marginTop: 0 }}>Susun urutan scene atau keputusan produksi yang paling aman dan jelas.</p>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 18 }}>
+          <div style={{ padding: 16, background: "var(--bg)", borderRadius: 14 }}>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Bank pilihan</div>
+            <div style={{ display: "grid", gap: 8 }}>{pool.map(item => <button key={item} onClick={() => add(item)} className="btn" style={{ justifyContent: "flex-start", textAlign: "left" }}>{item}</button>)}</div>
+          </div>
+          <div style={{ padding: 16, background: "var(--bg-cream)", borderRadius: 14 }}>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Storyboard</div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {answer.map((item, i) => (
+                <button key={item} onClick={() => undo(item)} className="btn" style={{ justifyContent: "flex-start", textAlign: "left", background: checked ? (r.answer[i] === item ? "#D1FAE5" : "#FEE2E2") : "white" }}>
+                  <span style={{ fontWeight: 900 }}>{i + 1}.</span> {item}
+                </button>
+              ))}
+              {answer.length === 0 && <div style={{ padding: 18, color: "var(--ink-subtle)", border: "1.5px dashed var(--line-strong)", borderRadius: 12 }}>Belum ada urutan.</div>}
+            </div>
+          </div>
+        </div>
+        {checked && <div style={{ marginTop: 16, padding: 14, borderRadius: 12, background: isRight ? "#D1FAE5" : "#FEE2E2", lineHeight: 1.55 }}><strong>{isRight ? "Urutan tepat." : "Urutan perlu diperbaiki."}</strong> {r.explain}</div>}
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 16 }}>
+          {!checked ? <button className="btn btn-ai" onClick={check} disabled={answer.length !== r.answer.length}>Periksa</button> : <button className="btn btn-primary" onClick={next}>{idx < rounds.length - 1 ? "Ronde Berikutnya" : "Selesai"}</button>}
+        </div>
+      </div>
+    </GameShell>
+  );
+};
+
+window.StoryboardSprintGame = StoryboardSprintGame;
+
+
+// ============================================
+// GAME 10 — Deepfake Detective
+// ============================================
+
+const DeepfakeDetectiveGame = () => {
+  const cases = [
+    {
+      title: "Video pidato viral",
+      clues: ["Gerak bibir tidak sinkron", "Sumber pertama tidak jelas", "Tidak ada media tepercaya yang meliput"],
+      trap: "Jumlah share tinggi",
+      answer: "Perlu verifikasi",
+      explain: "Konten viral tetap perlu dicek. Sinkron bibir, sumber awal, dan liputan pembanding adalah petunjuk penting.",
+    },
+    {
+      title: "Foto kepala sekolah di poster resmi",
+      clues: ["Diunggah akun sekolah", "Ada tanggal dan kegiatan jelas", "Visual konsisten dengan poster lain"],
+      trap: "Warna poster mencolok",
+      answer: "Cukup kredibel",
+      explain: "Sumber resmi, konteks jelas, dan konsistensi visual membuat konten lebih kredibel.",
+    },
+    {
+      title: "Audio guru meminta transfer uang",
+      clues: ["Nomor pengirim tidak dikenal", "Mendesak dan rahasia", "Tidak mau diverifikasi lewat telepon sekolah"],
+      trap: "Suaranya mirip",
+      answer: "Berisiko tinggi",
+      explain: "Voice cloning bisa meniru suara. Permintaan uang mendesak harus diverifikasi lewat kanal resmi.",
+    },
+  ];
+  const choices = ["Cukup kredibel", "Perlu verifikasi", "Berisiko tinggi"];
+  const [idx, setIdx] = useState(0);
+  const [selected, setSelected] = useState([]);
+  const [picked, setPicked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const c = cases[idx];
+  const relevantPicked = selected.filter(clue => c.clues.includes(clue)).length;
+  const pickedTrap = selected.includes(c.trap);
+  const evidenceReady = relevantPicked >= 2 && !pickedTrap;
+
+  const toggle = (clue) => {
+    if (picked) return;
+    setSelected(s => s.includes(clue) ? s.filter(x => x !== clue) : [...s, clue]);
+  };
+  const choose = (choice) => {
+    if (picked) return;
+    setPicked(choice);
+    if (choice === c.answer && evidenceReady) setCorrect(correct + 1);
+  };
+  const next = () => {
+    if (idx < cases.length - 1) {
+      setIdx(idx + 1);
+      setSelected([]);
+      setPicked(null);
+    } else setDone(true);
+  };
+  if (done) {
+    return <GameEndScreen gameId="deepfake-detective" correct={correct} total={cases.length} xp={Math.max(40, correct * 40)} extra="Investigasi konten visual selesai." />;
+  }
+
+  return (
+    <GameShell title="Deepfake Detective" subject="kka" gameId="deepfake-detective"
+      stats={[
+        { label: "Kasus", value: `${idx + 1}/${cases.length}` },
+        { label: "Benar", value: correct, color: "var(--green-500)" },
+      ]}>
+      <div className="card" style={{ padding: 30, background: "white" }}>
+        <div className="tag tag-red" style={{ marginBottom: 12 }}>Investigasi Konten AI</div>
+        <h2 className="display" style={{ fontSize: 30, margin: "0 0 8px" }}>{c.title}</h2>
+        <p style={{ color: "var(--ink-muted)", marginTop: 0 }}>Pilih petunjuk yang relevan, abaikan distraksi, lalu buat keputusan.</p>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 18 }}>
+          <div style={{ padding: 16, background: "var(--bg)", borderRadius: 14 }}>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Petunjuk</div>
+            {[...c.clues, c.trap].sort().map(clue => {
+              const active = selected.includes(clue);
+              return (
+                <button key={clue} onClick={() => toggle(clue)} className="btn" style={{ width: "100%", marginBottom: 8, justifyContent: "flex-start", background: active ? "var(--gold-300)" : "white", textAlign: "left" }}>
+                  {active ? <Icon.Check width="14" height="14"/> : <Icon.Search width="14" height="14"/>} {clue}
+                </button>
+              );
+            })}
+            <div style={{ fontSize: 12, color: evidenceReady ? "var(--green-500)" : "var(--ink-muted)", fontWeight: 800, marginTop: 4 }}>
+              Bukti relevan: {relevantPicked}/2 {pickedTrap ? "- ada distraksi yang ikut dipilih" : ""}
+            </div>
+          </div>
+          <div style={{ padding: 16, background: "var(--bg-cream)", borderRadius: 14 }}>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Keputusan</div>
+            {choices.map(choice => {
+              const show = picked !== null;
+              const isRight = choice === c.answer;
+              const isPicked = picked === choice;
+              const countedRight = isRight && evidenceReady;
+              return (
+                <button key={choice} onClick={() => choose(choice)} disabled={show || !selected.length} className="btn" style={{
+                  width: "100%", marginBottom: 8,
+                  background: show && countedRight ? "var(--green-500)" : show && isPicked ? "var(--red-500)" : "white",
+                  color: show && (countedRight || isPicked) ? "white" : "var(--ink)",
+                }}>{choice}</button>
+              );
+            })}
+            {!selected.length && <div style={{ fontSize: 12, color: "var(--ink-muted)", fontWeight: 800 }}>Pilih petunjuk dulu sebelum membuat keputusan.</div>}
+          </div>
+        </div>
+        {picked && (
+          <div style={{ marginTop: 16, padding: 16, borderRadius: 12, background: picked === c.answer && evidenceReady ? "#D1FAE5" : "#FEE2E2", lineHeight: 1.55 }}>
+            <strong>{picked === c.answer && evidenceReady ? "Investigasi tepat." : "Perlu ditinjau lagi."}</strong> {picked === c.answer && !evidenceReady ? "Keputusanmu benar, tetapi bukti yang dipilih belum cukup kuat atau masih ada distraksi. " : ""}{c.explain}
+          </div>
+        )}
+        {picked && <button className="btn btn-primary" onClick={next} style={{ width: "100%", marginTop: 16 }}>{idx < cases.length - 1 ? "Kasus Berikutnya" : "Selesai"}</button>}
+      </div>
+    </GameShell>
+  );
+};
+
+window.DeepfakeDetectiveGame = DeepfakeDetectiveGame;
+
+
+// ============================================
+// GAME 11 — Search Rescue
+// ============================================
+
+const SearchRescueGame = () => {
+  const missions = [
+    { title: "Cari nilai 72 di daftar nilai yang sudah terurut 30 data.", answer: "Binary Search", explain: "Data sudah terurut dan cukup besar, jadi binary search lebih efisien." },
+    { title: "Cari nama siswa di daftar presensi yang belum diurutkan.", answer: "Linear Search", explain: "Karena data belum terurut, linear search lebih aman." },
+    { title: "Cari kode buku pada katalog besar yang sudah urut abjad.", answer: "Binary Search", explain: "Katalog besar dan terurut cocok untuk binary search." },
+    { title: "Cari satu benda di laci kecil berisi 4 barang.", answer: "Linear Search", explain: "Untuk data sangat kecil, linear search sederhana dan cukup cepat." },
+  ];
+  const choices = ["Linear Search", "Binary Search"];
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState("");
+  const [correct, setCorrect] = useState(0);
+  const [done, setDone] = useState(false);
+  const m = missions[idx];
+
+  const pick = choice => {
+    if (picked) return;
+    setPicked(choice);
+    if (choice === m.answer) setCorrect(v => v + 1);
+  };
+  const next = () => {
+    if (idx < missions.length - 1) {
+      setIdx(idx + 1);
+      setPicked("");
+    } else {
+      setDone(true);
+    }
+  };
+
+  if (done) {
+    return <GameEndScreen gameId="search-rescue" correct={correct} total={missions.length} xp={Math.max(40, correct * 30)} extra="Strategi pencarian selesai." />;
+  }
+
+  return (
+    <GameShell title="Search Rescue" subject="informatika" gameId="search-rescue"
+      stats={[
+        { label: "Misi", value: `${idx + 1}/${missions.length}` },
+        { label: "Benar", value: correct, color: "var(--green-500)" },
+      ]}>
+      <div className="card" style={{ padding: 30, background: "white" }}>
+        <div className="tag tag-info" style={{ marginBottom: 12 }}>Strategi Searching</div>
+        <h2 className="display" style={{ fontSize: 30, margin: "0 0 8px" }}>{m.title}</h2>
+        <p style={{ color: "var(--ink-muted)", marginTop: 0 }}>Pilih algoritma pencarian yang paling masuk akal untuk kondisi data.</p>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 18 }}>
+          {choices.map(choice => {
+            const show = !!picked;
+            const right = choice === m.answer;
+            const wrong = show && picked === choice && !right;
+            return (
+              <button key={choice} className="btn btn-lg" onClick={() => pick(choice)} disabled={show}
+                style={{ background: show && right ? "#D1FAE5" : wrong ? "#FEE2E2" : "white", color: "var(--ink)" }}>
+                {choice}
+              </button>
+            );
+          })}
+        </div>
+        {picked && <div style={{ marginTop: 18, padding: 16, borderRadius: 12, background: picked === m.answer ? "#D1FAE5" : "#FEE2E2", lineHeight: 1.55 }}><strong>{picked === m.answer ? "Tepat." : "Belum tepat."}</strong> {m.explain}</div>}
+        {picked && <button className="btn btn-primary" onClick={next} style={{ width: "100%", marginTop: 16 }}>{idx < missions.length - 1 ? "Misi Berikutnya" : "Selesai"}</button>}
+      </div>
+    </GameShell>
+  );
+};
+
+window.SearchRescueGame = SearchRescueGame;
 
 
 // ============================================

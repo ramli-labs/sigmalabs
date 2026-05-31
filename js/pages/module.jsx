@@ -191,6 +191,7 @@ const MateriTab = ({ mod, subject, onSwitchTab }) => {
   const savedReflection = window.USER.reflections?.[mod.id]?.[lessonIndex]?.text || "";
   const [reflection, setReflection] = useState(savedReflection);
   const [saved, setSaved] = useState(false);
+  const mastery = getLessonMasteryNotes(mod, lessonIndex, lesson);
 
   useEffect(() => {
     setReflection(window.USER.reflections?.[mod.id]?.[lessonIndex]?.text || "");
@@ -257,6 +258,35 @@ const MateriTab = ({ mod, subject, onSwitchTab }) => {
               <div style={{ fontSize: 15, color: "var(--navy-950)", lineHeight: 1.65 }}>{block.text}</div>
             </div>
           ))}
+        </div>
+
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14, margin: "24px 0" }}>
+          <div style={{ padding: 20, background: "#F0FDF4", border: "1.5px solid #A7F3D0", borderRadius: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 900, color: "var(--green-500)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
+              <Icon.Check width="14" height="14"/> Inti yang Harus Dikuasai
+            </div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {mastery.core.map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, lineHeight: 1.55, color: "var(--navy-950)", fontWeight: 700 }}>
+                  <span style={{ width: 22, height: 22, borderRadius: 7, background: "var(--green-500)", color: "white", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{i + 1}</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ padding: 20, background: "#FFF7ED", border: "1.5px solid #FDBA74", borderRadius: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 900, color: "var(--orange-500)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
+              <Icon.X width="14" height="14"/> Kesalahan Umum
+            </div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {mastery.misconceptions.map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, lineHeight: 1.55, color: "var(--navy-950)", fontWeight: 700 }}>
+                  <span style={{ width: 22, height: 22, borderRadius: 7, background: "var(--orange-500)", color: "white", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, flexShrink: 0 }}>!</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div style={{ padding: "20px 24px", background: subject.colorLight, borderRadius: 14, borderLeft: `4px solid ${subject.color}`, margin: "24px 0" }}>
@@ -380,14 +410,15 @@ const QuestTab = ({ mod, subject, onSwitchTab }) => {
     return sum + (activityScores[`${lessonIndex}-act-${i}`] || 0);
   }, 0);
   const actScore = actCount > 0 ? Math.min(75, Math.round((actSum / (actCount * 100)) * 75)) : 75;
-  const exitTicketMin = 20;
-  const reflScore = reflection.trim().length >= exitTicketMin ? 25 : 0;
+  const reflectionCheck = analyzeReflectionQuality(reflection, mission);
+  const exitTicketMin = reflectionCheck.minLength;
+  const reflScore = reflectionCheck.valid ? 25 : 0;
   const liveScore = actScore + reflScore;
   // For already-completed topics, show the stored best score (per topic)
   const storedBest = window.USER.quests?.[mod.id]?.[lessonIndex]?.bestScore || 0;
   const totalScore = isDone ? Math.max(liveScore, storedBest) : liveScore;
   const passed = totalScore >= mission.passScore;
-  const reflValid = reflection.trim().length >= exitTicketMin;
+  const reflValid = reflectionCheck.valid;
   const scoreColor = totalScore >= 70 ? "var(--green-500)" : totalScore >= 50 ? "var(--orange-500)" : "var(--ink-subtle)";
   const scoreBar  = totalScore >= 70 ? "var(--green-500)" : totalScore >= 50 ? "var(--orange-500)" : "var(--info-500)";
 
@@ -511,7 +542,7 @@ const QuestTab = ({ mod, subject, onSwitchTab }) => {
             </div>
             {!reflValid && reflection.trim().length > 0 && (
               <div style={{ fontSize: 12, color: "var(--orange-500)", fontWeight: 700 }}>
-                Tambahkan sedikit alasan agar refleksimu lebih bermakna.
+                Tambahkan {reflectionCheck.missing.join(", ")} agar refleksimu lebih bermakna.
               </div>
             )}
           </div>
@@ -554,15 +585,15 @@ const QuestTab = ({ mod, subject, onSwitchTab }) => {
           </div>
         </div>
 
-        {/* Pengayaan Opsional */}
+        {/* Latihan Penguat Modul Cetak */}
         {mission.extras.length > 0 && (
           <div style={{ padding: 24, background: "var(--bg)", borderRadius: 14, border: "1.5px dashed var(--line-strong)", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 900, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Pengayaan Opsional</span>
-              <span className="tag" style={{ marginLeft: "auto", fontSize: 11 }}>Setelah misi tuntas</span>
+              <span style={{ fontSize: 12, fontWeight: 900, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.09em" }}>Latihan Penguat Modul Cetak</span>
+              <span className="tag" style={{ marginLeft: "auto", fontSize: 11 }}>Rekomendasi SIGMA</span>
             </div>
             <p style={{ fontSize: 13, color: "var(--ink-muted)", marginBottom: 14 }}>
-              Lab dan gim berikut tersedia sebagai pengayaan setelah misi pemahaman selesai.
+              Pilih salah satu setelah misi pemahaman selesai. SIGMA menampilkan maksimal dua latihan yang paling dekat dengan unit ini agar siswa tidak asal klik terlalu banyak pilihan.
             </p>
             <div className="quest-activity-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}>
               {mission.extras.map((a, i) => <QuestActivity key={i} activity={a} onComplete={() => {}} done={false}/>)}
@@ -665,6 +696,31 @@ const QuestActivity = ({ activity, onComplete, done }) => {
     </Link>
   );
 };
+
+function analyzeReflectionQuality(text, mission) {
+  const raw = String(text || "").replace(/\s+/g, " ").trim();
+  const normalized = raw.toLowerCase();
+  const minLength = 70;
+  const summaryWords = (mission?.summaryPoints || [])
+    .join(" ")
+    .toLowerCase()
+    .split(/[^a-z0-9\u00c0-\u024f]+/i)
+    .filter(w => w.length >= 5);
+  const concepts = [...new Set([
+    ...(mission?.concepts || []),
+    ...summaryWords.slice(0, 14),
+  ].map(w => String(w).toLowerCase()))].filter(Boolean);
+  const conceptHits = concepts.filter(w => normalized.includes(w)).length;
+  const hasConcept = conceptHits > 0;
+  const hasExample = /contoh|misal|misalnya|seperti|di kelas|di sekolah|pengalaman|ketika|saat/.test(normalized);
+  const hasReason = /karena|sebab|agar|supaya|maka|sehingga|dampak|risiko|manfaat|penting/.test(normalized);
+  const missing = [];
+  if (raw.length < minLength) missing.push("tulisan lebih lengkap");
+  if (!hasConcept) missing.push("kata kunci materi");
+  if (!hasExample) missing.push("contoh nyata");
+  if (!hasReason) missing.push("alasan");
+  return { minLength, valid: missing.length === 0, missing };
+}
 
 const InteractiveQuestCard = ({ activity, onComplete, done }) => {
   const [values, setValues] = useState({});
@@ -2075,6 +2131,142 @@ function lessonSummaryPoints(lesson) {
   return pts.slice(0, 4);
 }
 
+function getLessonMasteryNotes(mod, index, lesson) {
+  const topic = mod.topics[index] || `Pengayaan ${index + 1}`;
+  const tl = topic.toLowerCase();
+  const core = [];
+  const seen = new Set();
+  const addCore = point => {
+    const cleaned = capText(String(point || "").replace(/\s+/g, " ").trim(), 135);
+    const key = cleaned.toLowerCase().replace(/[^a-z0-9]+/g, " ").slice(0, 72);
+    if (!cleaned || seen.has(key)) return;
+    seen.add(key);
+    core.push(cleaned);
+  };
+  lessonSummaryPoints(lesson).forEach(addCore);
+  (lesson.checks || []).forEach(check => addCore(check));
+  while (core.length < 3) {
+    const fallback = [
+      `Jelaskan ${tl} dengan kalimat sendiri, bukan hanya menghafal istilah.`,
+      `Hubungkan ${tl} dengan contoh nyata dari sekolah, rumah, atau ruang digital.`,
+      `Gunakan ${tl} untuk mengambil keputusan atau menyelesaikan masalah sederhana.`,
+    ][core.length];
+    addCore(fallback);
+  }
+  return {
+    core: core.slice(0, 3),
+    misconceptions: getCommonMisconceptions(topic, mod).slice(0, 3),
+  };
+}
+
+function getCommonMisconceptions(topic, mod) {
+  const t = `${topic} ${mod.title}`.toLowerCase();
+  const packs = [
+    {
+      test: /dekomposisi|abstraksi|pola|berpikir komputasional|problem solving|pemecahan masalah/.test(t),
+      items: [
+        "Mengira berpikir komputasional hanya untuk membuat program, padahal bisa dipakai untuk masalah sehari-hari.",
+        "Langsung mencari solusi tanpa memecah masalah dan memeriksa data penting terlebih dahulu.",
+        "Menganggap semua detail sama pentingnya, sehingga solusi menjadi terlalu rumit.",
+      ],
+    },
+    {
+      test: /algoritma|flowchart|pseudocode|instruksi|percabangan|perulangan|scratch|debug|program visual/.test(t),
+      items: [
+        "Mengira algoritma cukup jelas di kepala, padahal harus bisa diikuti orang lain secara runtut.",
+        "Mencampur percabangan dan perulangan: if/else untuk keputusan, loop untuk pengulangan.",
+        "Tidak menguji instruksi dengan contoh berbeda, sehingga kesalahan logika baru terlihat belakangan.",
+      ],
+    },
+    {
+      test: /data|spreadsheet|tabel|grafik|visualisasi|pivot|vlookup|dashboard|analisis/.test(t),
+      items: [
+        "Mengira data yang banyak otomatis benar, padahal data perlu rapi, relevan, dan dicek sumbernya.",
+        "Memakai grafik karena terlihat menarik, bukan karena cocok dengan pertanyaan data.",
+        "Membaca angka tunggal tanpa membandingkan konteks, kategori, atau tren.",
+      ],
+    },
+    {
+      test: /list|dictionary|stack|queue|tree|graf|struktur data|sorting|searching|bubble|binary search|linear/.test(t),
+      items: [
+        "Memakai struktur data yang sama untuk semua masalah, padahal list, dictionary, stack, dan queue punya fungsi berbeda.",
+        "Mengira binary search bisa dipakai pada data acak; algoritma ini membutuhkan data yang sudah terurut.",
+        "Fokus pada kode, tetapi lupa menelusuri perubahan nilai dan jumlah langkah algoritma.",
+      ],
+    },
+    {
+      test: /komputer|input|proses|output|cpu|hardware|software|memori|penyimpanan/.test(t),
+      items: [
+        "Menyamakan penyimpanan dan memori kerja, padahal keduanya punya peran berbeda.",
+        "Mengira software bisa bekerja tanpa hardware, atau hardware berguna tanpa instruksi software.",
+        "Melihat komputer hanya sebagai perangkat, bukan sebagai sistem input, proses, output, dan penyimpanan.",
+      ],
+    },
+    {
+      test: /jaringan|internet|router|topologi|tcp|ip|koneksi|nirkabel/.test(t),
+      items: [
+        "Mengira internet adalah satu komputer besar, padahal internet adalah jaringan dari banyak jaringan.",
+        "Langsung menyalahkan perangkat saat koneksi gagal, padahal gangguan bisa terjadi di router, ISP, server, atau aplikasi.",
+        "Menganggap semua jaringan sama, padahal LAN, WAN, PAN, kabel, dan nirkabel punya konteks penggunaan berbeda.",
+      ],
+    },
+    {
+      test: /pencari|search|kata kunci|sift|kredibilitas|sumber|hoaks|fakta|opini|verifikasi|media/.test(t),
+      items: [
+        "Mengira hasil paling atas di mesin pencari pasti paling benar.",
+        "Mencampur fakta dan opini karena keduanya sama-sama ditulis dengan gaya meyakinkan.",
+        "Membagikan informasi viral sebelum memeriksa sumber asli, tanggal, konteks, dan bukti pendukung.",
+      ],
+    },
+    {
+      test: /privasi|keamanan|password|phishing|otp|malware|jejak|reputasi|cyberbully|perundungan|identitas|data pribadi|pdp|deepfake/.test(t),
+      items: [
+        "Mengira data pribadi hanya nomor identitas, padahal foto, lokasi, akun, dan kebiasaan online juga bisa sensitif.",
+        "Menganggap unggahan bisa hilang total setelah dihapus, padahal jejak digital dapat disalin atau tersimpan.",
+        "Merespons perundungan digital dengan balasan emosional, bukan menyimpan bukti dan melapor dengan aman.",
+      ],
+    },
+    {
+      test: /mindfulness|screen time|fomo|detox|kesejahteraan|seimbang|digital sehat/.test(t),
+      items: [
+        "Mengira penggunaan digital sehat berarti berhenti memakai teknologi sepenuhnya.",
+        "Mengukur produktivitas dari lamanya waktu online, bukan dari tujuan dan kualitas kegiatannya.",
+        "Mengabaikan sinyal tubuh dan relasi sosial saat notifikasi terus mengambil perhatian.",
+      ],
+    },
+    {
+      test: /ka|ai|kecerdasan|artifisial|generatif|prompt|halusinasi|bias|dataset|data latih|model|klasifikasi|deepfake/.test(t),
+      items: [
+        "Mengira AI selalu benar karena jawabannya terdengar rapi dan meyakinkan.",
+        "Memasukkan data pribadi ke AI tanpa mempertimbangkan privasi dan jejak data.",
+        "Menganggap bias AI berasal dari niat AI, padahal sering muncul dari data latih dan desain sistem.",
+      ],
+    },
+    {
+      test: /konten|infografis|slide|presentasi|audio|video|storytelling|hak cipta|lisensi|diseminasi|platform|analytics|audiens|advokasi/.test(t),
+      items: [
+        "Memulai dari desain yang ramai, bukan dari tujuan, audiens, dan pesan utama.",
+        "Menggunakan aset internet tanpa memeriksa lisensi, atribusi, atau izin penggunaan.",
+        "Menilai konten hanya dari jumlah tayangan, bukan dari ketepatan pesan dan dampaknya.",
+      ],
+    },
+    {
+      test: /proyek|projek|sintesis|portofolio|pitch|presentasi akhir/.test(t),
+      items: [
+        "Memulai proyek dari alat yang ingin dipakai, bukan dari masalah yang ingin diselesaikan.",
+        "Menganggap proyek selesai setelah produk jadi, padahal perlu diuji, dievaluasi, dan didokumentasikan.",
+        "Menyembunyikan kendala proyek, padahal refleksi masalah dan perbaikan adalah bagian penting dari pembelajaran.",
+      ],
+    },
+  ];
+  const matched = packs.find(pack => pack.test);
+  return matched ? matched.items : [
+    "Mengira paham karena mengenal istilah, padahal belum tentu bisa menjelaskan dengan contoh.",
+    "Langsung mengerjakan kuis tanpa menghubungkan materi dengan pengalaman nyata.",
+    "Melewatkan aktivitas praktik, padahal praktik membantu menemukan bagian yang belum dipahami.",
+  ];
+}
+
 // Rotate the bucket pool so same-bucket topics (e.g. all-network modules) still differ
 // Stable string hash → spreads filler picks across different topics
 function hashStr(s) {
@@ -2172,6 +2364,7 @@ function buildUnderstandingMission(mod, index) {
   } else {
     extras = (getQuestContent(mod, index).activities || []).filter(a => a.type === "lab" || a.type === "game").slice(0, 2);
   }
+  extras = getModulePracticeExtras(mod, extras, index);
 
   return {
     id: `${mod.id || mod.slug}-${index}-understanding-mission`,
@@ -2184,6 +2377,65 @@ function buildUnderstandingMission(mod, index) {
     reflectionPrompt: `Refleksi singkat: tuliskan satu kalimat tentang hal paling penting dari materi "${topicTitle}" dan mengapa itu berguna.`,
     passScore: 70,
   };
+}
+
+function getModulePracticeExtras(mod, seededExtras = [], topicIndex = 0) {
+  const candidates = new Map();
+  const scoreItem = (type, item, sourceBonus = 0) => {
+    const primaryLevel = item.primaryLevel || item.level?.[0];
+    const isCurrentLevel = item.level?.includes(mod.level);
+    const sameSubject = item.subject === mod.subject;
+    const typeBalance = (topicIndex + sourceBonus) % 2 === 0
+      ? (type === "lab" ? 8 : 0)
+      : (type === "game" ? 8 : 0);
+    return (
+      sourceBonus +
+      (sameSubject ? 80 : 0) +
+      (primaryLevel === mod.level ? 45 : 0) +
+      (isCurrentLevel ? 25 : 0) +
+      typeBalance
+    );
+  };
+  const collect = (activity, sourceBonus = 0) => {
+    if (!activity || !activity.type || !activity.id) return;
+    const item = activity.type === "lab"
+      ? window.CURRICULUM.labs.find(l => l.id === activity.id)
+      : window.CURRICULUM.games.find(g => g.id === activity.id);
+    if (!item || !(item.moduleRefs || []).includes(mod.id)) return;
+    const key = `${activity.type}:${activity.id}`;
+    const score = scoreItem(activity.type, item, sourceBonus);
+    const current = candidates.get(key);
+    if (!current || score > current.score) {
+      candidates.set(key, {
+        activity: { type: activity.type, id: activity.id, reason: activity.reason || getPracticeReason(item, activity.type, mod) },
+        item,
+        score,
+      });
+    }
+  };
+
+  seededExtras.forEach(activity => collect(activity, 18));
+
+  const resources = [
+    ...window.CURRICULUM.labs.map(item => ({ type: "lab", item })),
+    ...window.CURRICULUM.games.map(item => ({ type: "game", item })),
+  ].filter(({ item }) => (item.moduleRefs || []).includes(mod.id));
+
+  resources.forEach(({ type, item }) => collect({ type, id: item.id, reason: getPracticeReason(item, type, mod) }, 0));
+
+  return [...candidates.values()]
+    .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+    .slice(0, 2)
+    .map(entry => entry.activity);
+}
+
+function getPracticeReason(item, type, mod) {
+  const skillText = (item.skills || []).slice(0, 2).join(" dan ");
+  const subject = window.CURRICULUM.subjects[item.subject]?.shortName || window.CURRICULUM.subjects[item.subject]?.name || item.subject;
+  if (skillText) {
+    return `${type === "lab" ? "Lab" : "Gim"} ${subject} ini menguatkan ${skillText.toLowerCase()} yang terkait langsung dengan unit ini.`;
+  }
+  return `${type === "lab" ? "Lab" : "Gim"} ini dipilih sebagai penguat praktik untuk ${mod.title}.`;
 }
 
 function getQuestContent(mod, index) {
@@ -2227,6 +2479,7 @@ function getQuestContent(mod, index) {
         activities: [
           { type: "interactive", kind: "sequence", title: "Susun Langkah Solusi", reason: "Klik langkah dalam urutan yang menurutmu paling masuk akal.", steps: ["Cari buku", "Cek ketersediaan", "Bawa ke petugas", "Pindai kartu", "Catat tanggal kembali"], answer: ["Cari buku", "Cek ketersediaan", "Bawa ke petugas", "Pindai kartu", "Catat tanggal kembali"] },
           { type: "game", id: "bug-hunter", reason: "Melatih membaca urutan instruksi dan menemukan langkah yang tidak tepat." },
+          { type: "game", id: "flowchart-builder", reason: "Mempraktikkan penyusunan alur algoritma dan keputusan bercabang." },
         ],
       },
       "Evaluasi Solusi": {
@@ -2235,6 +2488,7 @@ function getQuestContent(mod, index) {
         activities: [
           { type: "interactive", kind: "evaluate", title: "Cek Kualitas Solusi", reason: "Centang kriteria solusi yang baik, lalu pilih perbaikannya.", items: ["Jelas", "Adil", "Runtut", "Hemat waktu", "Bisa diuji"] },
           { type: "game", id: "sort-race", reason: "Melatih evaluasi urutan dan efisiensi langkah." },
+          { type: "game", id: "flowchart-builder", reason: "Mengubah evaluasi solusi menjadi urutan langkah yang bisa diuji." },
         ],
       },
       "Proyek LKPD Komputasional": {
@@ -2259,6 +2513,7 @@ function getQuestContent(mod, index) {
         concepts: ["def", "Parameter Default", "Keyword Arg", "Return"],
         activities: [
           { type: "interactive", kind: "sequence", title: "Alur Membuat Fungsi Lanjutan", reason: "Susun urutan langkah mendefinisikan fungsi Python dengan parameter default.", steps: ["Tulis def nama(param, default=nilai)", "Isi badan fungsi", "Tambahkan return", "Panggil tanpa argumen opsional", "Panggil dengan argumen eksplisit"], answer: ["Tulis def nama(param, default=nilai)", "Isi badan fungsi", "Tambahkan return", "Panggil tanpa argumen opsional", "Panggil dengan argumen eksplisit"] },
+          { type: "lab", id: "python-trace", reason: "Melatih trace nilai variabel dan return fungsi sebelum menulis kode mandiri." },
           { type: "game", id: "bug-hunter", reason: "Berlatih membaca kode Python dan menemukan kesalahan pada definisi atau pemanggilan fungsi." },
         ],
       },
@@ -2267,6 +2522,7 @@ function getQuestContent(mod, index) {
         concepts: ["Key-Value", "Akses", "Iterasi", "Update"],
         activities: [
           { type: "interactive", kind: "classify", title: "List atau Dictionary?", reason: "Tentukan struktur data yang paling cocok untuk setiap kebutuhan.", choices: ["List", "Dictionary", "Keduanya bisa"], items: ["Daftar nama siswa berurutan", "Profil siswa: nama, kelas, nilai", "Urutan langkah algoritma", "Pemetaan kode kelas ke wali kelas"], answer: { "Daftar nama siswa berurutan": "List", "Profil siswa: nama, kelas, nilai": "Dictionary", "Urutan langkah algoritma": "List", "Pemetaan kode kelas ke wali kelas": "Dictionary" } },
+          { type: "lab", id: "python-trace", reason: "Mempraktikkan pembacaan dictionary, update key, dan output program." },
           { type: "game", id: "bug-hunter", reason: "Berlatih menemukan kesalahan sintaks saat mengakses atau mengupdate dictionary Python." },
         ],
       },
@@ -2291,6 +2547,8 @@ function getQuestContent(mod, index) {
         concepts: ["Linear O(n)", "Binary O(log n)", "Data Terurut", "Efisiensi"],
         activities: [
           { type: "interactive", kind: "classify", title: "Linear atau Binary Search?", reason: "Pilih algoritma pencarian yang paling tepat untuk setiap situasi.", choices: ["Linear Search", "Binary Search", "Keduanya bisa"], items: ["Data tidak terurut, cari nama siswa", "Data terurut, cari nilai ujian", "List kecil 5 elemen", "List 10.000 elemen sudah diurutkan"], answer: { "Data tidak terurut, cari nama siswa": "Linear Search", "Data terurut, cari nilai ujian": "Binary Search", "List kecil 5 elemen": "Keduanya bisa", "List 10.000 elemen sudah diurutkan": "Binary Search" } },
+          { type: "lab", id: "python-trace", reason: "Menelusuri jumlah langkah binary search pada data terurut." },
+          { type: "game", id: "search-rescue", reason: "Berlatih memilih linear atau binary search sesuai kondisi data." },
           { type: "game", id: "bug-hunter", reason: "Berlatih menemukan kesalahan dalam implementasi algoritma pencarian Python." },
         ],
       },
@@ -2299,6 +2557,7 @@ function getQuestContent(mod, index) {
         concepts: ["Integrasi", "Fungsi", "Dictionary", "Sorting", "Searching"],
         activities: [
           { type: "interactive", kind: "sequence", title: "Alur Problem Solving Python", reason: "Susun urutan yang tepat untuk menyelesaikan masalah dengan Python secara integratif.", steps: ["Definisikan masalah dan output yang diinginkan", "Pilih struktur data (list/dictionary)", "Rancang fungsi yang dibutuhkan", "Pilih modul Python yang relevan", "Implementasi dan uji tiap fungsi", "Integrasikan dan uji program lengkap"], answer: ["Definisikan masalah dan output yang diinginkan", "Pilih struktur data (list/dictionary)", "Rancang fungsi yang dibutuhkan", "Pilih modul Python yang relevan", "Implementasi dan uji tiap fungsi", "Integrasikan dan uji program lengkap"] },
+          { type: "lab", id: "python-trace", reason: "Membiasakan membaca alur program sebelum mengintegrasikan fungsi dan struktur data." },
           { type: "game", id: "bug-hunter", reason: "Berlatih debug program Python yang kompleks sebelum integrasi final." },
         ],
       },
@@ -2317,7 +2576,9 @@ function getQuestContent(mod, index) {
     concepts = ["Data", "Atribut", "Tabel", "Pola", "Kesimpulan"];
     activities = [
       { type: "interactive", kind: "table", title: "Pembuat Tabel Mini", reason: "Pilih objek data dan atribut untuk membangun himpunan data sederhana." },
+      { type: "lab", id: "dataset-labeling", reason: "Menguatkan hubungan data, label, pola, dan bias pada sistem AI sederhana." },
       { type: "lab", id: "sorting", reason: "Memperlihatkan bagaimana data bisa diurutkan untuk menemukan pola." },
+      { type: "lab", id: "spreadsheet-mini", reason: "Menerapkan formula SUM, AVERAGE, IF, dan COUNTIF pada data sederhana." },
       { type: "game", id: "sort-race", reason: "Melatih intuisi mengurutkan data dengan cepat dan akurat." },
     ];
   } else if (topicLower.includes("internet") || topicLower.includes("jaringan") || topicLower.includes("router") || topicLower.includes("ip")) {
@@ -2335,6 +2596,7 @@ function getQuestContent(mod, index) {
       { type: "interactive", kind: "checklist", title: "Audit Akun Interaktif", reason: "Centang kebiasaan aman yang sudah kamu lakukan.", items: ["Password unik", "Tidak membagi OTP", "Cek alamat situs", "Batasi izin aplikasi"] },
       { type: "game", id: "ai-ethics", reason: "Melatih pengambilan keputusan saat teknologi menyentuh privasi dan dampak sosial." },
       { type: "game", id: "caesar-cipher", reason: "Mengenalkan gagasan dasar perlindungan pesan melalui penyandian." },
+      { type: "lab", id: "digital-footprint", reason: "Memilih respons saat jejak digital, reputasi, atau data pribadi berisiko." },
     ];
   } else if (topicLower.includes("pseudocode") || topicLower.includes("flowchart") || topicLower.includes("percabangan") || topicLower.includes("perulangan") || topicLower.includes("algoritma") || topicLower.includes("dekomposisi")) {
     mission = "Pilih satu rutinitas harian, pecah menjadi langkah bernomor, lalu tandai bagian yang memakai keputusan jika/maka.";
@@ -2343,6 +2605,7 @@ function getQuestContent(mod, index) {
       { type: "interactive", kind: "sequence", title: "Susun Algoritma", reason: "Klik urutan konsep algoritma sampai lengkap.", steps: ["Masalah", "Langkah", "Kondisi", "Uji", "Perbaiki"], answer: ["Masalah", "Langkah", "Kondisi", "Uji", "Perbaiki"] },
       { type: "game", id: "bug-hunter", reason: "Melatih membaca logika dan menemukan kesalahan kecil dalam instruksi." },
       { type: "game", id: "sort-race", reason: "Mengubah urutan langkah menjadi tantangan algoritmik sederhana." },
+      { type: "game", id: "flowchart-builder", reason: "Menyusun instruksi menjadi alur algoritma yang runtut." },
     ];
   } else if (topicLower.includes("hoaks") || topicLower.includes("fakta") || topicLower.includes("opini") || topicLower.includes("kredibilitas") || topicLower.includes("sumber") || topicLower.includes("media")) {
     mission = "Ambil satu unggahan atau berita pendek. Tandai bagian fakta, opini, klaim yang perlu dicek, dan sumber pembandingnya.";
@@ -2351,6 +2614,7 @@ function getQuestContent(mod, index) {
       { type: "interactive", kind: "classify", title: "Klasifikasi Klaim", reason: "Tentukan apakah contoh berikut fakta, opini, atau perlu dicek.", items: ["Sekolah mulai pukul 07.00", "Aplikasi ini paling bagus", "Akun itu membagikan hadiah gratis"], answer: { "Sekolah mulai pukul 07.00": "Fakta", "Aplikasi ini paling bagus": "Opini", "Akun itu membagikan hadiah gratis": "Perlu Cek" } },
       { type: "game", id: "pattern-quiz", reason: "Melatih mengenali pola, termasuk pola informasi yang mencurigakan." },
       { type: "game", id: "ai-ethics", reason: "Membuka diskusi tentang dampak teknologi dan informasi pada orang lain." },
+      { type: "lab", id: "sift-check", reason: "Mempraktikkan cek klaim dan sumber sebelum membagikan informasi." },
     ];
   } else if (topicLower.includes("biner") || topicLower.includes("representasi")) {
     mission = "Pilih 3 angka kecil, ubah ke biner, lalu jelaskan mengapa komputer membutuhkan representasi seperti ini.";
@@ -2395,7 +2659,7 @@ const MODULE_PROFILES = {
       mission: `Susun alur ${topic.toLowerCase()} dari perangkat pengguna sampai layanan internet merespons.`,
       activities: [
         { type: "interactive", kind: "flow", title: "Susun Jalur Data", reason: "Klik titik alur yang terlibat dalam perjalanan data.", steps: ["Perangkat", "WiFi", "Router", "ISP", "Server", "Respons"] },
-        { type: "lab", id: "network-sim", reason: "Memvisualkan paket data saat berpindah dari perangkat ke server." },
+        { type: "lab", id: "network-sim", reason: "Mendiagnosis titik masalah saat paket data gagal sampai ke server." },
       ],
     }),
   },
@@ -2410,6 +2674,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Audit Hasil Pencarian", reason: "Tentukan aspek yang perlu dicek dari hasil pencarian.", choices: ["Kata kunci", "Sumber", "Bukti", "Perlu cek"], items: ["Judul terlalu bombastis", "Penulis jelas", "Tanggal publikasi lama", "Ada rujukan data"], answer: { "Judul terlalu bombastis": "Perlu cek", "Penulis jelas": "Sumber", "Tanggal publikasi lama": "Perlu cek", "Ada rujukan data": "Bukti" } },
         { type: "interactive", kind: "note", title: "Racik Kata Kunci", reason: "Pilih strategi yang membuat kata kunci pencarian lebih spesifik.", choices: ["Tambah lokasi", "Tambah tahun", "Pakai tanda kutip", "Bandingkan sumber"] },
+        { type: "lab", id: "sift-check", reason: "Mempraktikkan pemilihan sumber pembanding, konteks, dan keputusan sebelum percaya informasi." },
       ],
     }),
   },
@@ -2424,6 +2689,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Klasifikasi Klaim", reason: "Tentukan jenis informasi dari contoh yang muncul.", choices: ["Fakta", "Opini", "Perlu cek"], items: ["Sekolah mulai pukul 07.00", "Aplikasi ini paling bagus", "Akun itu membagikan hadiah gratis"], answer: { "Sekolah mulai pukul 07.00": "Fakta", "Aplikasi ini paling bagus": "Opini", "Akun itu membagikan hadiah gratis": "Perlu cek" } },
         { type: "game", id: "pattern-quiz", reason: "Melatih mengenali pola informasi yang mencurigakan." },
+        { type: "lab", id: "sift-check", reason: "Melatih investigasi klaim dengan sumber, konteks, dan putusan yang bertanggung jawab." },
       ],
     }),
   },
@@ -2535,6 +2801,8 @@ const MODULE_PROFILES = {
       mission: `Susun rancangan algoritma yang memakai ${topic.toLowerCase()}.`,
       activities: [
         { type: "interactive", kind: "sequence", title: "Susun Algoritma", reason: "Klik urutan kerja program sederhana.", steps: ["Mulai", "Ambil input", "Cek kondisi", "Ulangi bila perlu", "Tampilkan output"], answer: ["Mulai", "Ambil input", "Cek kondisi", "Ulangi bila perlu", "Tampilkan output"] },
+        { type: "lab", id: "python-trace", reason: "Menghubungkan rancangan pseudocode dengan trace kode Python sederhana." },
+        { type: "game", id: "search-rescue", reason: "Melatih pemilihan algoritma pencarian berdasarkan kondisi data." },
         { type: "game", id: "bug-hunter", reason: "Melatih membaca logika dan menemukan kesalahan instruksi." },
       ],
     }),
@@ -2612,6 +2880,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "table", title: "Buat Tabel Data Mini", reason: "Pilih objek dan atribut untuk menyusun informasi sederhana dari aktivitas sekolah." },
         { type: "interactive", kind: "classify", title: "Kenali Jenis Data", reason: "Tentukan apakah contoh termasuk data, atribut, atau pola.", choices: ["Data", "Atribut", "Pola", "Informasi"], items: ["Nama siswa", "Kolom 'Kelas'", "Selalu terlambat Senin", "Nilai rata-rata naik"], answer: { "Nama siswa": "Data", "Kolom 'Kelas'": "Atribut", "Selalu terlambat Senin": "Pola", "Nilai rata-rata naik": "Informasi" } },
+        { type: "lab", id: "dataset-labeling", reason: "Mempraktikkan pemberian label data dan melihat dampaknya pada pola yang dipelajari AI." },
       ],
     }),
   },
@@ -2626,6 +2895,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Susun Instruksi", reason: "Klik urutan langkah yang paling logis untuk menyelesaikan masalah.", steps: ["Kenali masalah", "Pecah bagian", "Susun langkah", "Uji solusi", "Perbaiki"], answer: ["Kenali masalah", "Pecah bagian", "Susun langkah", "Uji solusi", "Perbaiki"] },
         { type: "game", id: "sort-race", reason: "Melatih logika urutan — menyusun elemen dalam susunan yang benar, fondasi dari instruksi sistematis." },
+        { type: "game", id: "flowchart-builder", reason: "Mengubah instruksi sistematis menjadi alur yang bisa diuji." },
       ],
     }),
   },
@@ -2640,6 +2910,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Pilih Format Terbaik", reason: "Tentukan format paling cocok untuk menyampaikan berbagai jenis informasi.", choices: ["Slide", "Infografis", "Teks panjang", "Tabel"], items: ["Langkah-langkah singkat", "Data perbandingan", "Penjelasan mendalam", "Angka kunci"], answer: { "Langkah-langkah singkat": "Infografis", "Data perbandingan": "Tabel", "Penjelasan mendalam": "Teks panjang", "Angka kunci": "Infografis" } },
         { type: "interactive", kind: "evaluate", title: "Cek Kualitas Visual", reason: "Centang kriteria konten visual yang efektif.", items: ["Pesan utama jelas", "Teks ringkas", "Visual relevan", "Audiens sesuai", "Sumber dicantumkan"] },
+        { type: "game", id: "prompt-craft", reason: "Melatih cara meminta bantuan AI untuk memperbaiki konten tanpa mengorbankan konteks dan etika." },
       ],
     }),
   },
@@ -2654,6 +2925,8 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "checklist", title: "Cek Konten Sebelum Bagikan", reason: "Centang hal yang perlu dipastikan sebelum menyebarkan konten.", items: ["Tujuan jelas", "Tidak mengandung data pribadi orang lain", "Aset yang digunakan legal", "Tidak menyinggung atau merugikan"] },
         { type: "interactive", kind: "classify", title: "Etis atau Tidak?", reason: "Tentukan apakah tindakan berikut aman, perlu izin, atau tidak etis.", choices: ["Aman", "Perlu izin", "Tidak etis"], items: ["Pakai foto sendiri", "Salin gambar tanpa sumber", "Bagikan video teman tanpa izin"], answer: { "Pakai foto sendiri": "Aman", "Salin gambar tanpa sumber": "Tidak etis", "Bagikan video teman tanpa izin": "Perlu izin" } },
+        { type: "lab", id: "sift-check", reason: "Menguatkan kebiasaan menahan, memeriksa, dan memilih keputusan sebelum menyebarkan klaim digital." },
+        { type: "game", id: "license-quest", reason: "Berlatih memilih kapan aset digital boleh dipakai, perlu atribusi, atau harus izin." },
       ],
     }),
   },
@@ -2667,6 +2940,7 @@ const MODULE_PROFILES = {
       mission: `Identifikasi contoh ${topic.toLowerCase()} dari teknologi yang kamu gunakan sehari-hari.`,
       activities: [
         { type: "interactive", kind: "classify", title: "AI atau Bukan?", reason: "Tentukan mana teknologi yang memakai AI dan mana yang tidak.", choices: ["Menggunakan AI", "Bukan AI"], items: ["Rekomendasi lagu otomatis", "Kalkulator sederhana", "Filter foto wajah", "Tombol lampu on/off"], answer: { "Rekomendasi lagu otomatis": "Menggunakan AI", "Kalkulator sederhana": "Bukan AI", "Filter foto wajah": "Menggunakan AI", "Tombol lampu on/off": "Bukan AI" } },
+        { type: "lab", id: "dataset-labeling", reason: "Menunjukkan bahwa AI belajar dari data berlabel dan dapat bias jika datanya kurang baik." },
         { type: "lab", id: "image-classifier", reason: "Melihat langsung bagaimana AI mengenali pola dari gambar yang kamu buat sendiri." },
         { type: "game", id: "pattern-quiz", reason: "Melatih pengenalan pola — dasar cara kerja sistem kecerdasan buatan." },
       ],
@@ -2682,8 +2956,9 @@ const MODULE_PROFILES = {
       mission: `Evaluasi penggunaan ${topic.toLowerCase()} dan tentukan kapan memakai AI dengan bertanggung jawab.`,
       activities: [
         { type: "interactive", kind: "evaluate", title: "Evaluasi AI Tool", reason: "Centang aspek yang perlu dicek sebelum mengandalkan AI tool.", items: ["Cek keakuratan jawaban", "Verifikasi ke sumber asli", "Perhatikan batas topiknya", "Tidak bagikan data pribadi ke AI"] },
+        { type: "game", id: "prompt-craft", reason: "Berlatih memilih prompt yang jelas, aman, dan tetap mendukung proses belajar." },
+        { type: "lab", id: "dataset-labeling", reason: "Menghubungkan batas AI tool dengan kualitas data yang dipakai untuk melatihnya." },
         { type: "lab", id: "image-classifier", reason: "Melihat langsung bagaimana AI melakukan klasifikasi dan memahami batasnya." },
-        { type: "game", id: "pattern-quiz", reason: "Melatih pengenalan pola, dasar cara kerja banyak sistem AI." },
       ],
     }),
   },
@@ -2700,6 +2975,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Cocokkan Fitur Spreadsheet", reason: "Pilih fitur yang tepat untuk setiap kebutuhan analisis.", choices: ["Formula", "Fungsi Statistik", "Grafik", "Filter"], items: ["Jumlahkan total nilai", "Hitung rata-rata kelas", "Tampilkan tren waktu", "Lihat data satu kelas saja"], answer: { "Jumlahkan total nilai": "Formula", "Hitung rata-rata kelas": "Fungsi Statistik", "Tampilkan tren waktu": "Grafik", "Lihat data satu kelas saja": "Filter" } },
         { type: "lab", id: "sorting", reason: "Melihat bagaimana data diurutkan untuk membantu menemukan pola." },
+        { type: "lab", id: "spreadsheet-mini", reason: "Mempraktikkan formula dan fungsi spreadsheet pada data kelas." },
       ],
     }),
   },
@@ -2714,6 +2990,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Susun Alur Program", reason: "Klik urutan komponen program yang paling logis.", steps: ["Input", "Cek kondisi", "Jalankan percabangan", "Ulang bila perlu", "Tampilkan output"], answer: ["Input", "Cek kondisi", "Jalankan percabangan", "Ulang bila perlu", "Tampilkan output"] },
         { type: "game", id: "bug-hunter", reason: "Melatih membaca logika program dan menemukan kesalahan instruksi." },
+        { type: "game", id: "flowchart-builder", reason: "Menyusun alur program visual dari input, kondisi, perulangan, sampai output." },
       ],
     }),
   },
@@ -2728,6 +3005,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Alur Produksi Konten", reason: "Susun urutan yang benar dalam proses produksi video.", steps: ["Tentukan tema", "Buat storyboard", "Rekam", "Edit", "Publikasikan"], answer: ["Tentukan tema", "Buat storyboard", "Rekam", "Edit", "Publikasikan"] },
         { type: "interactive", kind: "checklist", title: "Cek Sebelum Publikasi", reason: "Pastikan konten memenuhi standar sebelum dipublikasikan.", items: ["Kualitas audio jelas", "Tidak ada data pribadi tanpa izin", "Sumber musik/aset legal", "Pesan sesuai audiens"] },
+        { type: "game", id: "storyboard-sprint", reason: "Mempraktikkan urutan produksi konten dari storyboard sampai publikasi etis." },
       ],
     }),
   },
@@ -2742,6 +3020,8 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Boleh atau Tidak?", reason: "Tentukan apakah tindakan berikut legal, perlu izin, atau melanggar hak cipta.", choices: ["Legal", "Perlu izin", "Melanggar"], items: ["Pakai gambar CC-BY dengan sumber", "Salin artikel tanpa menyebut penulis", "Gunakan musik CC-0 untuk video edukasi"], answer: { "Pakai gambar CC-BY dengan sumber": "Legal", "Salin artikel tanpa menyebut penulis": "Melanggar", "Gunakan musik CC-0 untuk video edukasi": "Legal" } },
         { type: "interactive", kind: "checklist", title: "Distribusi Konten Aman", reason: "Centang langkah yang memastikan konten disebarkan secara etis.", items: ["Cek lisensi aset", "Cantumkan sumber", "Pilih platform sesuai audiens", "Hormati privasi orang yang tampil"] },
+        { type: "game", id: "license-quest", reason: "Menguatkan keputusan penggunaan aset dan lisensi sebelum publikasi konten." },
+        { type: "game", id: "storyboard-sprint", reason: "Melatih keputusan publikasi konten yang aman, jelas, dan sesuai audiens." },
       ],
     }),
   },
@@ -2755,6 +3035,7 @@ const MODULE_PROFILES = {
       mission: `Analisis aspek ${topic.toLowerCase()} pada satu sistem AI yang kamu kenal.`,
       activities: [
         { type: "interactive", kind: "classify", title: "Masalah Etika AI", reason: "Kelompokkan skenario AI berdasarkan isu etis yang muncul.", choices: ["Bias", "Privasi", "Transparansi", "Regulasi"], items: ["AI rekrutmen hanya merekomendasikan pria", "Aplikasi merekam lokasi tanpa izin", "AI membuat keputusan tanpa penjelasan", "AI medis tanpa standar keamanan"], answer: { "AI rekrutmen hanya merekomendasikan pria": "Bias", "Aplikasi merekam lokasi tanpa izin": "Privasi", "AI membuat keputusan tanpa penjelasan": "Transparansi", "AI medis tanpa standar keamanan": "Regulasi" } },
+        { type: "lab", id: "ai-bias-audit", reason: "Menguatkan audit risiko bias, privasi, dan transparansi pada sistem AI." },
         { type: "game", id: "ai-ethics", reason: "Berlatih mengambil keputusan etis dalam skenario AI nyata." },
       ],
     }),
@@ -2770,6 +3051,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "sequence", title: "Alur Training Model", reason: "Susun urutan proses melatih model AI.", steps: ["Kumpulkan data", "Beri label", "Latih model", "Ukur akurasi", "Uji data baru"], answer: ["Kumpulkan data", "Beri label", "Latih model", "Ukur akurasi", "Uji data baru"] },
         { type: "lab", id: "neural-playground", reason: "Eksperimen melatih jaringan saraf dan melihat akurasi berubah secara langsung." },
+        { type: "lab", id: "ai-bias-audit", reason: "Mengaudit risiko jika data latih kurang beragam atau labelnya tidak jelas." },
         { type: "lab", id: "image-classifier", reason: "Melihat bagaimana AI mengklasifikasi input visual." },
       ],
     }),
@@ -2787,6 +3069,7 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "classify", title: "Pilih Analisis Tepat", reason: "Tentukan teknik analisis terbaik untuk setiap pertanyaan.", choices: ["Fungsi lanjutan", "Pivot table", "Grafik tren", "Filter bertingkat"], items: ["Ringkasan total per kategori", "Lihat perubahan dari waktu ke waktu", "Hitung persentase dengan rumus", "Tampilkan data sesuai beberapa kriteria"], answer: { "Ringkasan total per kategori": "Pivot table", "Lihat perubahan dari waktu ke waktu": "Grafik tren", "Hitung persentase dengan rumus": "Fungsi lanjutan", "Tampilkan data sesuai beberapa kriteria": "Filter bertingkat" } },
         { type: "lab", id: "sorting", reason: "Melihat bagaimana pengurutan dan pengelompokan data mendukung analisis." },
+        { type: "lab", id: "spreadsheet-mini", reason: "Menerapkan operasi spreadsheet mini untuk menghasilkan insight dari data." },
       ],
     }),
   },
@@ -2801,7 +3084,10 @@ const MODULE_PROFILES = {
       activities: [
         { type: "interactive", kind: "evaluate", title: "Evaluasi Algoritma", reason: "Cek kriteria algoritma yang efisien dan dapat diandalkan.", items: ["Hasilnya benar", "Efisien untuk data besar", "Bisa diterapkan ke data baru", "Mudah dipahami", "Telah diuji dengan data tepi"] },
         { type: "lab", id: "sorting", reason: "Membandingkan efisiensi berbagai algoritma sorting secara visual." },
+        { type: "lab", id: "python-trace", reason: "Menelusuri output dan jumlah langkah algoritma sebelum implementasi." },
+        { type: "game", id: "search-rescue", reason: "Menguatkan pilihan algoritma pencarian yang efisien." },
         { type: "game", id: "bug-hunter", reason: "Berlatih menemukan dan memperbaiki kesalahan logika dalam program." },
+        { type: "game", id: "flowchart-builder", reason: "Menguatkan rancangan algoritma dan pseudocode sebelum implementasi." },
       ],
     }),
   },
@@ -2817,6 +3103,7 @@ const MODULE_PROFILES = {
         { type: "interactive", kind: "decompose", title: "Komponen Kampanye", reason: "Pilih elemen yang harus ada dalam rencana kampanye konten.", items: ["Tujuan kampanye", "Target audiens", "Identitas visual", "Jadwal konten", "Cara mengukur keberhasilan"] },
         { type: "interactive", kind: "evaluate", title: "Evaluasi Kampanye", reason: "Centang indikator keberhasilan kampanye digital.", items: ["Pesan konsisten", "Audiens merespons", "Konten sesuai platform", "Tim berkoordinasi", "Ada data untuk perbaikan"] },
         { type: "game", id: "pattern-quiz", reason: "Melatih membaca pola respons audiens dan memilih strategi konten yang lebih terarah." },
+        { type: "game", id: "license-quest", reason: "Menguatkan keputusan lisensi dan atribusi dalam produksi konten digital." },
       ],
     }),
   },
@@ -2832,6 +3119,7 @@ const MODULE_PROFILES = {
         { type: "interactive", kind: "sequence", title: "Alur Advokasi Digital", reason: "Susun langkah kampanye literasi digital yang efektif.", steps: ["Pilih isu", "Kenali audiens", "Buat pesan kunci", "Pilih platform", "Ukur dampak"], answer: ["Pilih isu", "Kenali audiens", "Buat pesan kunci", "Pilih platform", "Ukur dampak"] },
         { type: "interactive", kind: "note", title: "Pilih Platform Advokasi", reason: "Tentukan platform yang paling tepat untuk menjangkau teman sebaya.", choices: ["Instagram Stories", "Video pendek", "Poster digital", "Diskusi kelas"] },
         { type: "game", id: "ai-ethics", reason: "Membantu menimbang dampak keputusan teknologi sebelum menyusun pesan advokasi literasi digital." },
+        { type: "lab", id: "sift-check", reason: "Mempraktikkan pemeriksaan klaim sebagai dasar advokasi literasi digital." },
       ],
     }),
   },
@@ -2847,6 +3135,8 @@ const MODULE_PROFILES = {
         { type: "interactive", kind: "checklist", title: "Cara Deteksi DeepFake", reason: "Centang tanda yang membantu mendeteksi konten yang dimanipulasi AI.", items: ["Gerakan tidak alami di tepi wajah", "Pencahayaan tidak konsisten", "Sumber tidak dapat diverifikasi", "Konteks terlalu dramatis atau mengejutkan"] },
         { type: "interactive", kind: "classify", title: "Ancaman AI vs Solusi", reason: "Cocokkan ancaman keamanan AI dengan langkah mitigasinya.", choices: ["Enkripsi data", "Verifikasi sumber", "Regulasi AI", "Edukasi pengguna"], items: ["Data bocor dari aplikasi AI", "Video deepfake menyebar", "AI digunakan tanpa pengawasan", "Pengguna tidak menyadari manipulasi"], answer: { "Data bocor dari aplikasi AI": "Enkripsi data", "Video deepfake menyebar": "Verifikasi sumber", "AI digunakan tanpa pengawasan": "Regulasi AI", "Pengguna tidak menyadari manipulasi": "Edukasi pengguna" } },
         { type: "lab", id: "image-classifier", reason: "Menunjukkan secara langsung bagaimana sistem AI membaca fitur visual dan mengapa hasil prediksi perlu dikritisi." },
+        { type: "lab", id: "sift-check", reason: "Menguatkan kebiasaan verifikasi konteks saat menghadapi konten manipulatif." },
+        { type: "game", id: "deepfake-detective", reason: "Melatih keputusan cepat saat menemukan tanda manipulasi AI pada video, foto, atau audio." },
       ],
     }),
   },
@@ -2950,7 +3240,7 @@ function getCuratedModuleQuest(mod, topic, topicIndex) {
     title: `Misi: ${topic}`,
     mission: quest.mission,
     concepts: quest.concepts || profile.concepts,
-    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 2) : [secondary])],
+    activities: [primary, ...(extras.length > 0 ? extras.slice(0, 3) : [secondary])],
   };
 }
 

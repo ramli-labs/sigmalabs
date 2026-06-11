@@ -11,6 +11,7 @@ const files = [
   "js/components/layout.jsx",
   "js/pages/landing.jsx",
   "js/pages/login.jsx",
+  "js/pages/profil.jsx",
   "js/pages/dashboard.jsx",
   "js/pages/catalog.jsx",
   "js/pages/module.jsx",

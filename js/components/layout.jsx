@@ -159,7 +159,7 @@ const Navbar = ({ variant = "light" }) => {
             <Icon.Bolt width="15" height="15" style={{ color: "var(--gold-500)" }}/>
             <span style={{ fontWeight: 800, fontSize: 13, color: dark ? "white" : "var(--navy-900)" }}>{window.USER.xp.toLocaleString()} XP</span>
           </div>
-          <Link to="/login" className="profile-avatar" title="Ganti profil siswa" style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
+          <Link to={isTeacher ? "/guru" : "/profil"} className="profile-avatar" title={isTeacher ? "Dashboard Guru" : "Edit profil"} style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
             {window.USER.nickname[0]}
           </Link>
           <button

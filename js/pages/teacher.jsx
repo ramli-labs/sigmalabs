@@ -516,6 +516,7 @@ const TeacherDashboard = () => {
   const [selected, setSelected]       = useState(null);
   const [showImport, setShowImport]   = useState(false);
   const [resetPwd, setResetPwd]       = useState(null); // { userId, name, newPwd, loading, msg, ok }
+  const [deleteModal, setDeleteModal] = useState(null); // { userId, name, loading, msg }
 
   const refreshProfiles = async () => {
     setLoading(true);
@@ -615,6 +616,40 @@ const TeacherDashboard = () => {
                   }
                 }}>
                 {resetPwd.loading ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal hapus siswa */}
+      {deleteModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(11,22,51,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "white", borderRadius: 16, width: "min(400px,100%)", padding: 28, boxShadow: "0 8px 40px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontWeight: 900, fontSize: 17, color: "var(--navy-950)", marginBottom: 6 }}>Hapus Akun Siswa?</div>
+            <p style={{ fontSize: 14, color: "var(--ink-muted)", lineHeight: 1.6, marginBottom: 18 }}>
+              Akun <strong>{deleteModal.name}</strong> akan dihapus permanen dari Supabase. Seluruh data progress, refleksi, dan kuis siswa ini akan hilang. Tindakan ini <strong>tidak bisa dibatalkan</strong>.
+            </p>
+            {deleteModal.msg && (
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--red-500)", marginBottom: 12, padding: "8px 10px", background: "rgba(239,68,68,0.08)", borderRadius: 8 }}>
+                ⚠️ {deleteModal.msg}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button className="btn btn-sm" onClick={() => setDeleteModal(null)} disabled={deleteModal.loading}>Batal</button>
+              <button className="btn btn-sm" disabled={deleteModal.loading}
+                style={{ background: "var(--red-500)", color: "white", border: "none" }}
+                onClick={async () => {
+                  setDeleteModal({ ...deleteModal, loading: true, msg: "" });
+                  try {
+                    await window.SIGMA_SUPABASE.deleteStudent(deleteModal.userId);
+                    setDeleteModal(null);
+                    refreshProfiles();
+                  } catch (err) {
+                    setDeleteModal({ ...deleteModal, loading: false, msg: err.message || "Gagal menghapus." });
+                  }
+                }}>
+                {deleteModal.loading ? "Menghapus..." : "Ya, Hapus"}
               </button>
             </div>
           </div>
@@ -721,10 +756,16 @@ const TeacherDashboard = () => {
                           <td style={{ padding: "10px 14px", textAlign: "center" }}>{p.badges?.length || 0}</td>
                           <td style={{ padding: "10px 10px", textAlign: "center" }}>
                             {p.user_id && (
-                              <button title="Ganti password" onClick={() => setResetPwd({ userId: p.user_id, name: p.name, newPwd: "", loading: false, msg: "", ok: false })}
-                                style={{ width: 30, height: 30, borderRadius: 8, border: "1.5px solid var(--line)", background: "white", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--ink-muted)" }}>
-                                🔑
-                              </button>
+                              <div style={{ display: "inline-flex", gap: 4 }}>
+                                <button title="Ganti password" onClick={() => setResetPwd({ userId: p.user_id, name: p.name, newPwd: "", loading: false, msg: "", ok: false })}
+                                  style={{ width: 30, height: 30, borderRadius: 8, border: "1.5px solid var(--line)", background: "white", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--ink-muted)" }}>
+                                  🔑
+                                </button>
+                                <button title="Hapus akun siswa" onClick={() => setDeleteModal({ userId: p.user_id, name: p.name, loading: false, msg: "" })}
+                                  style={{ width: 30, height: 30, borderRadius: 8, border: "1.5px solid rgba(239,68,68,0.3)", background: "white", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--red-500)" }}>
+                                  🗑️
+                                </button>
+                              </div>
                             )}
                           </td>
                         </tr>

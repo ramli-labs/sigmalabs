@@ -8,7 +8,7 @@ const { useState, useEffect, useRef } = React;
 
 // --- page components ---
 const {
-  Landing, LoginPage, Dashboard, Catalog, ModuleDetail, Playground,
+  Landing, LoginPage, ProfilePage, Dashboard, Catalog, ModuleDetail, Playground,
   LabList, GameList,
   SortingLab, BinaryLab, LogicGatesLab, NeuralLab, ImageClassifierLab, NetworkLab, SiftCheckLab, DatasetLabelingLab, SpreadsheetMiniLab, AIBiasAuditLab, DigitalFootprintLab, PythonTraceLab, SearchQualityLab, InstructionStudioLab,
   BugHunterGame, SortRaceGame, CaesarCipherGame, AIEthicsGame, PatternQuizGame, PromptCraftGame, BinaryTypingGame, FlowchartBuilderGame, LicenseQuestGame, StoryboardSprintGame, DeepfakeDetectiveGame, SearchRescueGame,
@@ -34,6 +34,7 @@ const App = () => {
   if (route === "/" || route === "") return <Landing/>;
   if (route === "/login") return <LoginPage/>;
   if (!window.SIGMA_AUTH.hasProfiles()) return <LoginPage/>;
+  if (route === "/profil") return <ProfilePage/>;
   if (route === "/dashboard") return <Dashboard/>;
   if (route === "/guru") {
     if (window.USER?.role !== "teacher") {

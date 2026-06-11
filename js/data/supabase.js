@@ -144,6 +144,26 @@
     if (error) throw error;
   }
 
+  async function deleteStudent(userId) {
+    const client = getClient();
+    if (!client) throw new Error("Supabase belum dikonfigurasi.");
+    const session = await getSession();
+    if (!session) throw new Error("Sesi tidak valid.");
+    const config = getConfig();
+    const res = await fetch(`${config.url}/functions/v1/delete-student`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": config.anonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Gagal menghapus akun siswa.");
+    return json;
+  }
+
   async function resetStudentPassword(userId, newPassword) {
     const client = getClient();
     if (!client) throw new Error("Supabase belum dikonfigurasi.");
@@ -206,6 +226,7 @@
     signOut,
     signInWithGoogle,
     createStudents,
+    deleteStudent,
     resetStudentPassword,
     fetchOwnProfile,
     fetchVisibleProfiles,

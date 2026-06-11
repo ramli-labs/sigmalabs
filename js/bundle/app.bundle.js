@@ -659,9 +659,9 @@ const Navbar = ({
       color: dark ? "white" : "var(--navy-900)"
     }
   }, window.USER.xp.toLocaleString(), " XP")), React.createElement(Link, {
-    to: "/login",
+    to: isTeacher ? "/guru" : "/profil",
     className: "profile-avatar",
-    title: "Ganti profil siswa",
+    title: isTeacher ? "Dashboard Guru" : "Edit profil",
     style: {
       width: 40,
       height: 40,
@@ -2057,13 +2057,6 @@ const {
   useEffect
 } = React;
 const LoginPage = () => {
-  const [profiles, setProfiles] = useState(window.SIGMA_AUTH.getProfiles());
-  const [localForm, setLocalForm] = useState({
-    name: "",
-    nickname: "",
-    level: 7,
-    class: "7A"
-  });
   const [authForm, setAuthForm] = useState({
     email: "",
     password: ""
@@ -2072,8 +2065,6 @@ const LoginPage = () => {
     msg: "",
     ok: false
   });
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const activeId = window.USER?.id;
   const supabaseReady = window.SIGMA_SUPABASE?.isConfigured();
   useEffect(() => {
     const checkAndNavigate = () => {
@@ -2085,43 +2076,10 @@ const LoginPage = () => {
     window.addEventListener("sigma:userchange", checkAndNavigate);
     return () => window.removeEventListener("sigma:userchange", checkAndNavigate);
   }, []);
-  const enterAs = id => {
-    window.SIGMA_AUTH.login(id);
-    navigate("/dashboard");
-  };
-  const createLocal = e => {
-    e.preventDefault();
-    const user = window.SIGMA_AUTH.createProfile(localForm);
-    setProfiles(window.SIGMA_AUTH.getProfiles());
-    if (user) navigate("/dashboard");
-  };
-  const resetLocal = () => {
-    window.SIGMA_AUTH.resetLocalData();
-    setProfiles(window.SIGMA_AUTH.getProfiles());
-  };
-  const loginWithGoogle = async () => {
-    if (!supabaseReady) {
-      setAuthStatus({
-        msg: "Isi Supabase URL dan anon key di js/data/supabase.js dulu.",
-        ok: false
-      });
-      return;
-    }
-    setGoogleLoading(true);
-    try {
-      await window.SIGMA_SUPABASE.signInWithGoogle();
-    } catch (err) {
-      setAuthStatus({
-        msg: err.message || "Login Google gagal.",
-        ok: false
-      });
-      setGoogleLoading(false);
-    }
-  };
   const submitEmail = async () => {
     if (!supabaseReady) {
       setAuthStatus({
-        msg: "Isi Supabase URL dan anon key di js/data/supabase.js dulu.",
+        msg: "Supabase belum dikonfigurasi.",
         ok: false
       });
       return;
@@ -2139,7 +2097,6 @@ const LoginPage = () => {
     });
     try {
       await window.SIGMA_AUTH.signInWithSupabase(authForm.email, authForm.password);
-      setProfiles(window.SIGMA_AUTH.getProfiles());
       navigate(window.USER?.role === "teacher" ? "/guru" : "/dashboard");
     } catch (err) {
       const raw = err.message || "";
@@ -2157,6 +2114,9 @@ const LoginPage = () => {
       });
     }
   };
+  const onKey = e => {
+    if (e.key === "Enter") submitEmail();
+  };
   return React.createElement("div", {
     className: "page",
     style: {
@@ -2167,183 +2127,99 @@ const LoginPage = () => {
     style: {
       maxWidth: 1120,
       margin: "0 auto",
-      padding: "36px 32px 70px"
+      padding: "60px 32px 80px"
     }
   }, React.createElement("div", {
     style: {
       display: "grid",
-      gridTemplateColumns: "1fr 380px",
-      gap: 28,
-      alignItems: "start"
+      gridTemplateColumns: "1fr 400px",
+      gap: 48,
+      alignItems: "center"
     },
     className: "login-grid"
   }, React.createElement("section", null, React.createElement("div", {
     className: "tag tag-gold",
     style: {
-      marginBottom: 14
+      marginBottom: 16
     }
   }, "SIGMA LABSCHOOL"), React.createElement("h1", {
     className: "display",
     style: {
-      fontSize: 56,
-      margin: 0,
-      color: "var(--navy-950)"
+      fontSize: 60,
+      margin: "0 0 16px",
+      color: "var(--navy-950)",
+      lineHeight: 1.05
     }
-  }, "Masuk ke SIGMA"), React.createElement("p", {
+  }, "Selamat datang", React.createElement("br", null), "di SIGMA."), React.createElement("p", {
     style: {
       fontSize: 16,
       color: "var(--ink-muted)",
-      lineHeight: 1.6,
-      maxWidth: 620,
-      marginTop: 14
+      lineHeight: 1.7,
+      maxWidth: 540,
+      marginBottom: 28
     }
-  }, "Gunakan akun email sekolah untuk menyimpan progress di semua perangkat, atau buat profil lokal untuk belajar di perangkat ini."), React.createElement(Link, {
-    to: "/guru",
-    className: "btn btn-sm",
-    style: {
-      marginTop: 14
-    }
-  }, React.createElement(Icon.Users, {
-    width: "14",
-    height: "14"
-  }), " Dashboard Guru"), profiles.length > 0 && React.createElement(React.Fragment, null, React.createElement("div", {
-    style: {
-      fontWeight: 800,
-      fontSize: 13,
-      color: "var(--ink-muted)",
-      marginTop: 28,
-      marginBottom: 12,
-      letterSpacing: "0.06em"
-    }
-  }, "PROFIL TERSIMPAN DI PERANGKAT INI"), React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: 12
-    },
-    className: "profile-grid"
-  }, profiles.map(profile => React.createElement("button", {
-    key: profile.id,
-    onClick: () => enterAs(profile.id),
-    className: "card card-hover",
-    style: {
-      padding: 18,
-      textAlign: "left",
-      background: profile.id === activeId ? "var(--gold-300)" : "white"
-    }
-  }, React.createElement("div", {
+  }, "Platform pembelajaran Informatika & KKA untuk SMP Labschool Jakarta. Masuk dengan akun email sekolah untuk menyimpan progress di semua perangkat."), React.createElement("div", {
     style: {
       display: "flex",
-      alignItems: "center",
-      gap: 12,
-      marginBottom: 12
-    }
-  }, React.createElement("div", {
-    style: {
-      width: 44,
-      height: 44,
-      borderRadius: "50%",
-      background: "var(--navy-950)",
-      color: "white",
-      border: "2px solid var(--ink)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontWeight: 800,
-      fontSize: 18,
-      flexShrink: 0
-    }
-  }, profile.nickname[0]), React.createElement("div", null, React.createElement("div", {
-    style: {
-      fontWeight: 900,
-      fontSize: 15
-    }
-  }, profile.name), React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "var(--ink-muted)",
-      fontWeight: 700
-    }
-  }, "Kelas ", profile.class, " \u2022 ", profile.xp.toLocaleString(), " XP"))), React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 6,
+      gap: 10,
       flexWrap: "wrap"
     }
-  }, React.createElement("span", {
-    className: "tag tag-info"
-  }, Object.keys(profile.progress || {}).length, " modul"), React.createElement("span", {
-    className: "tag tag-green"
-  }, profile.badges.length, " badge")))))), profiles.length === 0 && React.createElement("div", {
-    className: "card",
+  }, [{
+    emoji: "📚",
+    text: "Modul interaktif"
+  }, {
+    emoji: "🔬",
+    text: "Lab maya"
+  }, {
+    emoji: "🎮",
+    text: "Gim edukatif"
+  }, {
+    emoji: "🏅",
+    text: "Badge & XP"
+  }].map(f => React.createElement("div", {
+    key: f.text,
     style: {
-      marginTop: 28,
-      padding: 24,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 14px",
       background: "white",
-      border: "2px dashed var(--line-strong)"
-    }
-  }, React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 12
-    }
-  }, React.createElement("div", {
-    style: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      background: "var(--bg-cream)",
-      border: "2px solid var(--ink)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    }
-  }, React.createElement(Icon.Users, {
-    width: "22",
-    height: "22"
-  })), React.createElement("div", null, React.createElement("div", {
-    style: {
-      fontWeight: 900,
+      borderRadius: 99,
+      border: "1.5px solid var(--line)",
+      fontSize: 13,
+      fontWeight: 700,
       color: "var(--navy-950)"
     }
-  }, "Belum ada profil tersimpan"), React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "var(--ink-muted)",
-      lineHeight: 1.5,
-      marginTop: 3
-    }
-  }, "Masuk dengan email sekolah atau buat profil lokal di sebelah kanan."))))), React.createElement("aside", {
-    style: {
-      display: "grid",
-      gap: 16
-    }
-  }, false && React.createElement("div", {
+  }, React.createElement("span", null, f.emoji), " ", f.text)))), React.createElement("aside", null, React.createElement("div", {
     className: "card",
     style: {
-      padding: 20,
+      padding: 28,
       background: "white"
     }
   }, React.createElement("div", {
     style: {
       fontWeight: 900,
+      fontSize: 20,
+      color: "var(--navy-950)",
+      marginBottom: 4
+    }
+  }, "Masuk ke SIGMA"), React.createElement("div", {
+    style: {
       fontSize: 13,
       color: "var(--ink-muted)",
-      marginBottom: 12,
-      letterSpacing: "0.06em"
+      marginBottom: 20,
+      lineHeight: 1.5
     }
-  }, "MASUK DENGAN AKUN SEKOLAH"), React.createElement("button", {
+  }, "Gunakan email & password akun sekolah dari guru."), false && React.createElement("button", {
     className: "btn btn-primary",
     type: "button",
-    onClick: loginWithGoogle,
-    disabled: googleLoading,
     style: {
       width: "100%",
       background: "var(--navy-950)",
       color: "white",
       justifyContent: "center",
-      gap: 10
+      gap: 10,
+      marginBottom: 16
     }
   }, React.createElement("svg", {
     width: "17",
@@ -2362,24 +2238,10 @@ const LoginPage = () => {
   }), React.createElement("path", {
     d: "M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z",
     fill: "#EA4335"
-  })), googleLoading ? "Mengarahkan ke Google..." : "Masuk dengan Google Sekolah")), React.createElement("div", {
-    className: "card",
-    style: {
-      padding: 20,
-      background: "white"
-    }
-  }, React.createElement("div", {
-    style: {
-      fontWeight: 900,
-      fontSize: 13,
-      color: "var(--ink-muted)",
-      marginBottom: 12,
-      letterSpacing: "0.06em"
-    }
-  }, "ATAU DENGAN EMAIL"), React.createElement("div", {
+  })), "Masuk dengan Google Sekolah"), React.createElement("div", {
     style: {
       display: "grid",
-      gap: 8
+      gap: 10
     }
   }, React.createElement("input", {
     className: "input",
@@ -2389,7 +2251,9 @@ const LoginPage = () => {
       ...authForm,
       email: e.target.value
     }),
-    placeholder: "email@sekolah.sch.id"
+    onKeyDown: onKey,
+    placeholder: "email@sekolah.sch.id",
+    autoComplete: "email"
   }), React.createElement("input", {
     className: "input",
     type: "password",
@@ -2398,7 +2262,9 @@ const LoginPage = () => {
       ...authForm,
       password: e.target.value
     }),
-    placeholder: "Password"
+    onKeyDown: onKey,
+    placeholder: "Password",
+    autoComplete: "current-password"
   }), React.createElement("button", {
     className: "btn btn-primary",
     type: "button",
@@ -2414,58 +2280,216 @@ const LoginPage = () => {
       fontSize: 12,
       fontWeight: 600,
       color: authStatus.ok ? "var(--green-600)" : "var(--red-500)",
-      padding: "8px 12px",
+      padding: "10px 12px",
       background: authStatus.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
       borderRadius: 8,
       lineHeight: 1.5
     }
-  }, authStatus.ok ? "✅" : "⚠️", " ", authStatus.msg))), React.createElement("div", {
+  }, authStatus.ok ? "✅" : "⚠️", " ", authStatus.msg)), React.createElement("div", {
+    style: {
+      marginTop: 20,
+      paddingTop: 16,
+      borderTop: "1.5px solid var(--line)",
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      lineHeight: 1.5
+    }
+  }, "Belum punya akun? Minta guru untuk membuat akun lewat ", React.createElement("strong", null, "Dashboard Guru \u2192 Tambah Siswa"), "."))))), React.createElement(Footer, null));
+};
+window.LoginPage = LoginPage;
+
+//# sourceURL=js/pages/login.jsx
+})();
+
+// ---- js/pages/profil.jsx ----
+(function () {
+const {
+  Icon,
+  Navbar,
+  Footer,
+  Link,
+  navigate,
+  Breadcrumb,
+  ControlField
+} = window;
+const {
+  useState,
+  useEffect
+} = React;
+const ProfilePage = () => {
+  const user = window.USER;
+  const [form, setForm] = useState({
+    name: user?.name || "",
+    nickname: user?.nickname || "",
+    level: user?.level || 7,
+    class: user?.class || "7A"
+  });
+  const [status, setStatus] = useState({
+    msg: "",
+    ok: false
+  });
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (!window.USER || window.USER.isGuest) {
+      navigate("/login");
+    }
+  }, []);
+  const save = async e => {
+    e.preventDefault();
+    const name = form.name.trim();
+    if (!name) {
+      setStatus({
+        msg: "Nama wajib diisi.",
+        ok: false
+      });
+      return;
+    }
+    setSaving(true);
+    setStatus({
+      msg: "",
+      ok: false
+    });
+    try {
+      const next = {
+        ...window.USER,
+        name,
+        nickname: form.nickname.trim() || name.split(" ")[0],
+        level: Number(form.level),
+        class: form.class.trim() || `${form.level}A`
+      };
+      window.SIGMA_AUTH.saveActiveUser(next);
+      setStatus({
+        msg: "Profil berhasil disimpan.",
+        ok: true
+      });
+    } catch (err) {
+      setStatus({
+        msg: err.message || "Gagal menyimpan.",
+        ok: false
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+  if (!user || user.isGuest) return null;
+  const initial = (form.nickname || form.name || "?")[0]?.toUpperCase() || "?";
+  return React.createElement("div", {
+    className: "page",
+    style: {
+      background: "var(--bg)",
+      minHeight: "100vh"
+    }
+  }, React.createElement(Navbar, null), React.createElement("main", {
+    style: {
+      maxWidth: 560,
+      margin: "0 auto",
+      padding: "36px 32px 80px"
+    }
+  }, React.createElement(Breadcrumb, {
+    trail: [{
+      to: "/dashboard",
+      label: "Dashboard"
+    }, {
+      label: "Edit Profil"
+    }]
+  }), React.createElement("h1", {
+    className: "display",
+    style: {
+      fontSize: 40,
+      margin: "12px 0 4px",
+      color: "var(--navy-950)"
+    }
+  }, "Edit Profil"), React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: "var(--ink-muted)",
+      marginBottom: 28,
+      lineHeight: 1.6
+    }
+  }, "Perubahan tersimpan otomatis ke akun Supabase."), React.createElement("div", {
     className: "card",
     style: {
-      padding: 20,
+      padding: 28,
       background: "white"
     }
   }, React.createElement("div", {
     style: {
-      fontWeight: 900,
-      fontSize: 13,
-      color: "var(--ink-muted)",
-      marginBottom: 4,
-      letterSpacing: "0.06em"
+      display: "flex",
+      alignItems: "center",
+      gap: 16,
+      marginBottom: 24,
+      padding: "16px 18px",
+      background: "var(--bg)",
+      borderRadius: 14,
+      border: "1.5px solid var(--line)"
     }
-  }, "PROFIL LOKAL (TANPA AKUN)"), React.createElement("div", {
+  }, React.createElement("div", {
+    style: {
+      width: 56,
+      height: 56,
+      borderRadius: "50%",
+      background: "var(--navy-950)",
+      color: "white",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: 800,
+      fontSize: 24,
+      border: "3px solid var(--ink)",
+      flexShrink: 0
+    }
+  }, initial), React.createElement("div", null, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 17,
+      color: "var(--navy-950)"
+    }
+  }, form.name || "—"), React.createElement("div", {
     style: {
       fontSize: 12,
-      color: "var(--ink-subtle)",
-      marginBottom: 12,
-      lineHeight: 1.4
+      color: "var(--ink-muted)",
+      marginTop: 2
     }
-  }, "Progress tersimpan di perangkat ini saja."), React.createElement("form", {
-    onSubmit: createLocal,
+  }, "Kelas ", form.class, " \xA0\xB7\xA0 ", (user.xp || 0).toLocaleString(), " XP \xA0\xB7\xA0 ", user.badges?.length || 0, " badge"))), React.createElement("form", {
+    onSubmit: save,
     style: {
       display: "grid",
-      gap: 8
+      gap: 16
     }
+  }, React.createElement(ControlField, {
+    label: "Nama Lengkap"
   }, React.createElement("input", {
     className: "input",
     required: true,
-    value: localForm.name,
-    onChange: e => setLocalForm({
-      ...localForm,
+    value: form.name,
+    onChange: e => setForm({
+      ...form,
       name: e.target.value
     }),
     placeholder: "Nama lengkap"
-  }), React.createElement("div", {
+  })), React.createElement(ControlField, {
+    label: "Nama Panggilan"
+  }, React.createElement("input", {
+    className: "input",
+    value: form.nickname,
+    onChange: e => setForm({
+      ...form,
+      nickname: e.target.value
+    }),
+    placeholder: "Panggilan (opsional, default: nama depan)"
+  })), React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
-      gap: 8
+      gap: 12
     }
+  }, React.createElement(ControlField, {
+    label: "Tingkat Kelas"
   }, React.createElement("select", {
     className: "input",
-    value: localForm.level,
-    onChange: e => setLocalForm({
-      ...localForm,
+    value: form.level,
+    onChange: e => setForm({
+      ...form,
       level: Number(e.target.value),
       class: `${e.target.value}A`
     })
@@ -2475,41 +2499,52 @@ const LoginPage = () => {
     value: 8
   }, "Kelas 8"), React.createElement("option", {
     value: 9
-  }, "Kelas 9")), React.createElement("input", {
+  }, "Kelas 9"))), React.createElement(ControlField, {
+    label: "Rombel"
+  }, React.createElement("input", {
     className: "input",
-    value: localForm.class,
-    onChange: e => setLocalForm({
-      ...localForm,
+    value: form.class,
+    onChange: e => setForm({
+      ...form,
       class: e.target.value
     }),
-    placeholder: "Rombel (7A)"
-  })), React.createElement("button", {
-    className: "btn",
+    placeholder: "7A"
+  }))), status.msg && React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 600,
+      color: status.ok ? "var(--green-600)" : "var(--red-500)",
+      padding: "10px 14px",
+      background: status.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
+      borderRadius: 10,
+      lineHeight: 1.5
+    }
+  }, status.ok ? "✅" : "⚠️", " ", status.msg), React.createElement("button", {
+    className: "btn btn-primary",
     type: "submit",
+    disabled: saving,
     style: {
       justifyContent: "center"
     }
   }, React.createElement(Icon.Play, {
     width: "15",
     height: "15"
-  }), " Buat & Masuk Lokal")), profiles.length > 0 && React.createElement("button", {
-    className: "btn",
-    type: "button",
-    onClick: resetLocal,
+  }), saving ? "Menyimpan..." : "Simpan Perubahan"))), React.createElement("div", {
     style: {
-      marginTop: 8,
-      width: "100%",
-      justifyContent: "center",
-      color: "var(--red-500)"
+      marginTop: 16,
+      padding: "14px 16px",
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      lineHeight: 1.6
     }
-  }, React.createElement(Icon.Refresh, {
-    width: "14",
-    height: "14"
-  }), " Hapus Semua Profil Lokal"))))), React.createElement(Footer, null));
+  }, React.createElement("strong", null, "Email akun:"), " ", user.email || "(tidak tersedia)", React.createElement("br", null), "Untuk mengganti email atau password, hubungi guru.")), React.createElement(Footer, null));
 };
-window.LoginPage = LoginPage;
+window.ProfilePage = ProfilePage;
 
-//# sourceURL=js/pages/login.jsx
+//# sourceURL=js/pages/profil.jsx
 })();
 
 // ---- js/pages/dashboard.jsx ----
@@ -13844,6 +13879,7 @@ const TeacherDashboard = () => {
   const [selected, setSelected] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const [resetPwd, setResetPwd] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(null);
   const refreshProfiles = async () => {
     setLoading(true);
     try {
@@ -14010,7 +14046,86 @@ const TeacherDashboard = () => {
         });
       }
     }
-  }, resetPwd.loading ? "Menyimpan..." : "Simpan")))), showImport && React.createElement(ImportPanel, {
+  }, resetPwd.loading ? "Menyimpan..." : "Simpan")))), deleteModal && React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: 300,
+      background: "rgba(11,22,51,0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      background: "white",
+      borderRadius: 16,
+      width: "min(400px,100%)",
+      padding: 28,
+      boxShadow: "0 8px 40px rgba(0,0,0,0.2)"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 17,
+      color: "var(--navy-950)",
+      marginBottom: 6
+    }
+  }, "Hapus Akun Siswa?"), React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: "var(--ink-muted)",
+      lineHeight: 1.6,
+      marginBottom: 18
+    }
+  }, "Akun ", React.createElement("strong", null, deleteModal.name), " akan dihapus permanen dari Supabase. Seluruh data progress, refleksi, dan kuis siswa ini akan hilang. Tindakan ini ", React.createElement("strong", null, "tidak bisa dibatalkan"), "."), deleteModal.msg && React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: "var(--red-500)",
+      marginBottom: 12,
+      padding: "8px 10px",
+      background: "rgba(239,68,68,0.08)",
+      borderRadius: 8
+    }
+  }, "\u26A0\uFE0F ", deleteModal.msg), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      justifyContent: "flex-end"
+    }
+  }, React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: () => setDeleteModal(null),
+    disabled: deleteModal.loading
+  }, "Batal"), React.createElement("button", {
+    className: "btn btn-sm",
+    disabled: deleteModal.loading,
+    style: {
+      background: "var(--red-500)",
+      color: "white",
+      border: "none"
+    },
+    onClick: async () => {
+      setDeleteModal({
+        ...deleteModal,
+        loading: true,
+        msg: ""
+      });
+      try {
+        await window.SIGMA_SUPABASE.deleteStudent(deleteModal.userId);
+        setDeleteModal(null);
+        refreshProfiles();
+      } catch (err) {
+        setDeleteModal({
+          ...deleteModal,
+          loading: false,
+          msg: err.message || "Gagal menghapus."
+        });
+      }
+    }
+  }, deleteModal.loading ? "Menghapus..." : "Ya, Hapus")))), showImport && React.createElement(ImportPanel, {
     onClose: () => setShowImport(false),
     onDone: () => {
       setShowImport(false);
@@ -14264,7 +14379,12 @@ const TeacherDashboard = () => {
         padding: "10px 10px",
         textAlign: "center"
       }
-    }, p.user_id && React.createElement("button", {
+    }, p.user_id && React.createElement("div", {
+      style: {
+        display: "inline-flex",
+        gap: 4
+      }
+    }, React.createElement("button", {
       title: "Ganti password",
       onClick: () => setResetPwd({
         userId: p.user_id,
@@ -14286,7 +14406,27 @@ const TeacherDashboard = () => {
         justifyContent: "center",
         color: "var(--ink-muted)"
       }
-    }, "\uD83D\uDD11")));
+    }, "\uD83D\uDD11"), React.createElement("button", {
+      title: "Hapus akun siswa",
+      onClick: () => setDeleteModal({
+        userId: p.user_id,
+        name: p.name,
+        loading: false,
+        msg: ""
+      }),
+      style: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+        border: "1.5px solid rgba(239,68,68,0.3)",
+        background: "white",
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--red-500)"
+      }
+    }, "\uD83D\uDDD1\uFE0F"))));
   }))))), levelNum ? React.createElement("div", {
     className: "card",
     style: {
@@ -21255,6 +21395,7 @@ const {
 const {
   Landing,
   LoginPage,
+  ProfilePage,
   Dashboard,
   Catalog,
   ModuleDetail,
@@ -21304,6 +21445,7 @@ const App = () => {
   if (route === "/" || route === "") return React.createElement(Landing, null);
   if (route === "/login") return React.createElement(LoginPage, null);
   if (!window.SIGMA_AUTH.hasProfiles()) return React.createElement(LoginPage, null);
+  if (route === "/profil") return React.createElement(ProfilePage, null);
   if (route === "/dashboard") return React.createElement(Dashboard, null);
   if (route === "/guru") {
     if (window.USER?.role !== "teacher") {

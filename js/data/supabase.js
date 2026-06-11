@@ -205,26 +205,12 @@
     return json.results;
   }
 
-  async function signInWithGoogle() {
-    const client = getClient();
-    if (!client) throw new Error("Supabase belum dikonfigurasi.");
-    const { data, error } = await client.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + "/",
-      },
-    });
-    if (error) throw error;
-    return data;
-  }
-
   window.SIGMA_SUPABASE = {
     isConfigured,
     getSession,
     signIn,
     signUp,
     signOut,
-    signInWithGoogle,
     createStudents,
     deleteStudent,
     resetStudentPassword,

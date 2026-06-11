@@ -7,6 +7,12 @@ const corsHeaders = {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 405,
+    });
+  }
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -48,10 +54,12 @@ Deno.serve(async (req: Request) => {
     if (!targetProfile) throw new Error("Siswa tidak ditemukan.");
     if (targetProfile.role !== "student") throw new Error("Hanya akun siswa yang bisa dihapus.");
 
-    // Hapus profil dulu, lalu hapus auth user
-    await admin.from("sigma_profiles").delete().eq("user_id", userId);
+    // Hapus auth user terlebih dahulu. FK on delete cascade akan membersihkan sigma_profiles.
     const { error: deleteErr } = await admin.auth.admin.deleteUser(userId);
     if (deleteErr) throw new Error(deleteErr.message);
+
+    // Fallback ringan jika cascade belum membersihkan row profil karena skema lama.
+    await admin.from("sigma_profiles").delete().eq("user_id", userId);
 
     return new Response(
       JSON.stringify({ success: true, name: targetProfile.name }),

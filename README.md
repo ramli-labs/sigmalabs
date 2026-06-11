@@ -135,8 +135,16 @@ Konten modul tetap statis di `js/data/curriculum.js` dan `js/data/quiz-bank-v2.j
 
 1. Jalankan SQL di `supabase/schema.sql` pada SQL Editor Supabase.
 2. Isi `url` dan `anonKey` di `js/data/supabase.js`.
-3. Buat akun siswa dari halaman `#/login`, atau login jika akun sudah ada.
-4. Untuk akun guru, daftar dulu lewat `#/login`, lalu ubah row `sigma_profiles.role` akun tersebut menjadi `teacher` lewat SQL Editor. Setelah login ulang, dashboard `#/guru` bisa membaca profil siswa lintas perangkat.
+3. Deploy Edge Functions yang dipakai dashboard guru:
+
+```bash
+supabase functions deploy create-students
+supabase functions deploy reset-student-password
+supabase functions deploy delete-student
+```
+
+4. Buat akun siswa dari halaman `#/login`, atau login jika akun sudah ada.
+5. Untuk akun guru, daftar dulu lewat `#/login`, lalu ubah row `sigma_profiles.role` akun tersebut menjadi `teacher` lewat SQL Editor. Setelah login ulang, dashboard `#/guru` bisa membaca profil siswa lintas perangkat.
 
 Mode lokal tetap tersedia sebagai fallback jika Supabase belum dikonfigurasi.
 

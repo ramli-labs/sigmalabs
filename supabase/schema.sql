@@ -15,6 +15,10 @@ create index if not exists sigma_profiles_level_class_idx on public.sigma_profil
 
 alter table public.sigma_profiles enable row level security;
 
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on public.sigma_profiles to authenticated;
+grant all on public.sigma_profiles to service_role;
+
 create policy "students can read their own profile"
 on public.sigma_profiles
 for select

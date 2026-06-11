@@ -30,6 +30,10 @@ comment on table sigma_profiles is
 -- ============================================================
 alter table sigma_profiles enable row level security;
 
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on public.sigma_profiles to authenticated;
+grant all on public.sigma_profiles to service_role;
+
 -- Siswa: baca dan ubah profil sendiri
 create policy "siswa_baca_sendiri"  on sigma_profiles
   for select using (auth.uid() = user_id);

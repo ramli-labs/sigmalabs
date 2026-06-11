@@ -365,6 +365,23 @@ const Icon = {
     strokeLinecap: "round"
   }, p), React.createElement("path", {
     d: "M5 12h14"
+  })),
+  LogOut: p => React.createElement("svg", _extends({
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, p), React.createElement("path", {
+    d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+  }), React.createElement("polyline", {
+    points: "16 17 21 12 16 7"
+  }), React.createElement("line", {
+    x1: "21",
+    y1: "12",
+    x2: "9",
+    y2: "12"
   }))
 };
 window.Icon = Icon;
@@ -520,7 +537,11 @@ const Navbar = ({
   const route = useRoute();
   const [menuOpen, setMenuOpen] = useState(false);
   const dark = variant === "dark";
-  const links = [{
+  const isTeacher = window.USER?.role === "teacher";
+  const links = isTeacher ? [{
+    to: "/guru",
+    label: "Dashboard Guru"
+  }] : [{
     to: "/dashboard",
     label: "Dashboard"
   }, {
@@ -535,9 +556,6 @@ const Navbar = ({
   }, {
     to: "/playground",
     label: "Playground"
-  }, {
-    to: "/login",
-    label: "Profil"
   }];
   const isActive = to => route === to || route.startsWith(to + "/") || to === "/dashboard" && route === "/dashboard";
   return React.createElement("nav", {
@@ -657,6 +675,30 @@ const Navbar = ({
       fontWeight: 800
     }
   }, window.USER.nickname[0]), React.createElement("button", {
+    title: "Keluar",
+    onClick: async () => {
+      await window.SIGMA_AUTH.signOutSupabase();
+      navigate("/login");
+    },
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: "50%",
+      background: dark ? "rgba(255,255,255,0.08)" : "white",
+      border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, React.createElement(Icon.LogOut, {
+    width: "17",
+    height: "17",
+    style: {
+      color: dark ? "rgba(255,255,255,0.6)" : "var(--ink-muted)"
+    }
+  })), React.createElement("button", {
     className: "btn btn-sm mobile-menu-button",
     onClick: () => setMenuOpen(!menuOpen),
     "aria-label": "Buka menu"
@@ -2011,30 +2053,109 @@ const {
   navigate
 } = window;
 const {
-  useState
+  useState,
+  useEffect
 } = React;
 const LoginPage = () => {
   const [profiles, setProfiles] = useState(window.SIGMA_AUTH.getProfiles());
-  const [form, setForm] = useState({
+  const [localForm, setLocalForm] = useState({
     name: "",
     nickname: "",
     level: 7,
     class: "7A"
   });
+  const [authForm, setAuthForm] = useState({
+    email: "",
+    password: ""
+  });
+  const [authStatus, setAuthStatus] = useState({
+    msg: "",
+    ok: false
+  });
+  const [googleLoading, setGoogleLoading] = useState(false);
   const activeId = window.USER?.id;
+  const supabaseReady = window.SIGMA_SUPABASE?.isConfigured();
+  useEffect(() => {
+    const checkAndNavigate = () => {
+      if (window.USER && !window.USER.isGuest && window.SIGMA_AUTH.hasProfiles()) {
+        navigate(window.USER.role === "teacher" ? "/guru" : "/dashboard");
+      }
+    };
+    checkAndNavigate();
+    window.addEventListener("sigma:userchange", checkAndNavigate);
+    return () => window.removeEventListener("sigma:userchange", checkAndNavigate);
+  }, []);
   const enterAs = id => {
     window.SIGMA_AUTH.login(id);
     navigate("/dashboard");
   };
-  const create = e => {
+  const createLocal = e => {
     e.preventDefault();
-    const user = window.SIGMA_AUTH.createProfile(form);
+    const user = window.SIGMA_AUTH.createProfile(localForm);
     setProfiles(window.SIGMA_AUTH.getProfiles());
     if (user) navigate("/dashboard");
   };
-  const reset = () => {
+  const resetLocal = () => {
     window.SIGMA_AUTH.resetLocalData();
     setProfiles(window.SIGMA_AUTH.getProfiles());
+  };
+  const loginWithGoogle = async () => {
+    if (!supabaseReady) {
+      setAuthStatus({
+        msg: "Isi Supabase URL dan anon key di js/data/supabase.js dulu.",
+        ok: false
+      });
+      return;
+    }
+    setGoogleLoading(true);
+    try {
+      await window.SIGMA_SUPABASE.signInWithGoogle();
+    } catch (err) {
+      setAuthStatus({
+        msg: err.message || "Login Google gagal.",
+        ok: false
+      });
+      setGoogleLoading(false);
+    }
+  };
+  const submitEmail = async () => {
+    if (!supabaseReady) {
+      setAuthStatus({
+        msg: "Isi Supabase URL dan anon key di js/data/supabase.js dulu.",
+        ok: false
+      });
+      return;
+    }
+    if (!authForm.email || !authForm.password) {
+      setAuthStatus({
+        msg: "Email dan password wajib diisi.",
+        ok: false
+      });
+      return;
+    }
+    setAuthStatus({
+      msg: "Memproses...",
+      ok: false
+    });
+    try {
+      await window.SIGMA_AUTH.signInWithSupabase(authForm.email, authForm.password);
+      setProfiles(window.SIGMA_AUTH.getProfiles());
+      navigate(window.USER?.role === "teacher" ? "/guru" : "/dashboard");
+    } catch (err) {
+      const raw = err.message || "";
+      let msg = raw;
+      if (raw.includes("Invalid login credentials") || raw.includes("invalid_credentials")) {
+        msg = "Email atau password salah.";
+      } else if (raw.includes("Email not confirmed")) {
+        msg = "Email belum dikonfirmasi. Hubungi guru.";
+      } else if (raw.includes("profil SIGMA belum ditemukan")) {
+        msg = "Akun ditemukan tapi profil SIGMA belum dibuat. Hubungi guru.";
+      }
+      setAuthStatus({
+        msg: msg || "Gagal masuk.",
+        ok: false
+      });
+    }
   };
   return React.createElement("div", {
     className: "page",
@@ -2043,7 +2164,6 @@ const LoginPage = () => {
       minHeight: "100vh"
     }
   }, React.createElement(Navbar, null), React.createElement("main", {
-    className: "auth-shell",
     style: {
       maxWidth: 1120,
       margin: "0 auto",
@@ -2062,14 +2182,14 @@ const LoginPage = () => {
     style: {
       marginBottom: 14
     }
-  }, "PROFIL SISWA LOKAL"), React.createElement("h1", {
+  }, "SIGMA LABSCHOOL"), React.createElement("h1", {
     className: "display",
     style: {
       fontSize: 56,
       margin: 0,
       color: "var(--navy-950)"
     }
-  }, "Masuk sebagai siswa"), React.createElement("p", {
+  }, "Masuk ke SIGMA"), React.createElement("p", {
     style: {
       fontSize: 16,
       color: "var(--ink-muted)",
@@ -2077,7 +2197,7 @@ const LoginPage = () => {
       maxWidth: 620,
       marginTop: 14
     }
-  }, "Pilih profil siswa atau buat profil baru. Semua progress, XP, dan badge tersimpan di browser perangkat ini."), React.createElement(Link, {
+  }, "Gunakan akun email sekolah untuk menyimpan progress di semua perangkat, atau buat profil lokal untuk belajar di perangkat ini."), React.createElement(Link, {
     to: "/guru",
     className: "btn btn-sm",
     style: {
@@ -2086,72 +2206,78 @@ const LoginPage = () => {
   }, React.createElement(Icon.Users, {
     width: "14",
     height: "14"
-  }), " Dashboard Guru"), React.createElement("div", {
-    className: "learning-guide-grid",
+  }), " Dashboard Guru"), profiles.length > 0 && React.createElement(React.Fragment, null, React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      marginTop: 28,
+      marginBottom: 12,
+      letterSpacing: "0.06em"
+    }
+  }, "PROFIL TERSIMPAN DI PERANGKAT INI"), React.createElement("div", {
     style: {
       display: "grid",
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-      gap: 10,
-      marginTop: 22
-    }
-  }, [{
-    n: "1",
-    t: "Buat Profil",
-    d: "Pilih kelas dan rombel sesuai perangkat yang dipakai."
-  }, {
-    n: "2",
-    t: "Pilih Modul",
-    d: "Ikuti modul yang diarahkan guru atau lanjut dari dashboard."
-  }, {
-    n: "3",
-    t: "Tuntaskan Alur",
-    d: "Baca materi, isi refleksi, kerjakan misi, lalu kuis."
-  }].map(item => React.createElement("div", {
-    key: item.n,
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+      gap: 12
+    },
+    className: "profile-grid"
+  }, profiles.map(profile => React.createElement("button", {
+    key: profile.id,
+    onClick: () => enterAs(profile.id),
+    className: "card card-hover",
     style: {
-      padding: 14,
-      background: "white",
-      border: "1.5px solid var(--line)",
-      borderRadius: 14
+      padding: 18,
+      textAlign: "left",
+      background: profile.id === activeId ? "var(--gold-300)" : "white"
     }
   }, React.createElement("div", {
     style: {
-      width: 26,
-      height: 26,
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 12
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 44,
+      height: 44,
       borderRadius: "50%",
-      background: "var(--gold-400)",
+      background: "var(--navy-950)",
+      color: "white",
       border: "2px solid var(--ink)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontWeight: 900,
-      fontSize: 12
+      fontWeight: 800,
+      fontSize: 18,
+      flexShrink: 0
     }
-  }, item.n), React.createElement("div", {
+  }, profile.nickname[0]), React.createElement("div", null, React.createElement("div", {
     style: {
       fontWeight: 900,
-      fontSize: 13,
-      marginTop: 10
+      fontSize: 15
     }
-  }, item.t), React.createElement("div", {
+  }, profile.name), React.createElement("div", {
     style: {
-      color: "var(--ink-muted)",
       fontSize: 12,
-      lineHeight: 1.45,
-      marginTop: 4
+      color: "var(--ink-muted)",
+      fontWeight: 700
     }
-  }, item.d)))), React.createElement("div", {
+  }, "Kelas ", profile.class, " \u2022 ", profile.xp.toLocaleString(), " XP"))), React.createElement("div", {
     style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: 16,
-      marginTop: 28
-    },
-    className: "profile-grid"
-  }, profiles.length === 0 && React.createElement("div", {
+      display: "flex",
+      gap: 6,
+      flexWrap: "wrap"
+    }
+  }, React.createElement("span", {
+    className: "tag tag-info"
+  }, Object.keys(profile.progress || {}).length, " modul"), React.createElement("span", {
+    className: "tag tag-green"
+  }, profile.badges.length, " badge")))))), profiles.length === 0 && React.createElement("div", {
     className: "card",
     style: {
-      gridColumn: "1 / -1",
+      marginTop: 28,
       padding: 24,
       background: "white",
       border: "2px dashed var(--line-strong)"
@@ -2181,200 +2307,205 @@ const LoginPage = () => {
       fontWeight: 900,
       color: "var(--navy-950)"
     }
-  }, "Belum ada profil siswa"), React.createElement("div", {
+  }, "Belum ada profil tersimpan"), React.createElement("div", {
     style: {
       fontSize: 13,
       color: "var(--ink-muted)",
       lineHeight: 1.5,
       marginTop: 3
     }
-  }, "Buat profil sesuai kelasmu. Progress akan dimulai dari kosong dan tersimpan di perangkat ini.")))), profiles.map(profile => React.createElement("button", {
-    key: profile.id,
-    onClick: () => enterAs(profile.id),
-    className: "card card-hover",
+  }, "Masuk dengan email sekolah atau buat profil lokal di sebelah kanan."))))), React.createElement("aside", {
     style: {
-      padding: 20,
-      textAlign: "left",
-      background: profile.id === activeId ? "var(--gold-300)" : "white"
+      display: "grid",
+      gap: 16
     }
-  }, React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 14,
-      marginBottom: 14
-    }
-  }, React.createElement("div", {
-    style: {
-      width: 48,
-      height: 48,
-      borderRadius: "50%",
-      background: "var(--navy-950)",
-      color: "white",
-      border: "2px solid var(--ink)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontWeight: 800,
-      fontSize: 20
-    }
-  }, profile.nickname[0]), React.createElement("div", null, React.createElement("div", {
-    style: {
-      fontWeight: 900,
-      fontSize: 17
-    }
-  }, profile.name), React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "var(--ink-muted)",
-      fontWeight: 700
-    }
-  }, "Kelas ", profile.class, " \u2022 ", profile.xp.toLocaleString(), " XP"))), React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      flexWrap: "wrap"
-    }
-  }, React.createElement("span", {
-    className: "tag tag-info"
-  }, Object.keys(profile.progress || {}).length, " modul aktif"), React.createElement("span", {
-    className: "tag tag-green"
-  }, profile.badges.length, " badge")))))), React.createElement("aside", {
+  }, false && React.createElement("div", {
     className: "card",
     style: {
-      padding: 24,
+      padding: 20,
       background: "white"
     }
   }, React.createElement("div", {
     style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      marginBottom: 16
+      fontWeight: 900,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      marginBottom: 12,
+      letterSpacing: "0.06em"
+    }
+  }, "MASUK DENGAN AKUN SEKOLAH"), React.createElement("button", {
+    className: "btn btn-primary",
+    type: "button",
+    onClick: loginWithGoogle,
+    disabled: googleLoading,
+    style: {
+      width: "100%",
+      background: "var(--navy-950)",
+      color: "white",
+      justifyContent: "center",
+      gap: 10
+    }
+  }, React.createElement("svg", {
+    width: "17",
+    height: "17",
+    viewBox: "0 0 24 24",
+    fill: "none"
+  }, React.createElement("path", {
+    d: "M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z",
+    fill: "#4285F4"
+  }), React.createElement("path", {
+    d: "M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z",
+    fill: "#34A853"
+  }), React.createElement("path", {
+    d: "M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z",
+    fill: "#FBBC05"
+  }), React.createElement("path", {
+    d: "M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z",
+    fill: "#EA4335"
+  })), googleLoading ? "Mengarahkan ke Google..." : "Masuk dengan Google Sekolah")), React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 20,
+      background: "white"
     }
   }, React.createElement("div", {
     style: {
-      width: 42,
-      height: 42,
-      borderRadius: 12,
-      background: "var(--info-400)",
-      border: "2px solid var(--ink)",
-      display: "flex",
-      alignItems: "center",
+      fontWeight: 900,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      marginBottom: 12,
+      letterSpacing: "0.06em"
+    }
+  }, "ATAU DENGAN EMAIL"), React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, React.createElement("input", {
+    className: "input",
+    type: "email",
+    value: authForm.email,
+    onChange: e => setAuthForm({
+      ...authForm,
+      email: e.target.value
+    }),
+    placeholder: "email@sekolah.sch.id"
+  }), React.createElement("input", {
+    className: "input",
+    type: "password",
+    value: authForm.password,
+    onChange: e => setAuthForm({
+      ...authForm,
+      password: e.target.value
+    }),
+    placeholder: "Password"
+  }), React.createElement("button", {
+    className: "btn btn-primary",
+    type: "button",
+    onClick: submitEmail,
+    style: {
       justifyContent: "center"
     }
-  }, React.createElement(Icon.Users, {
-    width: "22",
-    height: "22"
-  })), React.createElement("div", null, React.createElement("div", {
-    style: {
-      fontWeight: 900
-    }
-  }, "Buat profil siswa"), React.createElement("div", {
+  }, React.createElement(Icon.Play, {
+    width: "15",
+    height: "15"
+  }), " Masuk"), authStatus.msg && React.createElement("div", {
     style: {
       fontSize: 12,
-      color: "var(--ink-muted)"
+      fontWeight: 600,
+      color: authStatus.ok ? "var(--green-600)" : "var(--red-500)",
+      padding: "8px 12px",
+      background: authStatus.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
+      borderRadius: 8,
+      lineHeight: 1.5
     }
-  }, "Tersimpan di perangkat ini"))), React.createElement("form", {
-    onSubmit: create,
+  }, authStatus.ok ? "✅" : "⚠️", " ", authStatus.msg))), React.createElement("div", {
+    className: "card",
     style: {
-      display: "grid",
-      gap: 12
+      padding: 20,
+      background: "white"
     }
-  }, React.createElement("label", {
+  }, React.createElement("div", {
     style: {
-      display: "grid",
-      gap: 6,
+      fontWeight: 900,
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      marginBottom: 4,
+      letterSpacing: "0.06em"
+    }
+  }, "PROFIL LOKAL (TANPA AKUN)"), React.createElement("div", {
+    style: {
       fontSize: 12,
-      fontWeight: 800,
-      color: "var(--ink-muted)"
+      color: "var(--ink-subtle)",
+      marginBottom: 12,
+      lineHeight: 1.4
     }
-  }, "Nama Lengkap", React.createElement("input", {
+  }, "Progress tersimpan di perangkat ini saja."), React.createElement("form", {
+    onSubmit: createLocal,
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, React.createElement("input", {
     className: "input",
     required: true,
-    value: form.name,
-    onChange: e => setForm({
-      ...form,
+    value: localForm.name,
+    onChange: e => setLocalForm({
+      ...localForm,
       name: e.target.value
     }),
-    placeholder: "Contoh: Naya Putri"
-  })), React.createElement("label", {
-    style: {
-      display: "grid",
-      gap: 6,
-      fontSize: 12,
-      fontWeight: 800,
-      color: "var(--ink-muted)"
-    }
-  }, "Nama Panggilan", React.createElement("input", {
-    className: "input",
-    value: form.nickname,
-    onChange: e => setForm({
-      ...form,
-      nickname: e.target.value
-    }),
-    placeholder: "Contoh: Naya"
-  })), React.createElement("div", {
+    placeholder: "Nama lengkap"
+  }), React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
-      gap: 10
+      gap: 8
     }
-  }, React.createElement("label", {
-    style: {
-      display: "grid",
-      gap: 6,
-      fontSize: 12,
-      fontWeight: 800,
-      color: "var(--ink-muted)"
-    }
-  }, "Kelas", React.createElement("select", {
+  }, React.createElement("select", {
     className: "input",
-    value: form.level,
-    onChange: e => setForm({
-      ...form,
+    value: localForm.level,
+    onChange: e => setLocalForm({
+      ...localForm,
       level: Number(e.target.value),
       class: `${e.target.value}A`
     })
   }, React.createElement("option", {
     value: 7
-  }, "7"), React.createElement("option", {
+  }, "Kelas 7"), React.createElement("option", {
     value: 8
-  }, "8"), React.createElement("option", {
+  }, "Kelas 8"), React.createElement("option", {
     value: 9
-  }, "9"))), React.createElement("label", {
-    style: {
-      display: "grid",
-      gap: 6,
-      fontSize: 12,
-      fontWeight: 800,
-      color: "var(--ink-muted)"
-    }
-  }, "Rombel", React.createElement("input", {
+  }, "Kelas 9")), React.createElement("input", {
     className: "input",
-    value: form.class,
-    onChange: e => setForm({
-      ...form,
+    value: localForm.class,
+    onChange: e => setLocalForm({
+      ...localForm,
       class: e.target.value
     }),
-    placeholder: "8A"
-  }))), React.createElement("button", {
-    className: "btn btn-primary",
+    placeholder: "Rombel (7A)"
+  })), React.createElement("button", {
+    className: "btn",
     type: "submit",
     style: {
-      marginTop: 6
+      justifyContent: "center"
     }
   }, React.createElement(Icon.Play, {
-    width: "16",
-    height: "16"
-  }), " Buat & Masuk"), React.createElement("button", {
+    width: "15",
+    height: "15"
+  }), " Buat & Masuk Lokal")), profiles.length > 0 && React.createElement("button", {
     className: "btn",
     type: "button",
-    onClick: reset
+    onClick: resetLocal,
+    style: {
+      marginTop: 8,
+      width: "100%",
+      justifyContent: "center",
+      color: "var(--red-500)"
+    }
   }, React.createElement(Icon.Refresh, {
-    width: "16",
-    height: "16"
-  }), " Kosongkan Data Lokal"))))), React.createElement(Footer, null));
+    width: "14",
+    height: "14"
+  }), " Hapus Semua Profil Lokal"))))), React.createElement(Footer, null));
 };
 window.LoginPage = LoginPage;
 
@@ -6186,7 +6317,7 @@ const KuisTab = ({
     const finalScore = questions.reduce((sum, q, i) => sum + (nextAnswers[i] === q.correct ? 1 : 0), 0);
     const finalPercent = questions.length ? Math.round(finalScore / questions.length * 100) : 0;
     const before = window.USER.xp || 0;
-    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length);
+    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers);
     const gained = Math.max(0, (window.USER.xp || 0) - before);
     setXpInfo({
       gained,
@@ -12538,21 +12669,1201 @@ const {
   useState,
   useEffect
 } = React;
-const TeacherDashboard = () => {
-  const readProfiles = () => {
+const colFor = pct => pct == null ? "var(--ink-subtle)" : pct >= 80 ? "var(--green-500)" : pct >= 60 ? "var(--orange-500)" : "var(--red-500)";
+const StudentDetail = ({
+  profile,
+  onClose
+}) => {
+  const [tab, setTab] = useState("materi");
+  const [expandedMod, setExpandedMod] = useState(null);
+  const subjectOrder = ["informatika", "kka"];
+  const modules = window.CURRICULUM.modules.filter(m => m.level === profile.level).slice().sort((a, b) => a.subject === b.subject ? (a.unit || 0) - (b.unit || 0) : subjectOrder.indexOf(a.subject) - subjectOrder.indexOf(b.subject));
+  const labs = window.CURRICULUM.labs || [];
+  const games = window.CURRICULUM.games || [];
+  const TABS = [{
+    id: "materi",
+    label: "Materi & Refleksi"
+  }, {
+    id: "misi",
+    label: "Misi"
+  }, {
+    id: "kuis",
+    label: "Kuis"
+  }, {
+    id: "aktivitas",
+    label: "Aktivitas"
+  }];
+  return React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: 200,
+      display: "flex"
+    }
+  }, React.createElement("div", {
+    onClick: onClose,
+    style: {
+      flex: 1,
+      background: "rgba(11,22,51,0.45)"
+    }
+  }), React.createElement("div", {
+    style: {
+      width: "min(680px, 100vw)",
+      background: "var(--bg)",
+      display: "flex",
+      flexDirection: "column",
+      boxShadow: "-4px 0 32px rgba(0,0,0,0.18)"
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: "20px 24px 0",
+      background: "white",
+      borderBottom: "1.5px solid var(--line)",
+      position: "sticky",
+      top: 0,
+      zIndex: 2
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      marginBottom: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 46,
+      height: 46,
+      borderRadius: "50%",
+      background: "var(--navy-950)",
+      color: "white",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: 800,
+      fontSize: 20,
+      border: "2px solid var(--ink)",
+      flexShrink: 0
+    }
+  }, (profile.nickname || profile.name || "?")[0]), React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 18,
+      color: "var(--navy-950)"
+    }
+  }, profile.name), React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "var(--ink-muted)",
+      fontWeight: 700,
+      marginTop: 2
+    }
+  }, "Kelas ", profile.class || profile.level, " \xA0\xB7\xA0 ", (profile.xp || 0).toLocaleString(), " XP \xA0\xB7\xA0 ", profile.badges?.length || 0, " badge")), React.createElement("button", {
+    onClick: onClose,
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: "50%",
+      border: "1.5px solid var(--line)",
+      background: "var(--bg)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, React.createElement(Icon.X, {
+    width: "16",
+    height: "16"
+  }))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 2
+    }
+  }, TABS.map(t => React.createElement("button", {
+    key: t.id,
+    onClick: () => setTab(t.id),
+    style: {
+      padding: "8px 14px",
+      fontSize: 13,
+      fontWeight: 700,
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      color: tab === t.id ? "var(--navy-950)" : "var(--ink-muted)",
+      borderBottom: tab === t.id ? "2.5px solid var(--navy-950)" : "2.5px solid transparent"
+    }
+  }, t.label)))), React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: "auto",
+      padding: 20
+    }
+  }, tab === "materi" && React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 12
+    }
+  }, modules.map(mod => {
+    const prog = profile.progress?.[mod.id] || {};
+    const reflMap = profile.reflections?.[mod.id] || {};
+    const done = Number(prog.lessonsDone || 0);
+    const completedLessons = prog.completedLessons || [];
+    const subj = window.CURRICULUM.subjects[mod.subject];
+    const pct = Math.round(done / (mod.lessons || 1) * 100);
+    const isOpen = expandedMod === mod.id + "-materi";
+    const touched = done > 0 || Object.keys(reflMap).length > 0;
+    return React.createElement("div", {
+      key: mod.id,
+      style: {
+        background: "white",
+        border: "1.5px solid var(--line)",
+        borderRadius: 14,
+        overflow: "hidden",
+        opacity: touched ? 1 : 0.5
+      }
+    }, React.createElement("button", {
+      onClick: () => setExpandedMod(isOpen ? null : mod.id + "-materi"),
+      style: {
+        width: "100%",
+        padding: "14px 16px",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        textAlign: "left"
+      }
+    }, React.createElement("span", {
+      className: `tag ${subj.tagClass}`,
+      style: {
+        fontSize: 10,
+        flexShrink: 0
+      }
+    }, subj.shortName || subj.name), React.createElement("span", {
+      style: {
+        flex: 1,
+        fontWeight: 800,
+        fontSize: 14,
+        color: "var(--navy-950)"
+      }
+    }, mod.title), React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: pct === 100 ? "var(--green-500)" : "var(--ink-muted)",
+        whiteSpace: "nowrap"
+      }
+    }, done, "/", mod.lessons, " pelajaran"), React.createElement(Icon.ArrowRight, {
+      width: "14",
+      height: "14",
+      style: {
+        color: "var(--ink-subtle)",
+        transform: isOpen ? "rotate(90deg)" : "none",
+        transition: "transform 0.2s",
+        flexShrink: 0
+      }
+    })), isOpen && React.createElement("div", {
+      style: {
+        borderTop: "1px solid var(--line)",
+        padding: "4px 0"
+      }
+    }, Array.from({
+      length: mod.lessons
+    }, (_, i) => {
+      const isDone = completedLessons.includes(i) || i < done;
+      const refl = reflMap[i];
+      return React.createElement("div", {
+        key: i,
+        style: {
+          padding: "12px 16px",
+          borderBottom: i < mod.lessons - 1 ? "1px solid var(--line)" : "none"
+        }
+      }, React.createElement("div", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: refl ? 8 : 0
+        }
+      }, React.createElement("span", {
+        style: {
+          fontSize: 18
+        }
+      }, isDone ? "✅" : "⭕"), React.createElement("span", {
+        style: {
+          fontWeight: 700,
+          fontSize: 13,
+          color: "var(--navy-950)"
+        }
+      }, "Pelajaran ", i + 1), !isDone && React.createElement("span", {
+        style: {
+          fontSize: 11,
+          color: "var(--ink-subtle)"
+        }
+      }, "Belum dibaca")), refl ? React.createElement("div", {
+        style: {
+          marginLeft: 30,
+          padding: "10px 12px",
+          background: "var(--bg)",
+          borderRadius: 10,
+          border: "1px solid var(--line)"
+        }
+      }, React.createElement("div", {
+        style: {
+          fontSize: 11,
+          fontWeight: 800,
+          color: "var(--ink-subtle)",
+          marginBottom: 4
+        }
+      }, "REFLEKSI"), React.createElement("div", {
+        style: {
+          fontSize: 13,
+          color: "var(--navy-950)",
+          lineHeight: 1.6
+        }
+      }, refl.text || "—"), React.createElement("div", {
+        style: {
+          fontSize: 10,
+          color: "var(--ink-subtle)",
+          marginTop: 6
+        }
+      }, refl.updatedAt ? new Date(refl.updatedAt).toLocaleString("id-ID") : "")) : isDone ? React.createElement("div", {
+        style: {
+          marginLeft: 30,
+          fontSize: 12,
+          color: "var(--ink-subtle)",
+          fontStyle: "italic"
+        }
+      }, "Refleksi belum diisi") : null);
+    })));
+  })), tab === "misi" && React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 12
+    }
+  }, modules.map(mod => {
+    const quests = profile.quests?.[mod.id] || {};
+    const subj = window.CURRICULUM.subjects[mod.subject];
+    const doneCnt = Object.values(quests).filter(q => q.completed).length;
+    const touched = doneCnt > 0;
+    const isOpen = expandedMod === mod.id + "-misi";
+    return React.createElement("div", {
+      key: mod.id,
+      style: {
+        background: "white",
+        border: "1.5px solid var(--line)",
+        borderRadius: 14,
+        overflow: "hidden",
+        opacity: touched ? 1 : 0.5
+      }
+    }, React.createElement("button", {
+      onClick: () => setExpandedMod(isOpen ? null : mod.id + "-misi"),
+      style: {
+        width: "100%",
+        padding: "14px 16px",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        textAlign: "left"
+      }
+    }, React.createElement("span", {
+      className: `tag ${subj.tagClass}`,
+      style: {
+        fontSize: 10,
+        flexShrink: 0
+      }
+    }, subj.shortName || subj.name), React.createElement("span", {
+      style: {
+        flex: 1,
+        fontWeight: 800,
+        fontSize: 14,
+        color: "var(--navy-950)"
+      }
+    }, mod.title), React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: doneCnt >= mod.lessons ? "var(--green-500)" : "var(--ink-muted)",
+        whiteSpace: "nowrap"
+      }
+    }, doneCnt, "/", mod.lessons, " misi"), React.createElement(Icon.ArrowRight, {
+      width: "14",
+      height: "14",
+      style: {
+        color: "var(--ink-subtle)",
+        transform: isOpen ? "rotate(90deg)" : "none",
+        transition: "transform 0.2s",
+        flexShrink: 0
+      }
+    })), isOpen && React.createElement("div", {
+      style: {
+        borderTop: "1px solid var(--line)",
+        padding: "4px 0"
+      }
+    }, Array.from({
+      length: mod.lessons
+    }, (_, i) => {
+      const q = quests[i];
+      return React.createElement("div", {
+        key: i,
+        style: {
+          padding: "12px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          borderBottom: i < mod.lessons - 1 ? "1px solid var(--line)" : "none"
+        }
+      }, React.createElement("span", {
+        style: {
+          fontSize: 18
+        }
+      }, q?.completed ? "✅" : "⭕"), React.createElement("span", {
+        style: {
+          fontWeight: 700,
+          fontSize: 13,
+          color: "var(--navy-950)",
+          flex: 1
+        }
+      }, "Misi ", i + 1), q?.completed ? React.createElement("div", {
+        style: {
+          display: "flex",
+          gap: 10,
+          alignItems: "center"
+        }
+      }, React.createElement("span", {
+        style: {
+          fontSize: 12,
+          fontWeight: 800,
+          color: colFor(q.bestScore),
+          padding: "3px 10px",
+          background: "var(--bg)",
+          borderRadius: 99,
+          border: "1.5px solid var(--line)"
+        }
+      }, "Skor terbaik: ", q.bestScore ?? "—"), React.createElement("span", {
+        style: {
+          fontSize: 11,
+          color: "var(--ink-subtle)"
+        }
+      }, "+", q.xpAwarded, " XP")) : React.createElement("span", {
+        style: {
+          fontSize: 12,
+          color: "var(--ink-subtle)"
+        }
+      }, "Belum dikerjakan"));
+    })));
+  })), tab === "kuis" && React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 12
+    }
+  }, modules.map(mod => {
+    const quiz = profile.quizzes?.[mod.id];
+    const subj = window.CURRICULUM.subjects[mod.subject];
+    const isOpen = expandedMod === mod.id + "-kuis";
+    const questions = window.QUIZ_BANK_V2?.[mod.id] || [];
+    const answers = quiz?.answers || null;
+    return React.createElement("div", {
+      key: mod.id,
+      style: {
+        background: "white",
+        border: "1.5px solid var(--line)",
+        borderRadius: 14,
+        overflow: "hidden",
+        opacity: quiz ? 1 : 0.5
+      }
+    }, React.createElement("button", {
+      onClick: () => quiz && setExpandedMod(isOpen ? null : mod.id + "-kuis"),
+      style: {
+        width: "100%",
+        padding: "14px 16px",
+        background: "none",
+        border: "none",
+        cursor: quiz ? "pointer" : "default",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        textAlign: "left"
+      }
+    }, React.createElement("span", {
+      className: `tag ${subj.tagClass}`,
+      style: {
+        fontSize: 10,
+        flexShrink: 0
+      }
+    }, subj.shortName || subj.name), React.createElement("span", {
+      style: {
+        flex: 1,
+        fontWeight: 800,
+        fontSize: 14,
+        color: "var(--navy-950)"
+      }
+    }, mod.title), quiz ? React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 800,
+        color: colFor(quiz.latestPercent),
+        whiteSpace: "nowrap"
+      }
+    }, quiz.latestScore, "/", quiz.latestTotal, " \xA0(", quiz.latestPercent, "%)") : React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: "var(--ink-subtle)"
+      }
+    }, "Belum dikerjakan"), quiz && React.createElement(Icon.ArrowRight, {
+      width: "14",
+      height: "14",
+      style: {
+        color: "var(--ink-subtle)",
+        transform: isOpen ? "rotate(90deg)" : "none",
+        transition: "transform 0.2s",
+        flexShrink: 0
+      }
+    })), isOpen && quiz && React.createElement("div", {
+      style: {
+        borderTop: "1px solid var(--line)"
+      }
+    }, !answers && React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        fontSize: 12,
+        color: "var(--ink-subtle)",
+        fontStyle: "italic"
+      }
+    }, "Jawaban per soal tidak tersedia \u2014 kuis ini dikerjakan sebelum fitur pencatatan jawaban diaktifkan."), answers && questions.length > 0 && questions.map((q, i) => {
+      const selected = answers[i];
+      const isRight = selected === q.correct;
+      const unanswered = selected === undefined;
+      return React.createElement("div", {
+        key: i,
+        style: {
+          padding: "14px 16px",
+          borderBottom: i < questions.length - 1 ? "1px solid var(--line)" : "none",
+          background: unanswered ? "var(--bg)" : isRight ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)"
+        }
+      }, React.createElement("div", {
+        style: {
+          display: "flex",
+          gap: 8,
+          marginBottom: 8
+        }
+      }, React.createElement("span", {
+        style: {
+          fontSize: 16,
+          flexShrink: 0
+        }
+      }, unanswered ? "⏭" : isRight ? "✅" : "❌"), React.createElement("span", {
+        style: {
+          fontWeight: 700,
+          fontSize: 13,
+          color: "var(--navy-950)",
+          lineHeight: 1.5
+        }
+      }, i + 1, ". ", q.question)), React.createElement("div", {
+        style: {
+          marginLeft: 26,
+          display: "grid",
+          gap: 4
+        }
+      }, unanswered ? React.createElement("span", {
+        style: {
+          fontSize: 12,
+          color: "var(--ink-subtle)"
+        }
+      }, "Tidak dijawab") : React.createElement(React.Fragment, null, React.createElement("div", {
+        style: {
+          fontSize: 12,
+          display: "flex",
+          gap: 6,
+          alignItems: "flex-start"
+        }
+      }, React.createElement("span", {
+        style: {
+          color: isRight ? "var(--green-600)" : "var(--red-500)",
+          fontWeight: 700,
+          flexShrink: 0
+        }
+      }, "Jawaban siswa:"), React.createElement("span", {
+        style: {
+          color: isRight ? "var(--green-600)" : "var(--red-500)"
+        }
+      }, q.options?.[selected] ?? `Opsi ${selected}`)), !isRight && React.createElement("div", {
+        style: {
+          fontSize: 12,
+          display: "flex",
+          gap: 6,
+          alignItems: "flex-start"
+        }
+      }, React.createElement("span", {
+        style: {
+          color: "var(--green-600)",
+          fontWeight: 700,
+          flexShrink: 0
+        }
+      }, "Jawaban benar:"), React.createElement("span", {
+        style: {
+          color: "var(--green-600)"
+        }
+      }, q.options?.[q.correct] ?? `Opsi ${q.correct}`)))));
+    }), answers && questions.length === 0 && React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        fontSize: 12,
+        color: "var(--ink-subtle)"
+      }
+    }, "Data soal tidak ditemukan untuk modul ini.")));
+  })), tab === "aktivitas" && React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      padding: "16px 18px"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.06em",
+      marginBottom: 6
+    }
+  }, "TOTAL XP"), React.createElement("div", {
+    style: {
+      fontSize: 28,
+      fontWeight: 900,
+      color: "var(--gold-500)"
+    }
+  }, (profile.xp || 0).toLocaleString())), React.createElement("div", {
+    style: {
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      padding: "16px 18px"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.06em",
+      marginBottom: 6
+    }
+  }, "STREAK"), React.createElement("div", {
+    style: {
+      fontSize: 28,
+      fontWeight: 900,
+      color: "var(--info-500)"
+    }
+  }, profile.streak || 0, " hari"))), React.createElement("div", {
+    style: {
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      padding: "16px 18px"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.06em",
+      marginBottom: 10
+    }
+  }, "BADGE (", profile.badges?.length || 0, ")"), (profile.badges?.length || 0) === 0 ? React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-subtle)"
+    }
+  }, "Belum ada badge") : React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, profile.badges.map((b, i) => React.createElement("span", {
+    key: i,
+    style: {
+      fontSize: 12,
+      padding: "4px 10px",
+      background: "var(--bg)",
+      border: "1.5px solid var(--line)",
+      borderRadius: 99
+    }
+  }, b.emoji, " ", b.label)))), React.createElement("div", {
+    style: {
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      padding: "16px 18px"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.06em",
+      marginBottom: 10
+    }
+  }, "LAB MAYA SELESAI (", profile.completedLabs?.length || 0, ")"), (profile.completedLabs?.length || 0) === 0 ? React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-subtle)"
+    }
+  }, "Belum ada") : React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, profile.completedLabs.map(labId => {
+    const lab = labs.find(l => l.id === labId);
+    return React.createElement("span", {
+      key: labId,
+      className: "tag tag-info"
+    }, lab?.title || labId);
+  }))), React.createElement("div", {
+    style: {
+      background: "white",
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      padding: "16px 18px"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "var(--ink-subtle)",
+      letterSpacing: "0.06em",
+      marginBottom: 10
+    }
+  }, "GIM SELESAI (", profile.completedGames?.length || 0, ")"), (profile.completedGames?.length || 0) === 0 ? React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-subtle)"
+    }
+  }, "Belum ada") : React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, profile.completedGames.map(gameId => {
+    const game = games.find(g => g.id === gameId);
+    const score = profile.gameScores?.[gameId];
+    return React.createElement("div", {
+      key: gameId,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }
+    }, React.createElement("span", {
+      className: "tag tag-green",
+      style: {
+        flex: 1
+      }
+    }, game?.title || gameId), score?.bestXp ? React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: "var(--gold-500)"
+      }
+    }, score.bestXp, " XP terbaik") : null, score?.attempts ? React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: "var(--ink-subtle)"
+      }
+    }, score.attempts, "\xD7 main") : null);
+  })))))));
+};
+const Stat = ({
+  label,
+  value,
+  color
+}) => React.createElement("div", {
+  style: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4
+  }
+}, React.createElement("span", {
+  style: {
+    fontSize: 11,
+    color: "var(--ink-subtle)",
+    fontWeight: 600
+  }
+}, label, ":"), React.createElement("span", {
+  style: {
+    fontSize: 12,
+    fontWeight: 800,
+    color
+  }
+}, value));
+const emptyRow = () => ({
+  name: "",
+  nickname: "",
+  level: 7,
+  class: "7A",
+  email: ""
+});
+const ImportPanel = ({
+  onClose,
+  onDone
+}) => {
+  const [rows, setRows] = useState([emptyRow()]);
+  const [defaultPwd, setDefaultPwd] = useState("Sigma2025!");
+  const [importing, setImporting] = useState(false);
+  const [results, setResults] = useState(null);
+  const [importError, setImportError] = useState("");
+  const updateRow = (i, field, val) => {
+    const next = rows.map((r, idx) => idx !== i ? r : {
+      ...r,
+      [field]: val
+    });
+    if (field === "level") next[i].class = `${val}A`;
+    setRows(next);
+  };
+  const addRow = () => setRows([...rows, emptyRow()]);
+  const removeRow = i => setRows(rows.length === 1 ? [emptyRow()] : rows.filter((_, idx) => idx !== i));
+  const doImport = async () => {
+    setImportError("");
+    if (!window.SIGMA_SUPABASE?.isConfigured()) {
+      setImportError("Supabase belum dikonfigurasi.");
+      return;
+    }
+    if (!defaultPwd.trim()) {
+      setImportError("Password default wajib diisi.");
+      return;
+    }
+    if (defaultPwd.trim().length < 6) {
+      setImportError("Password minimal 6 karakter.");
+      return;
+    }
+    const valid = rows.filter(r => r.name.trim() && r.email.trim());
+    if (!valid.length) {
+      setImportError("Isi minimal satu baris dengan nama dan email.");
+      return;
+    }
+    const missingEmail = valid.find(r => !r.email.includes("@"));
+    if (missingEmail) {
+      setImportError(`Email tidak valid: "${missingEmail.email}"`);
+      return;
+    }
+    setImporting(true);
+    setResults(null);
     try {
-      return window.SIGMA_AUTH.getProfiles() || [];
-    } catch (e) {
-      return [];
+      const res = await window.SIGMA_SUPABASE.createStudents(valid, defaultPwd);
+      setResults(res);
+      const ok = res.filter(r => r.success).length;
+      if (ok > 0) onDone();
+    } catch (err) {
+      const msg = err.message || "Import gagal.";
+      if (msg.toLowerCase().includes("sesi") || msg.toLowerCase().includes("session") || msg.toLowerCase().includes("unauthorized")) {
+        setImportError("Sesi guru sudah habis — silakan logout lalu login ulang, kemudian coba import lagi.");
+      } else {
+        setImportError(msg);
+      }
+    } finally {
+      setImporting(false);
     }
   };
-  const [profiles, setProfiles] = useState(readProfiles);
+  const successCount = results?.filter(r => r.success).length || 0;
+  const failCount = results?.filter(r => !r.success).length || 0;
+  return React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: 300,
+      background: "rgba(11,22,51,0.5)",
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: "40px 16px",
+      overflowY: "auto"
+    }
+  }, React.createElement("div", {
+    style: {
+      background: "white",
+      borderRadius: 20,
+      width: "min(900px, 100%)",
+      boxShadow: "0 8px 48px rgba(0,0,0,0.22)"
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: "22px 28px 18px",
+      borderBottom: "1.5px solid var(--line)",
+      display: "flex",
+      alignItems: "center",
+      gap: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 20,
+      color: "var(--navy-950)"
+    }
+  }, "Import Akun Siswa"), React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      marginTop: 3
+    }
+  }, "Isi data siswa lalu klik Import. Akun dibuat langsung di Supabase.")), React.createElement("button", {
+    onClick: onClose,
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: "50%",
+      border: "1.5px solid var(--line)",
+      background: "var(--bg)",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, React.createElement(Icon.X, {
+    width: "16",
+    height: "16"
+  }))), React.createElement("div", {
+    style: {
+      padding: "20px 28px",
+      display: "grid",
+      gap: 20
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      padding: "14px 16px",
+      background: "var(--bg)",
+      borderRadius: 12,
+      border: "1.5px solid var(--line)"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 800,
+      color: "var(--ink-muted)",
+      whiteSpace: "nowrap"
+    }
+  }, "Password default semua siswa:"), React.createElement("input", {
+    className: "input",
+    style: {
+      flex: 1,
+      maxWidth: 260
+    },
+    value: defaultPwd,
+    onChange: e => setDefaultPwd(e.target.value),
+    placeholder: "Contoh: Sigma2025!"
+  }), React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "var(--ink-subtle)",
+      lineHeight: 1.4
+    }
+  }, "Bisa di-override per siswa di kolom password (opsional)")), React.createElement("div", {
+    style: {
+      overflowX: "auto"
+    }
+  }, React.createElement("table", {
+    style: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: 13
+    }
+  }, React.createElement("thead", null, React.createElement("tr", {
+    style: {
+      background: "var(--bg)"
+    }
+  }, ["No", "Nama Lengkap *", "Panggilan", "Kelas", "Rombel", "Email *", "Password (override)", ""].map((h, i) => React.createElement("th", {
+    key: i,
+    style: {
+      padding: "8px 10px",
+      fontWeight: 800,
+      color: "var(--ink-muted)",
+      textAlign: "left",
+      whiteSpace: "nowrap",
+      borderBottom: "1.5px solid var(--line)"
+    }
+  }, h)))), React.createElement("tbody", null, rows.map((row, i) => React.createElement("tr", {
+    key: i,
+    style: {
+      borderBottom: "1px solid var(--line)"
+    }
+  }, React.createElement("td", {
+    style: {
+      padding: "6px 10px",
+      color: "var(--ink-subtle)",
+      fontWeight: 700,
+      width: 32
+    }
+  }, i + 1), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("input", {
+    className: "input",
+    style: {
+      minWidth: 160
+    },
+    value: row.name,
+    onChange: e => updateRow(i, "name", e.target.value),
+    placeholder: "Naya Putri"
+  })), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("input", {
+    className: "input",
+    style: {
+      minWidth: 90
+    },
+    value: row.nickname,
+    onChange: e => updateRow(i, "nickname", e.target.value),
+    placeholder: "Naya"
+  })), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("select", {
+    className: "input",
+    style: {
+      minWidth: 70
+    },
+    value: row.level,
+    onChange: e => updateRow(i, "level", Number(e.target.value))
+  }, React.createElement("option", {
+    value: 7
+  }, "7"), React.createElement("option", {
+    value: 8
+  }, "8"), React.createElement("option", {
+    value: 9
+  }, "9"))), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("input", {
+    className: "input",
+    style: {
+      minWidth: 70
+    },
+    value: row.class,
+    onChange: e => updateRow(i, "class", e.target.value),
+    placeholder: "7A"
+  })), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("input", {
+    className: "input",
+    style: {
+      minWidth: 200
+    },
+    type: "email",
+    value: row.email,
+    onChange: e => updateRow(i, "email", e.target.value),
+    placeholder: "naya@labschool.sch.id"
+  })), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("input", {
+    className: "input",
+    style: {
+      minWidth: 140
+    },
+    value: row.password || "",
+    onChange: e => updateRow(i, "password", e.target.value),
+    placeholder: defaultPwd
+  })), React.createElement("td", {
+    style: {
+      padding: "6px 6px"
+    }
+  }, React.createElement("button", {
+    onClick: () => removeRow(i),
+    style: {
+      width: 28,
+      height: 28,
+      borderRadius: "50%",
+      border: "1.5px solid var(--line)",
+      background: "white",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "var(--red-500)"
+    }
+  }, React.createElement(Icon.X, {
+    width: "13",
+    height: "13"
+  })))))))), React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      flexWrap: "wrap"
+    }
+  }, React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: addRow
+  }, React.createElement(Icon.Plus, {
+    width: "14",
+    height: "14"
+  }), " Tambah Baris"), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }), React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: doImport,
+    disabled: importing,
+    style: {
+      minWidth: 160,
+      justifyContent: "center"
+    }
+  }, React.createElement(Icon.Play, {
+    width: "15",
+    height: "15"
+  }), importing ? "Membuat akun..." : `Import ${rows.filter(r => r.name && r.email).length} Siswa`)), importError && React.createElement("div", {
+    style: {
+      padding: "12px 16px",
+      background: "rgba(239,68,68,0.08)",
+      border: "1.5px solid rgba(239,68,68,0.3)",
+      borderRadius: 12,
+      fontSize: 13,
+      color: "var(--red-500)",
+      fontWeight: 600,
+      display: "flex",
+      gap: 8,
+      alignItems: "flex-start"
+    }
+  }, React.createElement("span", {
+    style: {
+      flexShrink: 0
+    }
+  }, "\u26A0\uFE0F"), React.createElement("span", null, importError)), results && React.createElement("div", {
+    style: {
+      border: "1.5px solid var(--line)",
+      borderRadius: 14,
+      overflow: "hidden"
+    }
+  }, React.createElement("div", {
+    style: {
+      padding: "12px 16px",
+      background: "var(--bg)",
+      borderBottom: "1px solid var(--line)",
+      display: "flex",
+      gap: 16
+    }
+  }, React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13
+    }
+  }, "Hasil Import"), React.createElement("span", {
+    style: {
+      color: "var(--green-600)",
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, "\u2705 ", successCount, " berhasil"), failCount > 0 && React.createElement("span", {
+    style: {
+      color: "var(--red-500)",
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, "\u274C ", failCount, " gagal")), React.createElement("div", {
+    style: {
+      maxHeight: 240,
+      overflowY: "auto"
+    }
+  }, results.map((r, i) => React.createElement("div", {
+    key: i,
+    style: {
+      padding: "10px 16px",
+      borderBottom: i < results.length - 1 ? "1px solid var(--line)" : "none",
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 10,
+      background: r.success ? "rgba(34,197,94,0.04)" : "rgba(239,68,68,0.04)"
+    }
+  }, React.createElement("span", {
+    style: {
+      fontSize: 15,
+      flexShrink: 0
+    }
+  }, r.success ? "✅" : "❌"), React.createElement("div", null, React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      color: "var(--navy-950)"
+    }
+  }, r.name, " ", React.createElement("span", {
+    style: {
+      fontWeight: 400,
+      color: "var(--ink-muted)"
+    }
+  }, "\u2014 ", r.email)), !r.success && React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "var(--red-500)",
+      marginTop: 2
+    }
+  }, r.error)))))))));
+};
+const TeacherDashboard = () => {
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [levelFilter, setLevelFilter] = useState("all");
+  const [rombelFilter, setRombelFilter] = useState("all");
+  const [selected, setSelected] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [resetPwd, setResetPwd] = useState(null);
+  const refreshProfiles = async () => {
+    setLoading(true);
+    try {
+      const next = await window.SIGMA_AUTH.getTeacherProfiles();
+      setProfiles(next || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    refreshProfiles();
+  }, []);
+  useEffect(() => {
+    setRombelFilter("all");
+  }, [levelFilter]);
   const modules = window.CURRICULUM.modules;
   const moduleComplete = (p, mid) => {
     try {
       return window.SIGMA_AUTH.isModuleLearningComplete(mid, p);
-    } catch (e) {
+    } catch {
       return false;
     }
   };
@@ -12564,7 +13875,9 @@ const TeacherDashboard = () => {
   const modulesTuntas = p => modules.filter(m => m.level === p.level && moduleComplete(p, m.id)).length;
   const modulesForLevel = lvl => modules.filter(m => m.level === lvl).length;
   const started = (p, mid) => !!(p.progress?.[mid]?.lessonsDone || p.quizzes?.[mid] || Object.keys(p.quests?.[mid] || {}).length);
-  const shown = levelFilter === "all" ? profiles : profiles.filter(p => String(p.level) === String(levelFilter));
+  const byLevel = levelFilter === "all" ? profiles : profiles.filter(p => String(p.level) === String(levelFilter));
+  const rombels = [...new Set(byLevel.map(p => p.class).filter(Boolean))].sort();
+  const shown = byLevel.filter(p => rombelFilter === "all" || p.class === rombelFilter);
   const studentCount = shown.length;
   const avgXp = studentCount ? Math.round(shown.reduce((a, p) => a + (p.xp || 0), 0) / studentCount) : 0;
   const qa = shown.map(quizAvg).filter(v => v != null);
@@ -12584,14 +13897,126 @@ const TeacherDashboard = () => {
       sudahKuis: skor.length
     };
   };
-  const colFor = pct => pct == null ? "var(--ink-subtle)" : pct >= 80 ? "var(--green-500)" : pct >= 60 ? "var(--orange-500)" : "var(--red-500)";
   return React.createElement("div", {
     className: "page",
     style: {
       background: "var(--bg)",
       minHeight: "100vh"
     }
-  }, React.createElement(Navbar, null), React.createElement("div", {
+  }, React.createElement(Navbar, null), selected && React.createElement(StudentDetail, {
+    profile: selected,
+    onClose: () => setSelected(null)
+  }), resetPwd && React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: 300,
+      background: "rgba(11,22,51,0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      background: "white",
+      borderRadius: 16,
+      width: "min(400px,100%)",
+      padding: 28,
+      boxShadow: "0 8px 40px rgba(0,0,0,0.2)"
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 17,
+      color: "var(--navy-950)",
+      marginBottom: 4
+    }
+  }, "Ganti Password"), React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "var(--ink-muted)",
+      marginBottom: 18
+    }
+  }, resetPwd.name), React.createElement("input", {
+    className: "input",
+    type: "password",
+    placeholder: "Password baru (min. 6 karakter)",
+    value: resetPwd.newPwd,
+    onChange: e => setResetPwd({
+      ...resetPwd,
+      newPwd: e.target.value,
+      msg: "",
+      ok: false
+    }),
+    style: {
+      width: "100%",
+      marginBottom: 10
+    },
+    autoFocus: true
+  }), resetPwd.msg && React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: resetPwd.ok ? "var(--green-600)" : "var(--red-500)",
+      marginBottom: 10,
+      padding: "7px 10px",
+      background: resetPwd.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
+      borderRadius: 8
+    }
+  }, resetPwd.ok ? "✅" : "⚠️", " ", resetPwd.msg), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      justifyContent: "flex-end"
+    }
+  }, React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: () => setResetPwd(null),
+    disabled: resetPwd.loading
+  }, "Batal"), React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    disabled: resetPwd.loading,
+    onClick: async () => {
+      if (!resetPwd.newPwd || resetPwd.newPwd.length < 6) {
+        setResetPwd({
+          ...resetPwd,
+          msg: "Password minimal 6 karakter.",
+          ok: false
+        });
+        return;
+      }
+      setResetPwd({
+        ...resetPwd,
+        loading: true,
+        msg: "",
+        ok: false
+      });
+      try {
+        await window.SIGMA_SUPABASE.resetStudentPassword(resetPwd.userId, resetPwd.newPwd);
+        setResetPwd({
+          ...resetPwd,
+          loading: false,
+          msg: "Password berhasil diubah.",
+          ok: true,
+          newPwd: ""
+        });
+      } catch (err) {
+        setResetPwd({
+          ...resetPwd,
+          loading: false,
+          msg: err.message || "Gagal mengubah password.",
+          ok: false
+        });
+      }
+    }
+  }, resetPwd.loading ? "Menyimpan..." : "Simpan")))), showImport && React.createElement(ImportPanel, {
+    onClose: () => setShowImport(false),
+    onDone: () => {
+      setShowImport(false);
+      refreshProfiles();
+    }
+  }), React.createElement("div", {
     style: {
       maxWidth: 1280,
       margin: "0 auto",
@@ -12611,7 +14036,7 @@ const TeacherDashboard = () => {
       justifyContent: "space-between",
       flexWrap: "wrap",
       gap: 16,
-      margin: "16px 0 8px"
+      margin: "16px 0 24px"
     }
   }, React.createElement("div", null, React.createElement("div", {
     className: "tag tag-gold",
@@ -12625,29 +14050,29 @@ const TeacherDashboard = () => {
       margin: 0,
       color: "var(--navy-950)"
     }
-  }, "Dashboard Guru")), React.createElement("button", {
+  }, "Dashboard Guru")), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: () => setShowImport(true)
+  }, React.createElement(Icon.Plus, {
+    width: "14",
+    height: "14"
+  }), " Tambah Siswa"), React.createElement("button", {
     className: "btn btn-sm",
-    onClick: () => setProfiles(readProfiles())
+    onClick: refreshProfiles
   }, React.createElement(Icon.Refresh, {
     width: "14",
     height: "14"
-  }), " Muat ulang data")), React.createElement("div", {
-    style: {
-      padding: "10px 14px",
-      background: "var(--bg-cream)",
-      border: "1.5px solid var(--gold-400)",
-      borderRadius: 12,
-      fontSize: 13,
-      color: "var(--ink-muted)",
-      lineHeight: 1.5,
-      marginBottom: 24
-    }
-  }, "\u2139\uFE0F Rekap di bawah dihitung dari ", React.createElement("strong", null, "profil siswa yang tersimpan di browser/perangkat ini"), " (belum ada sinkronisasi antar-perangkat). Cocok untuk perangkat kelas bersama atau demo."), React.createElement("div", {
+  }), " ", loading ? "Memuat..." : "Muat ulang"))), React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
-      marginBottom: 20,
-      flexWrap: "wrap"
+      flexWrap: "wrap",
+      marginBottom: rombels.length > 0 ? 10 : 20
     }
   }, [{
     id: "all",
@@ -12669,17 +14094,37 @@ const TeacherDashboard = () => {
       background: levelFilter === f.id ? "var(--navy-900)" : "white",
       color: levelFilter === f.id ? "white" : "var(--ink)"
     }
-  }, f.label))), studentCount === 0 ? React.createElement(EmptyState, {
+  }, f.label))), rombels.length > 1 && React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      flexWrap: "wrap",
+      marginBottom: 20,
+      paddingLeft: 4
+    }
+  }, React.createElement("button", {
+    onClick: () => setRombelFilter("all"),
+    className: "btn btn-sm",
+    style: {
+      background: rombelFilter === "all" ? "var(--gold-400)" : "var(--bg)",
+      color: "var(--ink)",
+      border: "1.5px solid var(--gold-400)",
+      fontSize: 12
+    }
+  }, "Semua Rombel"), rombels.map(r => React.createElement("button", {
+    key: r,
+    onClick: () => setRombelFilter(r),
+    className: "btn btn-sm",
+    style: {
+      background: rombelFilter === r ? "var(--gold-400)" : "var(--bg)",
+      color: "var(--ink)",
+      border: "1.5px solid var(--line)",
+      fontSize: 12
+    }
+  }, r))), studentCount === 0 ? React.createElement(EmptyState, {
     icon: "Users",
-    title: "Belum ada profil siswa",
-    subtitle: "Buat profil lewat halaman Profil, atau ganti filter kelas.",
-    action: React.createElement(Link, {
-      to: "/login",
-      className: "btn btn-primary",
-      style: {
-        marginTop: 18
-      }
-    }, "Ke Halaman Profil")
+    title: "Belum ada data siswa",
+    subtitle: loading ? "Sedang memuat data dari Supabase..." : "Belum ada akun siswa yang terdaftar, atau coba filter kelas/rombel lain."
   }) : React.createElement(React.Fragment, null, React.createElement("div", {
     className: "responsive-grid-4",
     style: {
@@ -12723,7 +14168,14 @@ const TeacherDashboard = () => {
       fontWeight: 900,
       fontSize: 16
     }
-  }, "Daftar Siswa (", studentCount, ")"), React.createElement("div", {
+  }, "Daftar Siswa (", studentCount, ")", React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: "var(--ink-muted)",
+      marginLeft: 10
+    }
+  }, "Klik nama untuk detail")), React.createElement("div", {
     style: {
       overflowX: "auto"
     }
@@ -12739,7 +14191,7 @@ const TeacherDashboard = () => {
       background: "var(--bg)",
       textAlign: "left"
     }
-  }, ["Nama", "Kelas", "XP", "Modul Tuntas", "Rata-rata Kuis", "Lab", "Gim", "Badge"].map((h, i) => React.createElement("th", {
+  }, ["Nama", "Kelas", "XP", "Modul Tuntas", "Rata-rata Kuis", "Lab", "Gim", "Badge", ""].map((h, i) => React.createElement("th", {
     key: i,
     style: {
       padding: "10px 14px",
@@ -12756,19 +14208,25 @@ const TeacherDashboard = () => {
       key: p.id,
       style: {
         borderTop: "1px solid var(--line)"
-      }
+      },
+      onMouseEnter: e => e.currentTarget.style.background = "var(--bg)",
+      onMouseLeave: e => e.currentTarget.style.background = "white"
     }, React.createElement("td", {
       style: {
         padding: "10px 14px",
         fontWeight: 800,
-        color: "var(--navy-950)"
-      }
+        color: "var(--info-500)",
+        textDecoration: "underline",
+        textDecorationStyle: "dotted",
+        cursor: "pointer"
+      },
+      onClick: () => setSelected(p)
     }, p.name), React.createElement("td", {
       style: {
         padding: "10px 14px",
         color: "var(--ink-muted)"
       }
-    }, p.class || `${p.level}`), React.createElement("td", {
+    }, p.class || p.level), React.createElement("td", {
       style: {
         padding: "10px 14px",
         textAlign: "center",
@@ -12801,7 +14259,34 @@ const TeacherDashboard = () => {
         padding: "10px 14px",
         textAlign: "center"
       }
-    }, p.badges?.length || 0));
+    }, p.badges?.length || 0), React.createElement("td", {
+      style: {
+        padding: "10px 10px",
+        textAlign: "center"
+      }
+    }, p.user_id && React.createElement("button", {
+      title: "Ganti password",
+      onClick: () => setResetPwd({
+        userId: p.user_id,
+        name: p.name,
+        newPwd: "",
+        loading: false,
+        msg: "",
+        ok: false
+      }),
+      style: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+        border: "1.5px solid var(--line)",
+        background: "white",
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--ink-muted)"
+      }
+    }, "\uD83D\uDD11")));
   }))))), levelNum ? React.createElement("div", {
     className: "card",
     style: {
@@ -12816,7 +14301,7 @@ const TeacherDashboard = () => {
       fontWeight: 900,
       fontSize: 16
     }
-  }, "Rekap per Modul \u2014 Kelas ", levelNum), React.createElement("div", {
+  }, "Rekap per Modul \u2014 Kelas ", levelNum, rombelFilter !== "all" ? ` · ${rombelFilter}` : ""), React.createElement("div", {
     style: {
       overflowX: "auto"
     }
@@ -19820,7 +21305,13 @@ const App = () => {
   if (route === "/login") return React.createElement(LoginPage, null);
   if (!window.SIGMA_AUTH.hasProfiles()) return React.createElement(LoginPage, null);
   if (route === "/dashboard") return React.createElement(Dashboard, null);
-  if (route === "/guru") return React.createElement(window.TeacherDashboard, null);
+  if (route === "/guru") {
+    if (window.USER?.role !== "teacher") {
+      navigate("/dashboard");
+      return null;
+    }
+    return React.createElement(window.TeacherDashboard, null);
+  }
   if (route === "/playground") return React.createElement(Playground, null);
   const kelasMatch = route.match(/^\/kelas\/(\d+)(?:\/(informatika|kka))?$/);
   if (kelasMatch) return React.createElement(Catalog, {

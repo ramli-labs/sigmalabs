@@ -53,6 +53,8 @@
     const nickname = String(safe.nickname || name.split(" ")[0] || "Siswa").trim() || "Siswa";
     return {
       id: safe.id || `${nickname.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`,
+      user_id: safe.user_id || safe.id || null,
+      role: safe.role || "student",
       name,
       nickname,
       level,
@@ -83,7 +85,43 @@
   }
 
   function writeProfiles(profiles) {
+    const normalized = (profiles || []).map(normalizeProfile);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(normalized));
+    syncProfilesToSupabase(normalized);
+  }
+
+  function writeProfilesLocalOnly(profiles) {
     localStorage.setItem(PROFILE_KEY, JSON.stringify((profiles || []).map(normalizeProfile)));
+  }
+
+  function syncProfilesToSupabase(profiles) {
+    if (!window.SIGMA_SUPABASE?.isConfigured()) return;
+    const activeId = getActiveId();
+    const activeProfile = (profiles || []).find(profile => profile.id === activeId) || (profiles || [])[0];
+    if (!activeProfile || activeProfile.isGuest) return;
+    window.SIGMA_SUPABASE.upsertProfile(activeProfile, activeProfile.role || "student").catch(error => {
+      console.warn("SIGMA Supabase sync failed", error);
+    });
+  }
+
+  async function hydrateProfilesFromSupabase() {
+    if (!window.SIGMA_SUPABASE?.isConfigured()) return;
+    try {
+      const remoteProfile = await window.SIGMA_SUPABASE.fetchOwnProfile();
+      const remoteProfiles = remoteProfile ? [remoteProfile] : [];
+      const localProfiles = readProfiles();
+      if (remoteProfiles.length) {
+        writeProfilesLocalOnly(remoteProfiles);
+        localStorage.setItem(ACTIVE_KEY, remoteProfiles[0].id);
+        const active = getActiveUser();
+        setActiveUser(active);
+        notify();
+        return;
+      }
+      if (localProfiles.length) syncProfilesToSupabase(localProfiles);
+    } catch (error) {
+      console.warn("SIGMA Supabase hydrate failed", error);
+    }
   }
 
   function getActiveId() {
@@ -218,6 +256,77 @@
     return login(id);
   }
 
+  async function signInWithSupabase(email, password) {
+    if (!window.SIGMA_SUPABASE?.isConfigured()) throw new Error("Supabase belum dikonfigurasi.");
+    await window.SIGMA_SUPABASE.signIn(email, password);
+    const remoteProfile = await window.SIGMA_SUPABASE.fetchOwnProfile();
+    if (!remoteProfile) throw new Error("Akun berhasil masuk, tetapi profil SIGMA belum ditemukan.");
+    writeProfilesLocalOnly([remoteProfile]);
+    localStorage.setItem(ACTIVE_KEY, remoteProfile.id);
+    setActiveUser(remoteProfile);
+    notify();
+    return remoteProfile;
+  }
+
+  async function signUpWithSupabase(input) {
+    if (!window.SIGMA_SUPABASE?.isConfigured()) throw new Error("Supabase belum dikonfigurasi.");
+    const name = (input.name || "Siswa Baru").trim();
+    const nickname = (input.nickname || name.split(" ")[0] || "Siswa").trim();
+    const level = Number(input.level || 7);
+    const kelas = (input.class || `${level}A`).trim();
+    const role = input.role || "student";
+    const user = await window.SIGMA_SUPABASE.signUp(input.email, input.password, {
+      name,
+      nickname,
+      level,
+      class: kelas,
+      role,
+    });
+    if (!user?.id) throw new Error("Akun Supabase belum aktif. Cek pengaturan konfirmasi email.");
+    const profile = normalizeProfile({
+      id: user.id,
+      user_id: user.id,
+      role,
+      name,
+      nickname,
+      level,
+      class: kelas,
+      xp: 0,
+      streak: 1,
+      badges: [{ id: "starter", emoji: "✨", label: "Mulai Belajar", color: "var(--gold-400)" }],
+      progress: {},
+      completedLabs: [],
+      completedGames: [],
+    });
+    const saved = await window.SIGMA_SUPABASE.upsertProfile(profile, role);
+    const nextProfile = saved || profile;
+    writeProfilesLocalOnly([nextProfile]);
+    localStorage.setItem(ACTIVE_KEY, nextProfile.id);
+    setActiveUser(nextProfile);
+    notify();
+    return nextProfile;
+  }
+
+  async function signOutSupabase() {
+    if (window.SIGMA_SUPABASE?.isConfigured()) {
+      await window.SIGMA_SUPABASE.signOut();
+    }
+    localStorage.removeItem(ACTIVE_KEY);
+    setActiveUser(clone(guestProfile));
+    notify();
+  }
+
+  async function getTeacherProfiles() {
+    if (!window.SIGMA_SUPABASE?.isConfigured()) return readProfiles();
+    try {
+      const profiles = await window.SIGMA_SUPABASE.fetchVisibleProfiles();
+      return profiles.length ? profiles : readProfiles();
+    } catch (error) {
+      console.warn("SIGMA Supabase teacher fetch failed", error);
+      return readProfiles();
+    }
+  }
+
   function saveActiveUser(nextUser) {
     const profiles = readProfiles();
     const index = profiles.findIndex(p => p.id === nextUser.id);
@@ -237,11 +346,13 @@
     const total = mod.lessons;
     const targetDone = typeof lessonIndex === "number" ? lessonIndex + 1 : (current.lessonsDone || 0) + 1;
     const lessonsDone = Math.min(total, Math.max(current.lessonsDone || 0, targetDone));
+    const completedLessons = [...new Set([...(current.completedLessons || []), ...(typeof lessonIndex === "number" ? [lessonIndex] : [])])];
     user.progress[moduleId] = {
       ...current,
       lessonsDone,
       total,
       percent: Math.round((lessonsDone / total) * 100),
+      completedLessons,
     };
     if (lessonsDone === total) awardModuleCompletion(user, mod);
     saveActiveUser(user);
@@ -291,7 +402,7 @@
     return user;
   }
 
-  function completeQuiz(moduleId, score, total) {
+  function completeQuiz(moduleId, score, total, answers) {
     const user = clone(window.USER || getActiveUser());
     const mod = window.CURRICULUM.modules.find(m => m.id === moduleId);
     if (!mod) return user;
@@ -318,6 +429,7 @@
       bestRemedialPercent: 0,
       xpAwarded: targetXp,
       locked: true,
+      answers: answers || null,
       updatedAt: new Date().toISOString(),
     };
     if (percent >= 80 && !user.badges.some(b => b.id === `quiz-${moduleId}`)) {
@@ -399,12 +511,18 @@
   function resetLocalData() {
     localStorage.removeItem(PROFILE_KEY);
     localStorage.removeItem(ACTIVE_KEY);
+    if (window.SIGMA_SUPABASE?.isConfigured()) {
+      window.SIGMA_SUPABASE.clearOwnProfile().catch(error => {
+        console.warn("SIGMA Supabase reset failed", error);
+      });
+    }
     setActiveUser(clone(guestProfile));
     notify();
   }
 
   const activeUser = getActiveUser();
   setActiveUser(activeUser);
+  hydrateProfilesFromSupabase();
 
   window.SIGMA_AUTH = {
     getProfiles,
@@ -412,6 +530,10 @@
     getActiveUser,
     login,
     createProfile,
+    signInWithSupabase,
+    signUpWithSupabase,
+    signOutSupabase,
+    getTeacherProfiles,
     saveActiveUser,
     completeLesson,
     saveReflection,

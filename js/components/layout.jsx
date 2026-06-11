@@ -108,13 +108,15 @@ const Navbar = ({ variant = "light" }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const dark = variant === "dark";
 
-  const links = [
+  const isTeacher = window.USER?.role === "teacher";
+  const links = isTeacher ? [
+    { to: "/guru", label: "Dashboard Guru" },
+  ] : [
     { to: "/dashboard", label: "Dashboard" },
     { to: `/kelas/${window.USER.level}`, label: `Kelas ${window.USER.level}` },
     { to: "/lab", label: "Lab Maya" },
     { to: "/gim", label: "Gim" },
     { to: "/playground", label: "Playground" },
-    { to: "/login", label: "Profil" },
   ];
 
   const isActive = (to) => route === to || route.startsWith(to + "/") || (to === "/dashboard" && route === "/dashboard");
@@ -160,6 +162,16 @@ const Navbar = ({ variant = "light" }) => {
           <Link to="/login" className="profile-avatar" title="Ganti profil siswa" style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--gold-400)", border: "2px solid var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
             {window.USER.nickname[0]}
           </Link>
+          <button
+            title="Keluar"
+            onClick={async () => {
+              await window.SIGMA_AUTH.signOutSupabase();
+              navigate("/login");
+            }}
+            style={{ width: 40, height: 40, borderRadius: "50%", background: dark ? "rgba(255,255,255,0.08)" : "white", border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+          >
+            <Icon.LogOut width="17" height="17" style={{ color: dark ? "rgba(255,255,255,0.6)" : "var(--ink-muted)" }}/>
+          </button>
           <button
             className="btn btn-sm mobile-menu-button"
             onClick={() => setMenuOpen(!menuOpen)}

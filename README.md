@@ -97,6 +97,7 @@ Lab dan gim tidak ditampilkan sebagai menu utama. Keduanya muncul kontekstual di
 | `#/` | Landing |
 | `#/login` | Simulasi login siswa lokal |
 | `#/dashboard` | Dashboard siswa |
+| `#/guru` | Dashboard guru |
 | `#/kelas/7` `#/kelas/8` `#/kelas/9` | Katalog per kelas |
 | `#/modul/:id` | Detail modul (contoh: `#/modul/inf8-2`) |
 | `#/playground` | Python editor + 5 tantangan |
@@ -117,9 +118,9 @@ Ini **versi 1.0 menuju siap dipakai siswa**. Yang sudah jalan:
 - ✅ AI Tutor dengan fallback simulator
 
 Yang belum:
-- ❌ Autentikasi real berbasis server
-- ❌ Backend cloud untuk sinkronisasi antar perangkat
-- ❌ Dashboard Guru (variant di design asli belum di-port)
+- ◐ Autentikasi Supabase tahap awal untuk siswa/guru
+- ◐ Backend cloud untuk profil dan progres belajar siswa
+- ✅ Dashboard Guru lintas perangkat jika login sebagai guru Supabase
 - ❌ QA visual final di perangkat siswa sebelum 5 Juni
 
 ---
@@ -128,6 +129,16 @@ Yang belum:
 
 ### Ganti / reset data siswa lokal
 Buka `#/login` untuk memilih profil, membuat siswa baru, atau reset data lokal. Data siswa tersimpan di `localStorage` perangkat/browser yang dipakai.
+
+### Integrasi Supabase tahap 1
+Konten modul tetap statis di `js/data/curriculum.js` dan `js/data/quiz-bank-v2.js`. Supabase hanya dipakai untuk login, profil siswa, progres, refleksi, misi, kuis, XP, badge, lab, gim, dan dashboard guru.
+
+1. Jalankan SQL di `supabase/schema.sql` pada SQL Editor Supabase.
+2. Isi `url` dan `anonKey` di `js/data/supabase.js`.
+3. Buat akun siswa dari halaman `#/login`, atau login jika akun sudah ada.
+4. Untuk akun guru, daftar dulu lewat `#/login`, lalu ubah row `sigma_profiles.role` akun tersebut menjadi `teacher` lewat SQL Editor. Setelah login ulang, dashboard `#/guru` bisa membaca profil siswa lintas perangkat.
+
+Mode lokal tetap tersedia sebagai fallback jika Supabase belum dikonfigurasi.
 
 ### Tambah modul baru
 Edit `window.CURRICULUM.modules` di file yang sama — tambahkan object dengan `id`, `subject`, `level`, `unit`, `title`, dll.

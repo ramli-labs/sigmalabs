@@ -35,7 +35,13 @@ const App = () => {
   if (route === "/login") return <LoginPage/>;
   if (!window.SIGMA_AUTH.hasProfiles()) return <LoginPage/>;
   if (route === "/dashboard") return <Dashboard/>;
-  if (route === "/guru") return <window.TeacherDashboard/>;
+  if (route === "/guru") {
+    if (window.USER?.role !== "teacher") {
+      navigate("/dashboard");
+      return null;
+    }
+    return <window.TeacherDashboard/>;
+  }
   if (route === "/playground") return <Playground/>;
 
   // Kelas catalog: /kelas/7, /kelas/8, /kelas/9, optional subject filter.

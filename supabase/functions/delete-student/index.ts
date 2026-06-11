@@ -31,14 +31,16 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authErr } = await caller.auth.getUser();
     if (authErr || !user) throw new Error("Sesi tidak valid, silakan login ulang.");
 
-    const { data: teacherProfile } = await admin
+    const { data: teacherProfile, error: teacherError } = await admin
       .from("sigma_profiles")
       .select("role")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (teacherError) throw new Error(`Gagal memeriksa role guru: ${teacherError.message}`);
 
     if (teacherProfile?.role !== "teacher") {
-      throw new Error("Hanya guru yang dapat menghapus akun siswa.");
+      throw new Error(`Hanya guru yang dapat menghapus akun siswa. Session aktif: ${user.email || user.id}; role server: ${teacherProfile?.role || "tidak ditemukan"}.`);
     }
 
     const { userId } = await req.json();

@@ -102,6 +102,48 @@ const BrandStrip = ({ variant = "light" }) => {
 window.LabschoolLogo = LabschoolLogo;
 window.BrandStrip = BrandStrip;
 
+// ---------- Indikator status simpan ke cloud ----------
+const SyncStatusBadge = ({ dark }) => {
+  const [status, setStatus] = useState(window.SIGMA_AUTH?.getSyncStatus?.() || "idle");
+  useEffect(() => {
+    const onChange = (e) => setStatus(e.detail);
+    window.addEventListener("sigma:syncstatus", onChange);
+    return () => window.removeEventListener("sigma:syncstatus", onChange);
+  }, []);
+
+  // Hanya relevan kalau cloud aktif dan user bukan tamu.
+  const cloudActive = window.SIGMA_SUPABASE?.isConfigured?.() && !window.USER?.isGuest;
+  if (!cloudActive || status === "idle") return null;
+
+  const config = {
+    saving: { label: "Menyimpan…", color: dark ? "rgba(255,255,255,0.7)" : "var(--ink-muted)", Glyph: Icon.Refresh },
+    saved: { label: "Tersimpan", color: "var(--green-500)", Glyph: Icon.Check },
+    error: { label: "Belum tersinkron", color: "var(--red-500)", Glyph: Icon.Clock },
+  }[status];
+  if (!config) return null;
+  const { Glyph } = config;
+
+  return (
+    <span
+      title={status === "error"
+        ? "Progres tersimpan di perangkat ini, tapi belum terkirim ke server. Akan dicoba lagi otomatis saat koneksi pulih."
+        : "Status sinkronisasi progres ke server"}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        fontSize: 12, fontWeight: 700, color: config.color,
+        padding: "6px 10px", borderRadius: "var(--r-full)",
+        background: dark ? "rgba(255,255,255,0.06)" : "white",
+        border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Glyph width="14" height="14" style={status === "saving" ? { animation: "spin 1s linear infinite" } : undefined}/>
+      <span className="hide-mobile">{config.label}</span>
+    </span>
+  );
+};
+window.SyncStatusBadge = SyncStatusBadge;
+
 // ---------- Navbar ----------
 const Navbar = ({ variant = "light" }) => {
   const route = useRoute();
@@ -155,6 +197,7 @@ const Navbar = ({ variant = "light" }) => {
         </div>
 
         <div className="site-nav-actions" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <SyncStatusBadge dark={dark}/>
           <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: dark ? "rgba(255,255,255,0.06)" : "white", borderRadius: "var(--r-full)", border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)" }}>
             <Icon.Bolt width="15" height="15" style={{ color: "var(--gold-500)" }}/>
             <span style={{ fontWeight: 800, fontSize: 13, color: dark ? "white" : "var(--navy-900)" }}>{window.USER.xp.toLocaleString()} XP</span>

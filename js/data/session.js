@@ -94,14 +94,52 @@
     localStorage.setItem(PROFILE_KEY, JSON.stringify((profiles || []).map(normalizeProfile)));
   }
 
+  // Status sinkron ke cloud: "idle" | "saving" | "saved" | "error".
+  // "idle" juga dipakai saat cloud tidak relevan (Supabase belum diset / guest).
+  let syncStatus = "idle";
+  let pendingProfile = null;
+  let retryTimer = null;
+
+  function setSyncStatus(status) {
+    syncStatus = status;
+    window.dispatchEvent(new CustomEvent("sigma:syncstatus", { detail: status }));
+  }
+
+  function getSyncStatus() {
+    return syncStatus;
+  }
+
+  function pushProfileToSupabase(profile) {
+    setSyncStatus("saving");
+    window.SIGMA_SUPABASE.upsertProfile(profile, profile.role || "student")
+      .then(() => {
+        pendingProfile = null;
+        setSyncStatus("saved");
+      })
+      .catch(error => {
+        console.warn("SIGMA Supabase sync failed", error);
+        pendingProfile = profile;
+        setSyncStatus("error");
+        scheduleRetry();
+      });
+  }
+
+  function scheduleRetry() {
+    if (retryTimer || !pendingProfile) return;
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      if (pendingProfile && window.SIGMA_SUPABASE?.isConfigured()) {
+        pushProfileToSupabase(pendingProfile);
+      }
+    }, 15000);
+  }
+
   function syncProfilesToSupabase(profiles) {
     if (!window.SIGMA_SUPABASE?.isConfigured()) return;
     const activeId = getActiveId();
     const activeProfile = (profiles || []).find(profile => profile.id === activeId) || (profiles || [])[0];
     if (!activeProfile || activeProfile.isGuest) return;
-    window.SIGMA_SUPABASE.upsertProfile(activeProfile, activeProfile.role || "student").catch(error => {
-      console.warn("SIGMA Supabase sync failed", error);
-    });
+    pushProfileToSupabase(activeProfile);
   }
 
   async function hydrateProfilesFromSupabase() {
@@ -520,6 +558,13 @@
     notify();
   }
 
+  // Saat koneksi kembali, langsung coba sinkron ulang data yang tertunda.
+  window.addEventListener("online", () => {
+    if (pendingProfile && window.SIGMA_SUPABASE?.isConfigured()) {
+      pushProfileToSupabase(pendingProfile);
+    }
+  });
+
   const activeUser = getActiveUser();
   setActiveUser(activeUser);
   hydrateProfilesFromSupabase();
@@ -534,6 +579,7 @@
     signUpWithSupabase,
     signOutSupabase,
     getTeacherProfiles,
+    getSyncStatus,
     saveActiveUser,
     completeLesson,
     saveReflection,

@@ -1315,7 +1315,7 @@ const Landing = () => {
   }), "SIGMA \xB7 SISTEM INFORMATIKA \u2022 GENERASI MAHIR ARTIFISIAL"), React.createElement("h1", {
     className: "display",
     style: {
-      fontSize: "clamp(48px, 7vw, 84px)",
+      fontSize: "clamp(30px, 7vw, 84px)",
       margin: 0,
       color: "var(--navy-950)"
     }
@@ -1367,6 +1367,7 @@ const Landing = () => {
     width: "18",
     height: "18"
   }), " Jelajahi Modul"))), React.createElement("div", {
+    className: "hide-mobile",
     style: {
       position: "relative",
       height: 560,
@@ -2203,7 +2204,7 @@ const LoginPage = () => {
       marginBottom: 16
     }
   }, "SIGMA LABSCHOOL"), React.createElement("h1", {
-    className: "display",
+    className: "display mobile-safe-title",
     style: {
       fontSize: 60,
       margin: "0 0 16px",

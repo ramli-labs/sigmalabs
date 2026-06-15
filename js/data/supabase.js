@@ -206,6 +206,26 @@
     return json;
   }
 
+  async function resetQuiz(userId, moduleId) {
+    const client = getClient();
+    if (!client) throw new Error("Supabase belum dikonfigurasi.");
+    const session = await getSession();
+    if (!session) throw new Error("Sesi tidak valid.");
+    const config = getConfig();
+    const res = await fetch(`${config.url}/functions/v1/reset-quiz`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": config.anonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, moduleId }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Gagal mengatur ulang kuis.");
+    return json;
+  }
+
   async function createStudents(students, defaultPassword) {
     const client = getClient();
     if (!client) throw new Error("Supabase belum dikonfigurasi.");
@@ -236,6 +256,7 @@
     createStudents,
     deleteStudent,
     resetStudentPassword,
+    resetQuiz,
     fetchOwnProfile,
     fetchVisibleProfiles,
     upsertProfile,

@@ -59,10 +59,13 @@ using (
 );
 
 -- ============================================
--- Kunci integritas XP
--- Hanya service-role (Edge Function award-xp) yang boleh menaikkan xp.
--- Update dari siswa/guru (role authenticated/anon lewat PostgREST) tidak
--- bisa menaikkan data->xp; akun baru selalu mulai dari xp 0.
+-- Kunci integritas XP + role
+-- Pengguna lewat PostgREST (role authenticated/anon) TIDAK boleh:
+--   - menaikkan data->xp (hanya service-role/Edge Function award-xp yang boleh)
+--   - mengubah role akun (cegah siswa mengangkat dirinya jadi 'teacher')
+-- Akun baru selalu mulai sebagai 'student' dengan xp 0.
+-- Guru tetap dipromosikan manual oleh admin (service-role / SQL Editor,
+-- yang bypass trigger ini).
 -- DEPLOY trigger ini SETELAH Edge Function award-xp aktif dan klien sudah
 -- memakainya — kalau tidak, perolehan XP dari kuis/misi/gim/lab akan
 -- terhenti karena masih dihitung di klien.
@@ -76,11 +79,13 @@ begin
   if current_user in ('authenticated', 'anon') then
     if tg_op = 'INSERT' then
       new.data = jsonb_set(coalesce(new.data, '{}'::jsonb), '{xp}', '0'::jsonb);
+      new.role = 'student';                 -- akun baru wajib student
     elsif tg_op = 'UPDATE' then
       old_xp := coalesce((old.data->>'xp')::numeric, 0);
       if new_xp > old_xp then
         new.data = jsonb_set(new.data, '{xp}', to_jsonb(old_xp));
       end if;
+      new.role = old.role;                  -- tidak boleh ubah role sendiri
     end if;
   end if;
   return new;

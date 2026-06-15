@@ -13,9 +13,23 @@ const colFor = (pct) =>
   : "var(--red-500)";
 
 // ---- Panel detail satu siswa ----
-const StudentDetail = ({ profile, onClose }) => {
+const StudentDetail = ({ profile, onClose, onChanged }) => {
   const [tab, setTab] = useState("materi");
   const [expandedMod, setExpandedMod] = useState(null);
+  const [resetting, setResetting] = useState("");
+
+  const handleResetQuiz = async (moduleId) => {
+    if (!window.confirm("Izinkan siswa ini mengulang kuis modul ini?\n\nNilai & XP kuis saat ini akan dihapus, lalu siswa bisa mengerjakan ulang.")) return;
+    setResetting(moduleId);
+    try {
+      await window.SIGMA_SUPABASE.resetQuiz(profile.user_id || profile.id, moduleId);
+      if (onChanged) await onChanged();
+    } catch (e) {
+      alert("Gagal mengatur ulang kuis: " + (e.message || e));
+    } finally {
+      setResetting("");
+    }
+  };
 
   const subjectOrder = ["informatika", "kka"];
   const modules = window.CURRICULUM.modules
@@ -201,6 +215,12 @@ const StudentDetail = ({ profile, onClose }) => {
 
                     {isOpen && quiz && (
                       <div style={{ borderTop: "1px solid var(--line)" }}>
+                        <div style={{ padding: "10px 16px", display: "flex", justifyContent: "flex-end", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
+                          <button className="btn btn-sm" disabled={resetting === mod.id} onClick={() => handleResetQuiz(mod.id)}
+                            title="Hapus nilai kuis ini agar siswa bisa mengerjakan ulang">
+                            <Icon.Refresh width="13" height="13"/> {resetting === mod.id ? "Memproses…" : "Izinkan ulang kuis"}
+                          </button>
+                        </div>
                         {!review && (
                           <div style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-subtle)", fontStyle: "italic" }}>
                             Rincian jawaban tidak tersedia — kuis ini dikerjakan sebelum fitur review per soal diaktifkan.
@@ -341,6 +361,8 @@ const ImportPanel = ({ onClose, onDone }) => {
   const [importing, setImporting]  = useState(false);
   const [results, setResults]      = useState(null);
   const [importError, setImportError] = useState("");
+  const [csvText, setCsvText]      = useState("");
+  const [csvMsg, setCsvMsg]        = useState("");
 
   const updateRow = (i, field, val) => {
     const next = rows.map((r, idx) => idx !== i ? r : { ...r, [field]: val });
@@ -349,6 +371,66 @@ const ImportPanel = ({ onClose, onDone }) => {
   };
   const addRow    = () => setRows([...rows, emptyRow()]);
   const removeRow = (i) => setRows(rows.length === 1 ? [emptyRow()] : rows.filter((_, idx) => idx !== i));
+
+  // Parse teks CSV / tempelan Excel (tab) menjadi baris siswa.
+  // Kolom dikenali dari header (Nama, Email, Kelas, Panggilan, Level); tanpa
+  // header diasumsikan urutan: Nama, Email, Kelas, Panggilan.
+  const parseCsvText = (text) => {
+    const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return [];
+    const delim = lines[0].includes("\t") ? "\t" : ",";
+    const splitLine = (line) => {
+      const out = []; let cur = "", inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQ) {
+          if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+          else cur += ch;
+        } else if (ch === '"') inQ = true;
+        else if (ch === delim) { out.push(cur); cur = ""; }
+        else cur += ch;
+      }
+      out.push(cur);
+      return out.map(s => s.trim());
+    };
+    const norm = (s) => String(s).toLowerCase().replace(/[^a-z]/g, "");
+    let idx = { name: 0, email: 1, class: 2, nickname: 3, level: -1 };
+    const firstCells = splitLine(lines[0]).map(norm);
+    const hints = ["nama", "name", "namalengkap", "email", "surel", "kelas", "class", "rombel", "panggilan", "nickname", "namapanggilan", "level", "tingkat"];
+    let dataLines = lines;
+    if (firstCells.some(c => hints.includes(c))) {
+      const find = (...keys) => firstCells.findIndex(c => keys.includes(c));
+      idx = {
+        name: find("nama", "name", "namalengkap"),
+        nickname: find("panggilan", "nickname", "namapanggilan"),
+        email: find("email", "surel"),
+        class: find("kelas", "class", "rombel"),
+        level: find("level", "tingkat"),
+      };
+      dataLines = lines.slice(1);
+    }
+    return dataLines.map(line => {
+      const c = splitLine(line);
+      const name = (idx.name >= 0 ? c[idx.name] : "") || "";
+      const email = (idx.email >= 0 ? c[idx.email] : "") || "";
+      let nickname = (idx.nickname >= 0 ? c[idx.nickname] : "") || "";
+      let cls = (idx.class >= 0 ? c[idx.class] : "") || "";
+      let level = idx.level >= 0 ? Number(c[idx.level]) : 0;
+      if (!level) { const m = cls.match(/(\d)/); level = m ? Number(m[1]) : 7; }
+      if (![7, 8, 9].includes(level)) level = 7;
+      if (!cls) cls = `${level}A`;
+      if (!nickname) nickname = name.split(" ")[0] || "";
+      return { name, nickname, level, class: cls, email };
+    }).filter(r => r.name || r.email);
+  };
+
+  const fillFromCsv = () => {
+    setCsvMsg("");
+    const parsed = parseCsvText(csvText);
+    if (!parsed.length) { setCsvMsg("Tidak ada baris terbaca. Periksa formatnya."); return; }
+    setRows(parsed);
+    setCsvMsg(`${parsed.length} siswa dimuat ke tabel. Periksa lalu klik Import.`);
+  };
 
   const doImport = async () => {
     setImportError("");
@@ -419,6 +501,31 @@ const ImportPanel = ({ onClose, onDone }) => {
             <input className="input" style={{ flex: 1, maxWidth: 260 }} value={defaultPwd} onChange={e => setDefaultPwd(e.target.value)} placeholder="Contoh: Sigma2025!"/>
             <div style={{ fontSize: 12, color: "var(--ink-subtle)", lineHeight: 1.4 }}>Bisa di-override per siswa di kolom password (opsional)</div>
           </div>
+
+          {/* Import massal dari CSV / Excel */}
+          <details style={{ background: "var(--bg)", borderRadius: 12, border: "1.5px solid var(--line)", padding: "12px 16px" }}>
+            <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 800, color: "var(--navy-950)" }}>
+              📋 Import banyak siswa sekaligus (tempel dari CSV / Excel)
+            </summary>
+            <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--ink-muted)", lineHeight: 1.5 }}>
+                Tempel data dengan kolom: <strong>Nama, Email, Kelas, Panggilan</strong> (Panggilan opsional).
+                Baris pertama boleh berupa judul kolom. Bisa langsung salin-tempel dari Excel/Spreadsheet.
+              </div>
+              <textarea
+                value={csvText}
+                onChange={e => setCsvText(e.target.value)}
+                placeholder={"Nama,Email,Kelas,Panggilan\nNaya Putri,naya@labschool.sch.id,7A,Naya\nBima Saputra,bima@labschool.sch.id,7A,Bima"}
+                style={{ width: "100%", minHeight: 120, padding: 12, borderRadius: 10, border: "1.5px solid var(--line-strong)", fontFamily: "var(--font-mono)", fontSize: 12, lineHeight: 1.5, resize: "vertical" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <button className="btn btn-sm" onClick={fillFromCsv} disabled={!csvText.trim()}>
+                  <Icon.Download width="14" height="14"/> Isi tabel dari CSV
+                </button>
+                {csvMsg && <span style={{ fontSize: 12, fontWeight: 700, color: "var(--green-600)" }}>{csvMsg}</span>}
+              </div>
+            </div>
+          </details>
 
           {/* Tabel input */}
           <div style={{ overflowX: "auto" }}>
@@ -608,7 +715,12 @@ const TeacherDashboard = () => {
   return (
     <div className="page" style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar/>
-      {selected && <StudentDetail profile={selected} onClose={() => setSelected(null)}/>}
+      {selected && <StudentDetail profile={selected} onClose={() => setSelected(null)}
+        onChanged={async () => {
+          const list = await window.SIGMA_AUTH.getTeacherProfiles();
+          setProfiles(list || []);
+          setSelected((list || []).find(p => p.id === selected.id) || null);
+        }}/>}
 
       {/* Modal ganti password */}
       {resetPwd && (

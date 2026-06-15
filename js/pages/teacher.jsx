@@ -181,8 +181,7 @@ const StudentDetail = ({ profile, onClose }) => {
                 const quiz    = profile.quizzes?.[mod.id];
                 const subj    = window.CURRICULUM.subjects[mod.subject];
                 const isOpen  = expandedMod === mod.id + "-kuis";
-                const questions = window.QUIZ_BANK_V2?.[mod.id] || [];
-                const answers   = quiz?.answers || null;
+                const review = quiz?.review || null;
 
                 return (
                   <div key={mod.id} style={{ background: "white", border: "1.5px solid var(--line)", borderRadius: 14, overflow: "hidden", opacity: quiz ? 1 : 0.5 }}>
@@ -202,21 +201,20 @@ const StudentDetail = ({ profile, onClose }) => {
 
                     {isOpen && quiz && (
                       <div style={{ borderTop: "1px solid var(--line)" }}>
-                        {!answers && (
+                        {!review && (
                           <div style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-subtle)", fontStyle: "italic" }}>
-                            Jawaban per soal tidak tersedia — kuis ini dikerjakan sebelum fitur pencatatan jawaban diaktifkan.
+                            Rincian jawaban tidak tersedia — kuis ini dikerjakan sebelum fitur review per soal diaktifkan.
                           </div>
                         )}
-                        {answers && questions.length > 0 && questions.map((q, i) => {
-                          const selected = answers[i];
-                          const isRight  = selected === q.correct;
-                          const unanswered = selected === undefined;
+                        {review && review.map((r, i) => {
+                          const isRight = !!r.correct;
+                          const unanswered = r.selected == null;
                           return (
-                            <div key={i} style={{ padding: "14px 16px", borderBottom: i < questions.length - 1 ? "1px solid var(--line)" : "none", background: unanswered ? "var(--bg)" : isRight ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)" }}>
+                            <div key={i} style={{ padding: "14px 16px", borderBottom: i < review.length - 1 ? "1px solid var(--line)" : "none", background: unanswered ? "var(--bg)" : isRight ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)" }}>
                               <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                                 <span style={{ fontSize: 16, flexShrink: 0 }}>{unanswered ? "⏭" : isRight ? "✅" : "❌"}</span>
                                 <span style={{ fontWeight: 700, fontSize: 13, color: "var(--navy-950)", lineHeight: 1.5 }}>
-                                  {i + 1}. {q.question}
+                                  {i + 1}. {r.q}
                                 </span>
                               </div>
                               <div style={{ marginLeft: 26, display: "grid", gap: 4 }}>
@@ -226,13 +224,16 @@ const StudentDetail = ({ profile, onClose }) => {
                                   <>
                                     <div style={{ fontSize: 12, display: "flex", gap: 6, alignItems: "flex-start" }}>
                                       <span style={{ color: isRight ? "var(--green-600)" : "var(--red-500)", fontWeight: 700, flexShrink: 0 }}>Jawaban siswa:</span>
-                                      <span style={{ color: isRight ? "var(--green-600)" : "var(--red-500)" }}>{q.options?.[selected] ?? `Opsi ${selected}`}</span>
+                                      <span style={{ color: isRight ? "var(--green-600)" : "var(--red-500)" }}>{r.selected}</span>
                                     </div>
                                     {!isRight && (
                                       <div style={{ fontSize: 12, display: "flex", gap: 6, alignItems: "flex-start" }}>
                                         <span style={{ color: "var(--green-600)", fontWeight: 700, flexShrink: 0 }}>Jawaban benar:</span>
-                                        <span style={{ color: "var(--green-600)" }}>{q.options?.[q.correct] ?? `Opsi ${q.correct}`}</span>
+                                        <span style={{ color: "var(--green-600)" }}>{r.correctText}</span>
                                       </div>
+                                    )}
+                                    {r.explain && (
+                                      <div style={{ fontSize: 12, color: "var(--ink-muted)", lineHeight: 1.5, marginTop: 2 }}>{r.explain}</div>
                                     )}
                                   </>
                                 )}
@@ -240,9 +241,6 @@ const StudentDetail = ({ profile, onClose }) => {
                             </div>
                           );
                         })}
-                        {answers && questions.length === 0 && (
-                          <div style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-subtle)" }}>Data soal tidak ditemukan untuk modul ini.</div>
-                        )}
                       </div>
                     )}
                   </div>

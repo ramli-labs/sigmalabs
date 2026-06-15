@@ -72,11 +72,19 @@ function applyQuiz(data: any, body: any) {
     return { alreadyDone: true, ...data.quizzes[moduleId] };
   }
 
-  const total = responses.length;
-  let score = 0;
-  for (const r of responses) {
-    if (r && typeof r.q === "string" && key[r.q] !== undefined && r.selected === key[r.q]) score++;
-  }
+  // Review per soal: benar/salah + jawaban benar + penjelasan (kunci tetap di server).
+  const review = responses.map((r: any) => {
+    const entry = (r && typeof r.q === "string") ? key[r.q] : undefined;
+    return {
+      q: r?.q ?? "",
+      selected: r?.selected ?? null,
+      correctText: entry ? entry.a : null,
+      explain: entry ? entry.e : "",
+      correct: !!entry && r?.selected === entry.a,
+    };
+  });
+  const total = review.length;
+  const score = review.filter((x: any) => x.correct).length;
   const percent = total ? Math.round((score / total) * 100) : 0;
   const targetXp = Math.max(0, score * 2);
   data.xp = Number(data.xp || 0) + targetXp;
@@ -90,12 +98,13 @@ function applyQuiz(data: any, body: any) {
     bestRemedialPercent: 0,
     xpAwarded: targetXp,
     locked: true,
+    review,
     updatedAt: new Date().toISOString(),
   };
   if (percent >= 80) {
     addBadge(data, { id: `quiz-${moduleId}`, emoji: "🧠", label: `Kuis ${moduleId}`, color: "var(--gold-400)" });
   }
-  return { alreadyDone: false, score, total, percent, xpAwarded: targetXp };
+  return { alreadyDone: false, score, total, percent, xpAwarded: targetXp, review };
 }
 
 function applyQuest(data: any, body: any) {

@@ -155,28 +155,36 @@ bisa dipindah ke Edge Function `award-xp`, dengan trigger DB yang mengunci
 kolom `xp`. **Urutan deploy penting** — kalau trigger dipasang sebelum function
 & klien aktif, perolehan XP akan terhenti.
 
-1. Generate data server dari sumber tunggal (jalankan ulang tiap kali bank soal
-   atau kurikulum berubah):
+1. Generate data turunan dari sumber tunggal (jalankan ulang **tiap kali**
+   `quiz-bank-v2.js` atau `curriculum.js` berubah):
 
    ```bash
-   node scripts/build-quiz-answer-key.js   # -> supabase/functions/_shared/quiz-answer-key.json
+   node scripts/build-quiz-answer-key.js   # -> supabase/functions/_shared/quiz-answer-key.json (kunci server)
    node scripts/build-curriculum-data.js   # -> supabase/functions/_shared/curriculum.json
+   node scripts/build-public-quiz-bank.js  # -> js/data/quiz-bank-public.js (soal TANPA kunci, dimuat browser)
+   node scripts/build-jsx-bundle.js        # rebuild bundle bila .jsx berubah
    ```
 
-2. Deploy function (klien sudah otomatis memakainya bila Supabase aktif):
+   Penting: browser memuat `quiz-bank-public.js` (tanpa kunci jawaban), bukan
+   `quiz-bank-v2.js`. Kunci jawaban hanya ada di server.
+
+2. Deploy function (klien otomatis memakainya bila Supabase aktif):
 
    ```bash
    supabase functions deploy award-xp
    ```
 
-3. Uji dulu dengan akun coba: kerjakan kuis/misi/gim/lab, pastikan XP naik dan
-   tercatat di `sigma_profiles.data`.
+3. Uji dulu dengan akun coba: kerjakan kuis/misi/gim/lab, pastikan XP naik &
+   tercatat di `sigma_profiles.data`, dan kuis menampilkan skor + review.
 4. **Setelah** function terbukti jalan, baru jalankan bagian trigger
    `sigma_guard_xp` di `supabase/schema.sql` pada SQL Editor untuk mengunci `xp`.
 
-Catatan: kuis dinilai penuh di server (kunci jawaban tidak lagi menentukan XP
-dari klien). XP misi/gim/lab dihitung dengan formula kanonik server + proteksi
-replay; skor gim sendiri belum terverifikasi server (dibatasi nilai maksimum).
+Catatan:
+- Kuis dinilai penuh di server; kunci jawaban **tidak** dikirim ke browser, jadi
+  siswa tidak bisa mengintipnya dari source. Skor + jawaban benar + penjelasan
+  dikembalikan server setelah submit (butuh koneksi internet saat mengumpulkan).
+- XP misi/gim/lab dihitung dengan formula kanonik server + proteksi replay;
+  skor gim sendiri belum terverifikasi server (dibatasi nilai maksimum).
 
 ### Tambah modul baru
 Edit `window.CURRICULUM.modules` di file yang sama — tambahkan object dengan `id`, `subject`, `level`, `unit`, `title`, dll.

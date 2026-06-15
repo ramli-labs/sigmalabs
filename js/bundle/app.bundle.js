@@ -6354,13 +6354,16 @@ const KuisTab = ({
   const [integrityAccepted, setIntegrityAccepted] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(25 * 60);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [result, setResult] = useState(null);
   const [xpInfo, setXpInfo] = useState(null);
-  const score = questions.reduce((sum, q, i) => sum + (answers[i] === q.correct ? 1 : 0), 0);
   const answeredCount = Object.keys(answers).length;
-  const percent = questions.length ? Math.round(score / questions.length * 100) : 0;
+  const review = result?.review || [];
+  const score = result?.score ?? 0;
+  const percent = result?.percent ?? 0;
   const quizRecord = window.USER.quizzes?.[mod.id];
   const quizLocked = !!quizRecord && !submitted;
-  const potentialXp = getQuizXpPreview(score);
   const currentQuestion = questions[currentIndex];
   const currentAnswered = answers[currentIndex] !== undefined;
   const quizGuardProps = started && !submitted ? {
@@ -6381,19 +6384,25 @@ const KuisTab = ({
     const timer = setTimeout(() => setRemainingSeconds(s => Math.max(0, s - 1)), 1000);
     return () => clearTimeout(timer);
   }, [started, submitted, remainingSeconds, answers]);
-  const finishQuiz = nextAnswers => {
-    const finalScore = questions.reduce((sum, q, i) => sum + (nextAnswers[i] === q.correct ? 1 : 0), 0);
-    const finalPercent = questions.length ? Math.round(finalScore / questions.length * 100) : 0;
-    const before = window.USER.xp || 0;
+  const finishQuiz = async nextAnswers => {
+    if (submitting || submitted) return;
+    setSubmitting(true);
+    setSubmitError("");
     const responses = questions.map((q, i) => ({
       q: q.q,
       selected: typeof nextAnswers[i] === "number" ? q.options[nextAnswers[i]] : null
     }));
-    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers, responses);
+    const before = window.USER.xp || 0;
+    const res = await window.SIGMA_AUTH.completeQuiz(mod.id, responses);
+    setSubmitting(false);
+    if (!res || res.error) {
+      setSubmitError(res?.error === "offline" ? "Kuis perlu koneksi internet untuk dinilai. Pastikan online lalu coba lagi." : "Gagal mengirim kuis. Periksa koneksi lalu coba lagi.");
+      return;
+    }
     const gained = Math.max(0, (window.USER.xp || 0) - before);
+    setResult(res);
     setXpInfo({
-      gained,
-      potentialXp: getQuizXpPreview(finalScore)
+      gained
     });
     setSubmitted(true);
   };
@@ -6557,10 +6566,6 @@ const KuisTab = ({
     label: "Terjawab",
     value: `${answeredCount}/${questions.length}`,
     color: subject.color
-  }), React.createElement(QuizStat, {
-    label: "Potensi XP",
-    value: potentialXp,
-    color: "var(--gold-500)"
   }), started && !submitted && React.createElement(QuizStat, {
     label: "Waktu",
     value: formatQuizTime(remainingSeconds),
@@ -6569,6 +6574,10 @@ const KuisTab = ({
     label: "Skor",
     value: `${score}/${questions.length}`,
     color: score >= questions.length * 0.7 ? "var(--green-500)" : score >= questions.length / 2 ? "var(--orange-500)" : "var(--red-500)"
+  }), submitted && React.createElement(QuizStat, {
+    label: "XP Kuis",
+    value: `+${result?.xpAwarded ?? 0}`,
+    color: "var(--gold-500)"
   }))), React.createElement("div", {
     className: "quiz-progress-strip",
     style: {
@@ -6605,7 +6614,7 @@ const KuisTab = ({
     }
   }, questions.map((_, i) => {
     const answered = answers[i] !== undefined;
-    const correct = submitted && answers[i] === questions[i].correct;
+    const correct = submitted && !!review[i]?.correct;
     const wrong = submitted && answered && !correct;
     return React.createElement("span", {
       key: i,
@@ -6828,8 +6837,8 @@ const KuisTab = ({
       display: "grid",
       gap: 12
     }
-  }, questions.map((q, i) => {
-    const correct = answers[i] === q.correct;
+  }, review.map((r, i) => {
+    const correct = !!r.correct;
     return React.createElement("div", {
       key: i,
       style: {
@@ -6858,17 +6867,29 @@ const KuisTab = ({
         color: "var(--navy-950)",
         lineHeight: 1.45
       }
-    }, q.q), React.createElement("div", {
+    }, r.q), React.createElement("div", {
       style: {
         marginTop: 8,
         fontSize: 13,
         color: "var(--ink-muted)",
         lineHeight: 1.5
       }
-    }, "Jawabanmu: ", React.createElement("strong", null, answers[i] === undefined ? "Belum dijawab" : q.options[answers[i]]), React.createElement("br", null), "Jawaban tepat: ", React.createElement("strong", null, q.options[q.correct]), React.createElement("br", null), q.explain));
+    }, "Jawabanmu: ", React.createElement("strong", null, r.selected == null ? "Belum dijawab" : r.selected), React.createElement("br", null), "Jawaban tepat: ", React.createElement("strong", null, r.correctText), React.createElement("br", null), r.explain));
   })), submitted && React.createElement(NextStepCard, {
     mod: mod
-  }), React.createElement("div", {
+  }), submitError && React.createElement("div", {
+    style: {
+      marginTop: 18,
+      padding: 14,
+      borderRadius: 12,
+      background: "#FEE2E2",
+      border: "1.5px solid var(--red-500)",
+      fontSize: 13,
+      fontWeight: 700,
+      color: "var(--red-500)",
+      lineHeight: 1.5
+    }
+  }, "\u26A0\uFE0F ", submitError), React.createElement("div", {
     style: {
       display: "flex",
       gap: 10,
@@ -6895,13 +6916,13 @@ const KuisTab = ({
     height: "16"
   }), " Mulai Kuis") : !submitted ? React.createElement("button", {
     className: `btn ${subject.btnClass}`,
-    disabled: !currentAnswered,
+    disabled: !currentAnswered || submitting,
     onClick: submitCurrent,
     style: {
       width: "100%",
       justifyContent: "center"
     }
-  }, currentIndex === questions.length - 1 ? "Selesaikan Kuis" : "Kirim & Lanjut", " (", answeredCount, "/", questions.length, ")") : React.createElement("button", {
+  }, submitting ? "Menilai…" : `${currentIndex === questions.length - 1 ? "Selesaikan Kuis" : "Kirim & Lanjut"} (${answeredCount}/${questions.length})`) : React.createElement("button", {
     className: "btn btn-primary",
     disabled: true,
     style: {
@@ -13143,8 +13164,7 @@ const StudentDetail = ({
     const quiz = profile.quizzes?.[mod.id];
     const subj = window.CURRICULUM.subjects[mod.subject];
     const isOpen = expandedMod === mod.id + "-kuis";
-    const questions = window.QUIZ_BANK_V2?.[mod.id] || [];
-    const answers = quiz?.answers || null;
+    const review = quiz?.review || null;
     return React.createElement("div", {
       key: mod.id,
       style: {
@@ -13205,22 +13225,21 @@ const StudentDetail = ({
       style: {
         borderTop: "1px solid var(--line)"
       }
-    }, !answers && React.createElement("div", {
+    }, !review && React.createElement("div", {
       style: {
         padding: "12px 16px",
         fontSize: 12,
         color: "var(--ink-subtle)",
         fontStyle: "italic"
       }
-    }, "Jawaban per soal tidak tersedia \u2014 kuis ini dikerjakan sebelum fitur pencatatan jawaban diaktifkan."), answers && questions.length > 0 && questions.map((q, i) => {
-      const selected = answers[i];
-      const isRight = selected === q.correct;
-      const unanswered = selected === undefined;
+    }, "Rincian jawaban tidak tersedia \u2014 kuis ini dikerjakan sebelum fitur review per soal diaktifkan."), review && review.map((r, i) => {
+      const isRight = !!r.correct;
+      const unanswered = r.selected == null;
       return React.createElement("div", {
         key: i,
         style: {
           padding: "14px 16px",
-          borderBottom: i < questions.length - 1 ? "1px solid var(--line)" : "none",
+          borderBottom: i < review.length - 1 ? "1px solid var(--line)" : "none",
           background: unanswered ? "var(--bg)" : isRight ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)"
         }
       }, React.createElement("div", {
@@ -13241,7 +13260,7 @@ const StudentDetail = ({
           color: "var(--navy-950)",
           lineHeight: 1.5
         }
-      }, i + 1, ". ", q.question)), React.createElement("div", {
+      }, i + 1, ". ", r.q)), React.createElement("div", {
         style: {
           marginLeft: 26,
           display: "grid",
@@ -13269,7 +13288,7 @@ const StudentDetail = ({
         style: {
           color: isRight ? "var(--green-600)" : "var(--red-500)"
         }
-      }, q.options?.[selected] ?? `Opsi ${selected}`)), !isRight && React.createElement("div", {
+      }, r.selected)), !isRight && React.createElement("div", {
         style: {
           fontSize: 12,
           display: "flex",
@@ -13286,14 +13305,15 @@ const StudentDetail = ({
         style: {
           color: "var(--green-600)"
         }
-      }, q.options?.[q.correct] ?? `Opsi ${q.correct}`)))));
-    }), answers && questions.length === 0 && React.createElement("div", {
-      style: {
-        padding: "12px 16px",
-        fontSize: 12,
-        color: "var(--ink-subtle)"
-      }
-    }, "Data soal tidak ditemukan untuk modul ini.")));
+      }, r.correctText)), r.explain && React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: "var(--ink-muted)",
+          lineHeight: 1.5,
+          marginTop: 2
+        }
+      }, r.explain))));
+    })));
   })), tab === "aktivitas" && React.createElement("div", {
     style: {
       display: "grid",

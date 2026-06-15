@@ -560,6 +560,39 @@ const TeacherDashboard = () => {
   const avgQuiz = qa.length ? Math.round(qa.reduce((a, b) => a + b, 0) / qa.length) : null;
   const totalActs = shown.reduce((a, p) => a + (p.completedLabs?.length || 0) + (p.completedGames?.length || 0), 0);
 
+  // Export daftar siswa (sesuai filter aktif) ke CSV yang bisa dibuka di Excel.
+  const exportCsv = () => {
+    if (!shown.length) return;
+    const esc = (v) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const header = ["Nama", "Nama Panggilan", "Kelas", "Tingkat", "XP", "Jumlah Badge",
+      "Modul Tuntas", "Total Modul", "Rata-rata Kuis (%)", "Kuis Dikerjakan", "Lab Selesai", "Gim Selesai"];
+    const rows = shown.map(p => {
+      const avg = quizAvg(p);
+      return [
+        p.name || "", p.nickname || "", p.class || "", p.level || "",
+        p.xp || 0, p.badges?.length || 0,
+        modulesTuntas(p), modulesForLevel(p.level),
+        avg == null ? "" : avg, Object.keys(p.quizzes || {}).length,
+        p.completedLabs?.length || 0, p.completedGames?.length || 0,
+      ].map(esc).join(",");
+    });
+    const csv = "﻿" + [header.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const tag = levelFilter === "all" ? "semua-kelas" : `kelas-${levelFilter}`;
+    const rombel = rombelFilter === "all" ? "" : `-${rombelFilter}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sigma-report-${tag}${rombel}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // rekap per modul
   const levelNum    = levelFilter === "all" ? null : Number(levelFilter);
   const levelModules = levelNum
@@ -675,6 +708,10 @@ const TeacherDashboard = () => {
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-primary btn-sm" onClick={() => setShowImport(true)}>
               <Icon.Plus width="14" height="14"/> Tambah Siswa
+            </button>
+            <button className="btn btn-sm" onClick={exportCsv} disabled={!shown.length}
+              title={shown.length ? "Unduh daftar siswa (sesuai filter) sebagai CSV" : "Belum ada data siswa"}>
+              <Icon.Download width="14" height="14"/> Export CSV
             </button>
             <button className="btn btn-sm" onClick={refreshProfiles}>
               <Icon.Refresh width="14" height="14"/> {loading ? "Memuat..." : "Muat ulang"}

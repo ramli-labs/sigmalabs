@@ -96,3 +96,24 @@ drop trigger if exists sigma_guard_xp_trg on public.sigma_profiles;
 create trigger sigma_guard_xp_trg
   before insert or update on public.sigma_profiles
   for each row execute function sigma_guard_xp();
+
+-- ============================================
+-- Log error klien (pemantauan)
+-- Siapa pun boleh menulis (termasuk sebelum login); tidak ada policy SELECT
+-- untuk pengguna, jadi hanya admin (service-role / Table Editor) yang membaca.
+-- ============================================
+create table if not exists public.sigma_errors (
+  id          bigint generated always as identity primary key,
+  created_at  timestamptz not null default now(),
+  user_id     uuid,
+  role        text,
+  message     text,
+  detail      text,
+  url         text,
+  user_agent  text
+);
+alter table public.sigma_errors enable row level security;
+grant insert on public.sigma_errors to anon, authenticated;
+grant all on public.sigma_errors to service_role;
+create policy "anyone can insert error log" on public.sigma_errors
+  for insert to anon, authenticated with check (true);

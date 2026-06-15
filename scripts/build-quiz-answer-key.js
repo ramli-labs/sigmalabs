@@ -3,10 +3,10 @@
 // Sumber tunggal: js/data/quiz-bank-v2.js (yang juga dipakai klien).
 // Output: supabase/functions/_shared/quiz-answer-key.json
 //
-// Format: { [moduleId]: { [teksSoal]: teksOpsiBenar } }
-// Edge Function award-xp menilai jawaban siswa dengan mencocokkan
-// teks opsi yang dipilih ke teks opsi benar — tahan terhadap pengacakan
-// opsi di sisi klien.
+// Format: { [moduleId]: { [teksSoal]: { a: teksOpsiBenar, e: penjelasan } } }
+// Edge Function award-xp menilai jawaban siswa dengan mencocokkan teks opsi
+// yang dipilih ke teks opsi benar (tahan pengacakan opsi di klien), dan
+// mengembalikan penjelasan untuk layar review setelah submit.
 //
 // Jalankan ulang setiap kali quiz-bank-v2.js berubah:
 //   node scripts/build-quiz-answer-key.js
@@ -44,7 +44,7 @@ for (const [moduleId, questions] of Object.entries(bank)) {
     if (!q || typeof q.q !== "string" || !Array.isArray(q.options)) continue;
     const correctText = q.options[q.correct];
     if (typeof correctText !== "string") continue;
-    map[q.q] = correctText;
+    map[q.q] = { a: correctText, e: typeof q.explain === "string" ? q.explain : "" };
     questionCount++;
   }
   if (Object.keys(map).length) {

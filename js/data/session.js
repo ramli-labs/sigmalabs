@@ -499,41 +499,46 @@
     return user;
   }
 
-  function completeQuiz(moduleId, score, total, answers, responses) {
-    const user = clone(window.USER || getActiveUser());
-    const mod = window.CURRICULUM.modules.find(m => m.id === moduleId);
-    if (!mod) return user;
-    user.quizzes = user.quizzes || {};
-    const previous = user.quizzes[moduleId] || null;
-    if (previous) {
-      if (!previous.locked) {
-        previous.locked = true;
-        user.quizzes[moduleId] = previous;
-        saveActiveUser(user);
-      }
-      return user;
-    }
-    const percent = total ? Math.round((Number(score || 0) / Number(total)) * 100) : 0;
-    const targetXp = getQuizXpAward(score);
-    user.xp += targetXp;
-    user.quizzes[moduleId] = {
-      attempts: 1,
-      latestScore: Number(score || 0),
-      latestTotal: Number(total || 0),
-      latestPercent: percent,
-      bestPercent: percent,
-      bestFirstPercent: percent,
-      bestRemedialPercent: 0,
-      xpAwarded: targetXp,
-      locked: true,
-      answers: answers || null,
-      updatedAt: new Date().toISOString(),
+  // Kuis dinilai SERVER (kunci jawaban tidak ada di klien). Async:
+  // mengembalikan { score, total, percent, xpAwarded, review } atau { error }.
+  function normalizeQuizRecord(rec) {
+    rec = rec || {};
+    return {
+      score: rec.latestScore || 0,
+      total: rec.latestTotal || 0,
+      percent: rec.latestPercent || 0,
+      xpAwarded: rec.xpAwarded || 0,
+      review: rec.review || [],
     };
-    if (percent >= 80 && !user.badges.some(b => b.id === `quiz-${moduleId}`)) {
-      user.badges.push({ id: `quiz-${moduleId}`, emoji: "🧠", label: `Kuis ${mod.title}`, color: "var(--gold-400)" });
+  }
+
+  async function completeQuiz(moduleId, responses) {
+    if (!window.SIGMA_SUPABASE?.isConfigured() || (window.USER && window.USER.isGuest)) {
+      return { error: "offline" };
     }
-    commitAward(user, "quiz", { moduleId, responses: responses || [] });
-    return user;
+    const existing = window.USER?.quizzes?.[moduleId];
+    if (existing) return { alreadyDone: true, ...normalizeQuizRecord(existing) };
+
+    setSyncStatus("saving");
+    try {
+      const resp = await window.SIGMA_SUPABASE.awardXp("quiz", { moduleId, responses: responses || [] });
+      if (resp?.profile) applyServerProfile(resp.profile);
+      setSyncStatus("saved");
+      const r = resp?.result || {};
+      if (r.alreadyDone) {
+        return { alreadyDone: true, ...normalizeQuizRecord(window.USER?.quizzes?.[moduleId]) };
+      }
+      return {
+        score: r.score || 0,
+        total: r.total || 0,
+        percent: r.percent || 0,
+        xpAwarded: r.xpAwarded || 0,
+        review: r.review || [],
+      };
+    } catch (e) {
+      setSyncStatus("error");
+      return { error: e.message || "gagal" };
+    }
   }
 
   function completeGame(gameId, xp = 0) {

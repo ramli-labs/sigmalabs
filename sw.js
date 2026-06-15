@@ -2,7 +2,7 @@
 // SIGMA Service Worker — offline-first app shell
 // Naikkan versi CACHE saat rilis baru agar cache lama dibersihkan.
 // ============================================
-const CACHE = "sigma-v2";
+const CACHE = "sigma-v3";
 
 // Shell minimum agar app tetap bisa boot saat offline.
 // Aset lain (js/css/data) di-cache otomatis saat kunjungan online pertama

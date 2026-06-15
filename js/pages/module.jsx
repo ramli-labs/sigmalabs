@@ -1258,14 +1258,17 @@ const KuisTab = ({ mod, subject }) => {
   const [integrityAccepted, setIntegrityAccepted] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(25 * 60);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [result, setResult] = useState(null); // hasil penilaian server: {score,total,percent,xpAwarded,review}
   const [xpInfo, setXpInfo] = useState(null);
 
-  const score = questions.reduce((sum, q, i) => sum + (answers[i] === q.correct ? 1 : 0), 0);
   const answeredCount = Object.keys(answers).length;
-  const percent = questions.length ? Math.round((score / questions.length) * 100) : 0;
+  const review = result?.review || [];
+  const score = result?.score ?? 0;
+  const percent = result?.percent ?? 0;
   const quizRecord = window.USER.quizzes?.[mod.id];
   const quizLocked = !!quizRecord && !submitted;
-  const potentialXp = getQuizXpPreview(score);
   const currentQuestion = questions[currentIndex];
   const currentAnswered = answers[currentIndex] !== undefined;
   const quizGuardProps = started && !submitted ? {
@@ -1286,17 +1289,26 @@ const KuisTab = ({ mod, subject }) => {
     return () => clearTimeout(timer);
   }, [started, submitted, remainingSeconds, answers]);
 
-  const finishQuiz = (nextAnswers) => {
-    const finalScore = questions.reduce((sum, q, i) => sum + (nextAnswers[i] === q.correct ? 1 : 0), 0);
-    const finalPercent = questions.length ? Math.round((finalScore / questions.length) * 100) : 0;
-    const before = window.USER.xp || 0;
+  const finishQuiz = async (nextAnswers) => {
+    if (submitting || submitted) return;
+    setSubmitting(true);
+    setSubmitError("");
     const responses = questions.map((q, i) => ({
       q: q.q,
       selected: typeof nextAnswers[i] === "number" ? q.options[nextAnswers[i]] : null,
     }));
-    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers, responses);
+    const before = window.USER.xp || 0;
+    const res = await window.SIGMA_AUTH.completeQuiz(mod.id, responses);
+    setSubmitting(false);
+    if (!res || res.error) {
+      setSubmitError(res?.error === "offline"
+        ? "Kuis perlu koneksi internet untuk dinilai. Pastikan online lalu coba lagi."
+        : "Gagal mengirim kuis. Periksa koneksi lalu coba lagi.");
+      return;
+    }
     const gained = Math.max(0, (window.USER.xp || 0) - before);
-    setXpInfo({ gained, potentialXp: getQuizXpPreview(finalScore) });
+    setResult(res);
+    setXpInfo({ gained });
     setSubmitted(true);
   };
 
@@ -1352,9 +1364,9 @@ const KuisTab = ({ mod, subject }) => {
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
             <QuizStat label="Terjawab" value={`${answeredCount}/${questions.length}`} color={subject.color}/>
-            <QuizStat label="Potensi XP" value={potentialXp} color="var(--gold-500)"/>
             {started && !submitted && <QuizStat label="Waktu" value={formatQuizTime(remainingSeconds)} color={remainingSeconds <= 180 ? "var(--red-500)" : subject.color}/>}
             {submitted && <QuizStat label="Skor" value={`${score}/${questions.length}`} color={score >= questions.length * 0.7 ? "var(--green-500)" : score >= questions.length / 2 ? "var(--orange-500)" : "var(--red-500)"}/>}
+            {submitted && <QuizStat label="XP Kuis" value={`+${result?.xpAwarded ?? 0}`} color="var(--gold-500)"/>}
           </div>
         </div>
 
@@ -1366,7 +1378,7 @@ const KuisTab = ({ mod, subject }) => {
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {questions.map((_, i) => {
                 const answered = answers[i] !== undefined;
-                const correct = submitted && answers[i] === questions[i].correct;
+                const correct = submitted && !!review[i]?.correct;
                 const wrong = submitted && answered && !correct;
                 return (
                   <span key={i} style={{
@@ -1465,18 +1477,18 @@ const KuisTab = ({ mod, subject }) => {
           </div>
           ) : (
           <div style={{ display: "grid", gap: 12 }}>
-            {questions.map((q, i) => {
-              const correct = answers[i] === q.correct;
+            {review.map((r, i) => {
+              const correct = !!r.correct;
               return (
                 <div key={i} style={{ padding: 16, borderRadius: 14, background: correct ? "#D1FAE5" : "#FEE2E2", border: `1.5px solid ${correct ? "var(--green-500)" : "var(--red-500)"}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
                     <div style={{ fontSize: 12, fontWeight: 900, color: correct ? "var(--green-500)" : "var(--red-500)" }}>Soal {i + 1} • {correct ? "Benar" : "Perlu cek"}</div>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--navy-950)", lineHeight: 1.45 }}>{q.q}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--navy-950)", lineHeight: 1.45 }}>{r.q}</div>
                   <div style={{ marginTop: 8, fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.5 }}>
-                    Jawabanmu: <strong>{answers[i] === undefined ? "Belum dijawab" : q.options[answers[i]]}</strong><br/>
-                    Jawaban tepat: <strong>{q.options[q.correct]}</strong><br/>
-                    {q.explain}
+                    Jawabanmu: <strong>{r.selected == null ? "Belum dijawab" : r.selected}</strong><br/>
+                    Jawaban tepat: <strong>{r.correctText}</strong><br/>
+                    {r.explain}
                   </div>
                 </div>
               );
@@ -1486,14 +1498,22 @@ const KuisTab = ({ mod, subject }) => {
 
         {submitted && <NextStepCard mod={mod}/>}
 
+        {submitError && (
+          <div style={{ marginTop: 18, padding: 14, borderRadius: 12, background: "#FEE2E2", border: "1.5px solid var(--red-500)", fontSize: 13, fontWeight: 700, color: "var(--red-500)", lineHeight: 1.5 }}>
+            ⚠️ {submitError}
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 10, marginTop: 24, padding: 14, background: "white", border: "1.5px solid var(--line)", borderRadius: 14, position: "sticky", bottom: 16, zIndex: 2, boxShadow: "var(--shadow-soft)" }}>
           {!started && !submitted ? (
             <button className={`btn ${subject.btnClass}`} disabled={!integrityAccepted} onClick={() => setStarted(true)} style={{ width: "100%", justifyContent: "center" }}>
               <Icon.Play width="16" height="16"/> Mulai Kuis
             </button>
           ) : !submitted ? (
-            <button className={`btn ${subject.btnClass}`} disabled={!currentAnswered} onClick={submitCurrent} style={{ width: "100%", justifyContent: "center" }}>
-              {currentIndex === questions.length - 1 ? "Selesaikan Kuis" : "Kirim & Lanjut"} ({answeredCount}/{questions.length})
+            <button className={`btn ${subject.btnClass}`} disabled={!currentAnswered || submitting} onClick={submitCurrent} style={{ width: "100%", justifyContent: "center" }}>
+              {submitting
+                ? "Menilai…"
+                : `${currentIndex === questions.length - 1 ? "Selesaikan Kuis" : "Kirim & Lanjut"} (${answeredCount}/${questions.length})`}
             </button>
           ) : (
             <button className="btn btn-primary" disabled style={{ width: "100%", justifyContent: "center", opacity: 0.85 }}>

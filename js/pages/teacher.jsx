@@ -181,8 +181,7 @@ const StudentDetail = ({ profile, onClose }) => {
                 const quiz    = profile.quizzes?.[mod.id];
                 const subj    = window.CURRICULUM.subjects[mod.subject];
                 const isOpen  = expandedMod === mod.id + "-kuis";
-                const questions = window.QUIZ_BANK_V2?.[mod.id] || [];
-                const answers   = quiz?.answers || null;
+                const review = quiz?.review || null;
 
                 return (
                   <div key={mod.id} style={{ background: "white", border: "1.5px solid var(--line)", borderRadius: 14, overflow: "hidden", opacity: quiz ? 1 : 0.5 }}>
@@ -202,21 +201,20 @@ const StudentDetail = ({ profile, onClose }) => {
 
                     {isOpen && quiz && (
                       <div style={{ borderTop: "1px solid var(--line)" }}>
-                        {!answers && (
+                        {!review && (
                           <div style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-subtle)", fontStyle: "italic" }}>
-                            Jawaban per soal tidak tersedia — kuis ini dikerjakan sebelum fitur pencatatan jawaban diaktifkan.
+                            Rincian jawaban tidak tersedia — kuis ini dikerjakan sebelum fitur review per soal diaktifkan.
                           </div>
                         )}
-                        {answers && questions.length > 0 && questions.map((q, i) => {
-                          const selected = answers[i];
-                          const isRight  = selected === q.correct;
-                          const unanswered = selected === undefined;
+                        {review && review.map((r, i) => {
+                          const isRight = !!r.correct;
+                          const unanswered = r.selected == null;
                           return (
-                            <div key={i} style={{ padding: "14px 16px", borderBottom: i < questions.length - 1 ? "1px solid var(--line)" : "none", background: unanswered ? "var(--bg)" : isRight ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)" }}>
+                            <div key={i} style={{ padding: "14px 16px", borderBottom: i < review.length - 1 ? "1px solid var(--line)" : "none", background: unanswered ? "var(--bg)" : isRight ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)" }}>
                               <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                                 <span style={{ fontSize: 16, flexShrink: 0 }}>{unanswered ? "⏭" : isRight ? "✅" : "❌"}</span>
                                 <span style={{ fontWeight: 700, fontSize: 13, color: "var(--navy-950)", lineHeight: 1.5 }}>
-                                  {i + 1}. {q.question}
+                                  {i + 1}. {r.q}
                                 </span>
                               </div>
                               <div style={{ marginLeft: 26, display: "grid", gap: 4 }}>
@@ -226,13 +224,16 @@ const StudentDetail = ({ profile, onClose }) => {
                                   <>
                                     <div style={{ fontSize: 12, display: "flex", gap: 6, alignItems: "flex-start" }}>
                                       <span style={{ color: isRight ? "var(--green-600)" : "var(--red-500)", fontWeight: 700, flexShrink: 0 }}>Jawaban siswa:</span>
-                                      <span style={{ color: isRight ? "var(--green-600)" : "var(--red-500)" }}>{q.options?.[selected] ?? `Opsi ${selected}`}</span>
+                                      <span style={{ color: isRight ? "var(--green-600)" : "var(--red-500)" }}>{r.selected}</span>
                                     </div>
                                     {!isRight && (
                                       <div style={{ fontSize: 12, display: "flex", gap: 6, alignItems: "flex-start" }}>
                                         <span style={{ color: "var(--green-600)", fontWeight: 700, flexShrink: 0 }}>Jawaban benar:</span>
-                                        <span style={{ color: "var(--green-600)" }}>{q.options?.[q.correct] ?? `Opsi ${q.correct}`}</span>
+                                        <span style={{ color: "var(--green-600)" }}>{r.correctText}</span>
                                       </div>
+                                    )}
+                                    {r.explain && (
+                                      <div style={{ fontSize: 12, color: "var(--ink-muted)", lineHeight: 1.5, marginTop: 2 }}>{r.explain}</div>
                                     )}
                                   </>
                                 )}
@@ -240,9 +241,6 @@ const StudentDetail = ({ profile, onClose }) => {
                             </div>
                           );
                         })}
-                        {answers && questions.length === 0 && (
-                          <div style={{ padding: "12px 16px", fontSize: 12, color: "var(--ink-subtle)" }}>Data soal tidak ditemukan untuk modul ini.</div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -560,6 +558,39 @@ const TeacherDashboard = () => {
   const avgQuiz = qa.length ? Math.round(qa.reduce((a, b) => a + b, 0) / qa.length) : null;
   const totalActs = shown.reduce((a, p) => a + (p.completedLabs?.length || 0) + (p.completedGames?.length || 0), 0);
 
+  // Export daftar siswa (sesuai filter aktif) ke CSV yang bisa dibuka di Excel.
+  const exportCsv = () => {
+    if (!shown.length) return;
+    const esc = (v) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const header = ["Nama", "Nama Panggilan", "Kelas", "Tingkat", "XP", "Jumlah Badge",
+      "Modul Tuntas", "Total Modul", "Rata-rata Kuis (%)", "Kuis Dikerjakan", "Lab Selesai", "Gim Selesai"];
+    const rows = shown.map(p => {
+      const avg = quizAvg(p);
+      return [
+        p.name || "", p.nickname || "", p.class || "", p.level || "",
+        p.xp || 0, p.badges?.length || 0,
+        modulesTuntas(p), modulesForLevel(p.level),
+        avg == null ? "" : avg, Object.keys(p.quizzes || {}).length,
+        p.completedLabs?.length || 0, p.completedGames?.length || 0,
+      ].map(esc).join(",");
+    });
+    const csv = "﻿" + [header.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const tag = levelFilter === "all" ? "semua-kelas" : `kelas-${levelFilter}`;
+    const rombel = rombelFilter === "all" ? "" : `-${rombelFilter}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sigma-report-${tag}${rombel}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // rekap per modul
   const levelNum    = levelFilter === "all" ? null : Number(levelFilter);
   const levelModules = levelNum
@@ -675,6 +706,10 @@ const TeacherDashboard = () => {
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-primary btn-sm" onClick={() => setShowImport(true)}>
               <Icon.Plus width="14" height="14"/> Tambah Siswa
+            </button>
+            <button className="btn btn-sm" onClick={exportCsv} disabled={!shown.length}
+              title={shown.length ? "Unduh daftar siswa (sesuai filter) sebagai CSV" : "Belum ada data siswa"}>
+              <Icon.Download width="14" height="14"/> Export CSV
             </button>
             <button className="btn btn-sm" onClick={refreshProfiles}>
               <Icon.Refresh width="14" height="14"/> {loading ? "Memuat..." : "Muat ulang"}

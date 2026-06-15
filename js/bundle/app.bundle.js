@@ -531,6 +531,64 @@ const BrandStrip = ({
 };
 window.LabschoolLogo = LabschoolLogo;
 window.BrandStrip = BrandStrip;
+const SyncStatusBadge = ({
+  dark
+}) => {
+  const [status, setStatus] = useState(window.SIGMA_AUTH?.getSyncStatus?.() || "idle");
+  useEffect(() => {
+    const onChange = e => setStatus(e.detail);
+    window.addEventListener("sigma:syncstatus", onChange);
+    return () => window.removeEventListener("sigma:syncstatus", onChange);
+  }, []);
+  const cloudActive = window.SIGMA_SUPABASE?.isConfigured?.() && !window.USER?.isGuest;
+  if (!cloudActive || status === "idle") return null;
+  const config = {
+    saving: {
+      label: "Menyimpan…",
+      color: dark ? "rgba(255,255,255,0.7)" : "var(--ink-muted)",
+      Glyph: Icon.Refresh
+    },
+    saved: {
+      label: "Tersimpan",
+      color: "var(--green-500)",
+      Glyph: Icon.Check
+    },
+    error: {
+      label: "Belum tersinkron",
+      color: "var(--red-500)",
+      Glyph: Icon.Clock
+    }
+  }[status];
+  if (!config) return null;
+  const {
+    Glyph
+  } = config;
+  return React.createElement("span", {
+    title: status === "error" ? "Progres tersimpan di perangkat ini, tapi belum terkirim ke server. Akan dicoba lagi otomatis saat koneksi pulih." : "Status sinkronisasi progres ke server",
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      fontSize: 12,
+      fontWeight: 700,
+      color: config.color,
+      padding: "6px 10px",
+      borderRadius: "var(--r-full)",
+      background: dark ? "rgba(255,255,255,0.06)" : "white",
+      border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--line)",
+      whiteSpace: "nowrap"
+    }
+  }, React.createElement(Glyph, {
+    width: "14",
+    height: "14",
+    style: status === "saving" ? {
+      animation: "spin 1s linear infinite"
+    } : undefined
+  }), React.createElement("span", {
+    className: "hide-mobile"
+  }, config.label));
+};
+window.SyncStatusBadge = SyncStatusBadge;
 const Navbar = ({
   variant = "light"
 }) => {
@@ -635,7 +693,9 @@ const Navbar = ({
       alignItems: "center",
       gap: 10
     }
-  }, React.createElement("div", {
+  }, React.createElement(SyncStatusBadge, {
+    dark: dark
+  }), React.createElement("div", {
     className: "hide-mobile",
     style: {
       display: "flex",
@@ -1255,7 +1315,7 @@ const Landing = () => {
   }), "SIGMA \xB7 SISTEM INFORMATIKA \u2022 GENERASI MAHIR ARTIFISIAL"), React.createElement("h1", {
     className: "display",
     style: {
-      fontSize: "clamp(48px, 7vw, 84px)",
+      fontSize: "clamp(30px, 7vw, 84px)",
       margin: 0,
       color: "var(--navy-950)"
     }
@@ -1307,6 +1367,7 @@ const Landing = () => {
     width: "18",
     height: "18"
   }), " Jelajahi Modul"))), React.createElement("div", {
+    className: "hide-mobile",
     style: {
       position: "relative",
       height: 560,
@@ -2143,7 +2204,7 @@ const LoginPage = () => {
       marginBottom: 16
     }
   }, "SIGMA LABSCHOOL"), React.createElement("h1", {
-    className: "display",
+    className: "display mobile-safe-title",
     style: {
       fontSize: 60,
       margin: "0 0 16px",
@@ -6324,7 +6385,11 @@ const KuisTab = ({
     const finalScore = questions.reduce((sum, q, i) => sum + (nextAnswers[i] === q.correct ? 1 : 0), 0);
     const finalPercent = questions.length ? Math.round(finalScore / questions.length * 100) : 0;
     const before = window.USER.xp || 0;
-    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers);
+    const responses = questions.map((q, i) => ({
+      q: q.q,
+      selected: typeof nextAnswers[i] === "number" ? q.options[nextAnswers[i]] : null
+    }));
+    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers, responses);
     const gained = Math.max(0, (window.USER.xp || 0) - before);
     setXpInfo({
       gained,

@@ -7,6 +7,12 @@ const corsHeaders = {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 405,
+    });
+  }
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -28,14 +34,16 @@ Deno.serve(async (req: Request) => {
     if (authErr || !user) throw new Error("Sesi tidak valid, silakan login ulang.");
 
     // Pastikan caller adalah guru
-    const { data: teacherProfile } = await admin
+    const { data: teacherProfile, error: teacherError } = await admin
       .from("sigma_profiles")
       .select("role")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (teacherError) throw new Error(`Gagal memeriksa role guru: ${teacherError.message}`);
 
     if (teacherProfile?.role !== "teacher") {
-      throw new Error("Hanya guru yang dapat membuat akun siswa.");
+      throw new Error(`Hanya guru yang dapat membuat akun siswa. Session aktif: ${user.email || user.id}; role server: ${teacherProfile?.role || "tidak ditemukan"}.`);
     }
 
     const { students, defaultPassword } = await req.json();

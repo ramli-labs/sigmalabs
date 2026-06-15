@@ -25,7 +25,7 @@ const Landing = () => {
               SIGMA · SISTEM INFORMATIKA • GENERASI MAHIR ARTIFISIAL
             </div>
 
-            <h1 className="display" style={{ fontSize: "clamp(48px, 7vw, 84px)", margin: 0, color: "var(--navy-950)" }}>
+            <h1 className="display" style={{ fontSize: "clamp(30px, 7vw, 84px)", margin: 0, color: "var(--navy-950)" }}>
               Belajar <span style={{ color: "var(--info-500)", fontStyle: "italic" }}>Informatika</span>
               <br/>
               & <span style={{ background: "var(--gold-400)", padding: "0 12px", borderRadius: 14, display: "inline-block", transform: "rotate(-1.5deg)", color: "var(--navy-950)" }}>Koding + AI</span>
@@ -48,7 +48,7 @@ const Landing = () => {
           </div>
 
           {/* Right: stack of chunky cards (reference from design) */}
-          <div style={{ position: "relative", height: 560, display: "block" }}>
+          <div className="hide-mobile" style={{ position: "relative", height: 560, display: "block" }}>
             <div className="card fade-in-up" style={{ position: "absolute", top: 20, right: 20, width: 320, padding: 18, transform: "rotate(4deg)", background: "var(--info-100)", animationDelay: "0.1s" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <span className="tag tag-info">Informatika • Kelas 8</span>

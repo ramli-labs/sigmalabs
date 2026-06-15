@@ -184,6 +184,28 @@
     return json;
   }
 
+  // Catat aktivitas ke server; server yang menilai & menentukan XP otoritatif.
+  // Mengembalikan { ok, action, result, profile } dengan profile = blob data terbaru.
+  async function awardXp(action, payload) {
+    const client = getClient();
+    if (!client) throw new Error("Supabase belum dikonfigurasi.");
+    const session = await getSession();
+    if (!session) throw new Error("Sesi tidak valid.");
+    const config = getConfig();
+    const res = await fetch(`${config.url}/functions/v1/award-xp`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": config.anonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Gagal mencatat XP.");
+    return json;
+  }
+
   async function createStudents(students, defaultPassword) {
     const client = getClient();
     if (!client) throw new Error("Supabase belum dikonfigurasi.");
@@ -218,5 +240,6 @@
     fetchVisibleProfiles,
     upsertProfile,
     clearOwnProfile,
+    awardXp,
   };
 })();

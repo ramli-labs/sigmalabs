@@ -59,7 +59,7 @@ const LoginPage = () => {
           {/* Kiri: branding */}
           <section>
             <div className="tag tag-gold" style={{ marginBottom: 16 }}>SIGMA LABSCHOOL</div>
-            <h1 className="display" style={{ fontSize: 60, margin: "0 0 16px", color: "var(--navy-950)", lineHeight: 1.05 }}>
+            <h1 className="display mobile-safe-title" style={{ fontSize: 60, margin: "0 0 16px", color: "var(--navy-950)", lineHeight: 1.05 }}>
               Selamat datang<br/>di SIGMA.
             </h1>
             <p style={{ fontSize: 16, color: "var(--ink-muted)", lineHeight: 1.7, maxWidth: 540, marginBottom: 28 }}>

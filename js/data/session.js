@@ -376,6 +376,65 @@
     notify();
   }
 
+  function saveActiveUserLocalOnly(nextUser) {
+    const profiles = readProfiles();
+    const index = profiles.findIndex(p => p.id === nextUser.id);
+    if (index >= 0) profiles[index] = nextUser;
+    else profiles.push(nextUser);
+    writeProfilesLocalOnly(profiles);
+    localStorage.setItem(ACTIVE_KEY, nextUser.id);
+    setActiveUser(nextUser);
+    notify();
+  }
+
+  // Terapkan profil otoritatif (blob data) yang dikembalikan Edge Function award-xp.
+  function applyServerProfile(blob) {
+    if (!blob || typeof blob !== "object") return;
+    const current = window.USER || {};
+    const merged = normalizeProfile({
+      ...blob,
+      id: blob.id || current.id,
+      user_id: blob.user_id || current.user_id,
+      role: blob.role || current.role || "student",
+      name: blob.name || current.name,
+      nickname: blob.nickname || current.nickname,
+      level: blob.level || current.level,
+      class: blob.class || current.class,
+    });
+    writeProfilesLocalOnly([merged]);
+    localStorage.setItem(ACTIVE_KEY, merged.id);
+    setActiveUser(merged);
+    notify();
+  }
+
+  // Kirim aksi ke server (penentu XP otoritatif). Optimistik lokal sudah
+  // disimpan; saat respons tiba, profil lokal disinkronkan ke versi server.
+  function sendAwardToServer(action, payload) {
+    setSyncStatus("saving");
+    window.SIGMA_SUPABASE.awardXp(action, payload)
+      .then(resp => {
+        if (resp && resp.profile) applyServerProfile(resp.profile);
+        setSyncStatus("saved");
+      })
+      .catch(error => {
+        console.warn("SIGMA award-xp gagal", error);
+        // Fallback: simpan blob biasa (xp di-clamp server, progres lain tetap tersimpan).
+        syncProfilesToSupabase(readProfiles());
+      });
+  }
+
+  // Simpan hasil award. Mode lokal: simpan + sync biasa. Mode cloud:
+  // optimistik lokal (tanpa blob-upsert agar tidak balapan dengan award-xp),
+  // lalu server yang menentukan XP otoritatif.
+  function commitAward(user, action, payload) {
+    if (!window.SIGMA_SUPABASE?.isConfigured() || user.isGuest) {
+      saveActiveUser(user);
+      return;
+    }
+    saveActiveUserLocalOnly(user);
+    sendAwardToServer(action, payload);
+  }
+
   function completeLesson(moduleId, lessonIndex) {
     const user = clone(window.USER || getActiveUser());
     const mod = window.CURRICULUM.modules.find(m => m.id === moduleId);
@@ -393,7 +452,7 @@
       completedLessons,
     };
     if (lessonsDone === total) awardModuleCompletion(user, mod);
-    saveActiveUser(user);
+    commitAward(user, "lesson", { moduleId, lessonIndex });
     return user;
   }
 
@@ -436,11 +495,11 @@
     if (mod && user.progress?.[moduleId]?.lessonsDone >= mod.lessons) {
       awardModuleCompletion(user, mod);
     }
-    saveActiveUser(user);
+    commitAward(user, "quest", { moduleId, lessonIndex, score });
     return user;
   }
 
-  function completeQuiz(moduleId, score, total, answers) {
+  function completeQuiz(moduleId, score, total, answers, responses) {
     const user = clone(window.USER || getActiveUser());
     const mod = window.CURRICULUM.modules.find(m => m.id === moduleId);
     if (!mod) return user;
@@ -473,7 +532,7 @@
     if (percent >= 80 && !user.badges.some(b => b.id === `quiz-${moduleId}`)) {
       user.badges.push({ id: `quiz-${moduleId}`, emoji: "🧠", label: `Kuis ${mod.title}`, color: "var(--gold-400)" });
     }
-    saveActiveUser(user);
+    commitAward(user, "quiz", { moduleId, responses: responses || [] });
     return user;
   }
 
@@ -499,7 +558,7 @@
     if (bestXp > 0 && !user.badges.some(b => b.id === badgeId)) {
       user.badges.push({ id: badgeId, emoji: "🎮", label: `Tantangan ${game.title}`, color: "var(--ai-400)" });
     }
-    saveActiveUser(user);
+    commitAward(user, "game", { gameId, xp });
     return user;
   }
 
@@ -515,7 +574,7 @@
       if (!user.badges.some(b => b.id === badgeId)) {
         user.badges.push({ id: badgeId, emoji: "🔬", label: `Lab ${lab.title}`, color: "var(--info-400)" });
       }
-      saveActiveUser(user);
+      commitAward(user, "lab", { labId });
     }
     return user;
   }

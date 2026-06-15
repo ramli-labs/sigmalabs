@@ -57,3 +57,37 @@ using (
       and teacher.role = 'teacher'
   )
 );
+
+-- ============================================
+-- Kunci integritas XP
+-- Hanya service-role (Edge Function award-xp) yang boleh menaikkan xp.
+-- Update dari siswa/guru (role authenticated/anon lewat PostgREST) tidak
+-- bisa menaikkan data->xp; akun baru selalu mulai dari xp 0.
+-- DEPLOY trigger ini SETELAH Edge Function award-xp aktif dan klien sudah
+-- memakainya — kalau tidak, perolehan XP dari kuis/misi/gim/lab akan
+-- terhenti karena masih dihitung di klien.
+-- ============================================
+create or replace function sigma_guard_xp()
+returns trigger language plpgsql as $$
+declare
+  old_xp numeric;
+  new_xp numeric := coalesce((new.data->>'xp')::numeric, 0);
+begin
+  if current_user in ('authenticated', 'anon') then
+    if tg_op = 'INSERT' then
+      new.data = jsonb_set(coalesce(new.data, '{}'::jsonb), '{xp}', '0'::jsonb);
+    elsif tg_op = 'UPDATE' then
+      old_xp := coalesce((old.data->>'xp')::numeric, 0);
+      if new_xp > old_xp then
+        new.data = jsonb_set(new.data, '{xp}', to_jsonb(old_xp));
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists sigma_guard_xp_trg on public.sigma_profiles;
+create trigger sigma_guard_xp_trg
+  before insert or update on public.sigma_profiles
+  for each row execute function sigma_guard_xp();

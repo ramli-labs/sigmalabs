@@ -6385,7 +6385,11 @@ const KuisTab = ({
     const finalScore = questions.reduce((sum, q, i) => sum + (nextAnswers[i] === q.correct ? 1 : 0), 0);
     const finalPercent = questions.length ? Math.round(finalScore / questions.length * 100) : 0;
     const before = window.USER.xp || 0;
-    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers);
+    const responses = questions.map((q, i) => ({
+      q: q.q,
+      selected: typeof nextAnswers[i] === "number" ? q.options[nextAnswers[i]] : null
+    }));
+    window.SIGMA_AUTH.completeQuiz(mod.id, finalScore, questions.length, nextAnswers, responses);
     const gained = Math.max(0, (window.USER.xp || 0) - before);
     setXpInfo({
       gained,

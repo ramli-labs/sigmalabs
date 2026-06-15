@@ -615,6 +615,51 @@ const ImportPanel = ({ onClose, onDone }) => {
 };
 
 // ---- Dashboard utama ----
+// ---- Modal Log Error (untuk guru memantau error siswa) ----
+const ErrorLogModal = ({ onClose }) => {
+  const [rows, setRows] = useState(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    window.SIGMA_SUPABASE.fetchErrors(150).then(setRows).catch(e => setErr(e.message || "Gagal memuat log."));
+  }, []);
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(11,22,51,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", overflowY: "auto" }}>
+      <div style={{ background: "white", borderRadius: 20, width: "min(900px, 100%)", boxShadow: "0 8px 48px rgba(0,0,0,0.22)" }}>
+        <div style={{ padding: "22px 28px 18px", borderBottom: "1.5px solid var(--line)", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 900, fontSize: 20, color: "var(--navy-950)" }}>Log Error</div>
+            <div style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 3 }}>Error yang dialami siswa saat memakai aplikasi (terbaru di atas).</div>
+          </div>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid var(--line)", background: "var(--bg)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} aria-label="Tutup">
+            <Icon.X width="16" height="16"/>
+          </button>
+        </div>
+        <div style={{ padding: "16px 28px 24px", maxHeight: "65vh", overflowY: "auto" }}>
+          {err && <div style={{ padding: 12, borderRadius: 10, background: "#FEE2E2", color: "var(--red-500)", fontSize: 13, fontWeight: 700 }}>⚠️ {err}</div>}
+          {!err && !rows && <div style={{ fontSize: 13, color: "var(--ink-muted)" }}>Memuat…</div>}
+          {!err && rows && rows.length === 0 && <div style={{ fontSize: 14, color: "var(--green-600)", fontWeight: 700 }}>🎉 Belum ada error tercatat.</div>}
+          {!err && rows && rows.length > 0 && (
+            <div style={{ display: "grid", gap: 8 }}>
+              {rows.map(r => (
+                <div key={r.id} style={{ padding: "10px 14px", borderRadius: 10, background: "var(--bg)", border: "1px solid var(--line)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: "var(--navy-950)" }}>{r.message}</span>
+                    <span style={{ fontSize: 11, color: "var(--ink-subtle)", whiteSpace: "nowrap" }}>{new Date(r.created_at).toLocaleString("id-ID")}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--ink-subtle)", marginTop: 4 }}>
+                    {r.url || "-"} · {r.role || "?"}{r.user_id ? " · " + String(r.user_id).slice(0, 8) : ""}
+                  </div>
+                  {r.detail && <div style={{ fontSize: 11, color: "var(--ink-muted)", marginTop: 4, fontFamily: "var(--font-mono)", whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: 80, overflow: "auto" }}>{r.detail}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TeacherDashboard = () => {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading]   = useState(false);
@@ -622,6 +667,7 @@ const TeacherDashboard = () => {
   const [rombelFilter, setRombelFilter] = useState("all");
   const [selected, setSelected]       = useState(null);
   const [showImport, setShowImport]   = useState(false);
+  const [showErrors, setShowErrors]   = useState(false);
   const [resetPwd, setResetPwd]       = useState(null); // { userId, name, newPwd, loading, msg, ok }
   const [deleteModal, setDeleteModal] = useState(null); // { userId, name, loading, msg }
 
@@ -801,6 +847,8 @@ const TeacherDashboard = () => {
         </div>
       )}
 
+      {showErrors && <ErrorLogModal onClose={() => setShowErrors(false)}/>}
+
       {showImport && (
         <ImportPanel
           onClose={() => setShowImport(false)}
@@ -827,6 +875,9 @@ const TeacherDashboard = () => {
             </button>
             <button className="btn btn-sm" onClick={refreshProfiles}>
               <Icon.Refresh width="14" height="14"/> {loading ? "Memuat..." : "Muat ulang"}
+            </button>
+            <button className="btn btn-sm" onClick={() => setShowErrors(true)} title="Lihat error yang dialami siswa">
+              <Icon.Search width="14" height="14"/> Log Error
             </button>
           </div>
         </div>

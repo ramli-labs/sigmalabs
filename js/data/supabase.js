@@ -206,6 +206,19 @@
     return json;
   }
 
+  async function fetchErrors(limit = 100) {
+    const client = getClient();
+    if (!client) throw new Error("Supabase belum dikonfigurasi.");
+    const table = "sigma_errors";
+    const { data, error } = await client
+      .from(table)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
+  }
+
   async function resetQuiz(userId, moduleId) {
     const client = getClient();
     if (!client) throw new Error("Supabase belum dikonfigurasi.");
@@ -257,6 +270,7 @@
     deleteStudent,
     resetStudentPassword,
     resetQuiz,
+    fetchErrors,
     fetchOwnProfile,
     fetchVisibleProfiles,
     upsertProfile,

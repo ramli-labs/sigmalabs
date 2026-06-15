@@ -89,6 +89,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 a { color: inherit; text-decoration: none; cursor: pointer; }
 input, textarea { font-family: inherit; }
 
+/* Aksesibilitas: fokus keyboard yang jelas (tidak muncul saat klik mouse) */
+:focus-visible { outline: 3px solid var(--info-400); outline-offset: 2px; border-radius: 4px; }
+[role="button"] { cursor: pointer; }
+
 /* ============================================
    BUTTONS
    ============================================ */

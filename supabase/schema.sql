@@ -117,3 +117,11 @@ grant insert on public.sigma_errors to anon, authenticated;
 grant all on public.sigma_errors to service_role;
 create policy "anyone can insert error log" on public.sigma_errors
   for insert to anon, authenticated with check (true);
+
+-- Guru boleh membaca log error (untuk halaman Log Error di Dashboard Guru).
+create policy "teachers can read error log" on public.sigma_errors
+  for select to authenticated using (
+    exists (select 1 from public.sigma_profiles t
+            where t.user_id = auth.uid() and t.role = 'teacher')
+  );
+grant select on public.sigma_errors to authenticated;

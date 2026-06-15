@@ -13600,10 +13600,11 @@ const ImportPanel = ({
       email: 1,
       class: 2,
       nickname: 3,
-      level: -1
+      level: -1,
+      password: 4
     };
     const firstCells = splitLine(lines[0]).map(norm);
-    const hints = ["nama", "name", "namalengkap", "email", "surel", "kelas", "class", "rombel", "panggilan", "nickname", "namapanggilan", "level", "tingkat"];
+    const hints = ["nama", "name", "namalengkap", "email", "surel", "kelas", "class", "rombel", "panggilan", "nickname", "namapanggilan", "level", "tingkat", "password", "katasandi", "sandi", "pwd"];
     let dataLines = lines;
     if (firstCells.some(c => hints.includes(c))) {
       const find = (...keys) => firstCells.findIndex(c => keys.includes(c));
@@ -13612,7 +13613,8 @@ const ImportPanel = ({
         nickname: find("panggilan", "nickname", "namapanggilan"),
         email: find("email", "surel"),
         class: find("kelas", "class", "rombel"),
-        level: find("level", "tingkat")
+        level: find("level", "tingkat"),
+        password: find("password", "katasandi", "sandi", "pwd")
       };
       dataLines = lines.slice(1);
     }
@@ -13620,6 +13622,7 @@ const ImportPanel = ({
       const c = splitLine(line);
       const name = (idx.name >= 0 ? c[idx.name] : "") || "";
       const email = (idx.email >= 0 ? c[idx.email] : "") || "";
+      const password = (idx.password >= 0 ? c[idx.password] : "") || "";
       let nickname = (idx.nickname >= 0 ? c[idx.nickname] : "") || "";
       let cls = (idx.class >= 0 ? c[idx.class] : "") || "";
       let level = idx.level >= 0 ? Number(c[idx.level]) : 0;
@@ -13635,7 +13638,8 @@ const ImportPanel = ({
         nickname,
         level,
         class: cls,
-        email
+        email,
+        password
       };
     }).filter(r => r.name || r.email);
   };
@@ -13816,10 +13820,10 @@ const ImportPanel = ({
       color: "var(--ink-muted)",
       lineHeight: 1.5
     }
-  }, "Tempel data dengan kolom: ", React.createElement("strong", null, "Nama, Email, Kelas, Panggilan"), " (Panggilan opsional). Baris pertama boleh berupa judul kolom. Bisa langsung salin-tempel dari Excel/Spreadsheet."), React.createElement("textarea", {
+  }, "Tempel data dengan kolom: ", React.createElement("strong", null, "Nama, Email, Kelas, Panggilan, Password"), " (Panggilan & Password opsional). Kalau Password dikosongkan, dipakai password default di atas. Baris pertama boleh berupa judul kolom. Bisa langsung salin-tempel dari Excel/Spreadsheet."), React.createElement("textarea", {
     value: csvText,
     onChange: e => setCsvText(e.target.value),
-    placeholder: "Nama,Email,Kelas,Panggilan\nNaya Putri,naya@labschool.sch.id,7A,Naya\nBima Saputra,bima@labschool.sch.id,7A,Bima",
+    placeholder: "Nama,Email,Kelas,Panggilan,Password\nNaya Putri,naya@labschool.sch.id,7A,Naya,Naya2026!\nBima Saputra,bima@labschool.sch.id,7A,Bima,Bima2026!",
     style: {
       width: "100%",
       minHeight: 120,

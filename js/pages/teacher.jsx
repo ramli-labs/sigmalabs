@@ -394,9 +394,9 @@ const ImportPanel = ({ onClose, onDone }) => {
       return out.map(s => s.trim());
     };
     const norm = (s) => String(s).toLowerCase().replace(/[^a-z]/g, "");
-    let idx = { name: 0, email: 1, class: 2, nickname: 3, level: -1 };
+    let idx = { name: 0, email: 1, class: 2, nickname: 3, level: -1, password: 4 };
     const firstCells = splitLine(lines[0]).map(norm);
-    const hints = ["nama", "name", "namalengkap", "email", "surel", "kelas", "class", "rombel", "panggilan", "nickname", "namapanggilan", "level", "tingkat"];
+    const hints = ["nama", "name", "namalengkap", "email", "surel", "kelas", "class", "rombel", "panggilan", "nickname", "namapanggilan", "level", "tingkat", "password", "katasandi", "sandi", "pwd"];
     let dataLines = lines;
     if (firstCells.some(c => hints.includes(c))) {
       const find = (...keys) => firstCells.findIndex(c => keys.includes(c));
@@ -406,6 +406,7 @@ const ImportPanel = ({ onClose, onDone }) => {
         email: find("email", "surel"),
         class: find("kelas", "class", "rombel"),
         level: find("level", "tingkat"),
+        password: find("password", "katasandi", "sandi", "pwd"),
       };
       dataLines = lines.slice(1);
     }
@@ -413,6 +414,7 @@ const ImportPanel = ({ onClose, onDone }) => {
       const c = splitLine(line);
       const name = (idx.name >= 0 ? c[idx.name] : "") || "";
       const email = (idx.email >= 0 ? c[idx.email] : "") || "";
+      const password = (idx.password >= 0 ? c[idx.password] : "") || "";
       let nickname = (idx.nickname >= 0 ? c[idx.nickname] : "") || "";
       let cls = (idx.class >= 0 ? c[idx.class] : "") || "";
       let level = idx.level >= 0 ? Number(c[idx.level]) : 0;
@@ -420,7 +422,7 @@ const ImportPanel = ({ onClose, onDone }) => {
       if (![7, 8, 9].includes(level)) level = 7;
       if (!cls) cls = `${level}A`;
       if (!nickname) nickname = name.split(" ")[0] || "";
-      return { name, nickname, level, class: cls, email };
+      return { name, nickname, level, class: cls, email, password };
     }).filter(r => r.name || r.email);
   };
 
@@ -509,13 +511,13 @@ const ImportPanel = ({ onClose, onDone }) => {
             </summary>
             <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
               <div style={{ fontSize: 12, color: "var(--ink-muted)", lineHeight: 1.5 }}>
-                Tempel data dengan kolom: <strong>Nama, Email, Kelas, Panggilan</strong> (Panggilan opsional).
-                Baris pertama boleh berupa judul kolom. Bisa langsung salin-tempel dari Excel/Spreadsheet.
+                Tempel data dengan kolom: <strong>Nama, Email, Kelas, Panggilan, Password</strong> (Panggilan & Password opsional).
+                Kalau Password dikosongkan, dipakai password default di atas. Baris pertama boleh berupa judul kolom. Bisa langsung salin-tempel dari Excel/Spreadsheet.
               </div>
               <textarea
                 value={csvText}
                 onChange={e => setCsvText(e.target.value)}
-                placeholder={"Nama,Email,Kelas,Panggilan\nNaya Putri,naya@labschool.sch.id,7A,Naya\nBima Saputra,bima@labschool.sch.id,7A,Bima"}
+                placeholder={"Nama,Email,Kelas,Panggilan,Password\nNaya Putri,naya@labschool.sch.id,7A,Naya,Naya2026!\nBima Saputra,bima@labschool.sch.id,7A,Bima,Bima2026!"}
                 style={{ width: "100%", minHeight: 120, padding: 12, borderRadius: 10, border: "1.5px solid var(--line-strong)", fontFamily: "var(--font-mono)", fontSize: 12, lineHeight: 1.5, resize: "vertical" }}
               />
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>

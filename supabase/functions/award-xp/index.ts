@@ -18,7 +18,8 @@ const corsHeaders = {
 
 // Batas atas XP gim per pemberian — gim tidak punya skor terverifikasi server,
 // jadi nilai yang diklaim klien dibatasi agar tidak bisa diisi sembarangan.
-const GAME_XP_MAX = 150;
+const GAME_XP_MAX = 150;   // batas penyimpanan skor klien (tampilan saja)
+const GAME_XP = 40;        // XP tetap untuk menyelesaikan gim (ditentukan server, sekali)
 const LAB_XP = 50;
 
 const json = (body: unknown, status = 200) =>
@@ -143,26 +144,26 @@ function applyQuest(data: any, body: any) {
 function applyGame(data: any, body: any) {
   const gameId = String(body.gameId || "");
   if (!(curriculum as any).games.includes(gameId)) throw new Error(`Gim ${gameId} tidak dikenal.`);
-  const claimed = Math.max(0, Math.min(GAME_XP_MAX, Number(body.xp || 0)));
 
   data.gameScores = data.gameScores || {};
   data.completedGames = Array.isArray(data.completedGames) ? data.completedGames : [];
   const previous = data.gameScores[gameId] || null;
-  const bestXp = Math.max(Number(previous?.bestXp || 0), claimed);
   const alreadyAwarded = Number(previous?.xpAwarded || 0);
-  const xpDelta = Math.max(0, bestXp - alreadyAwarded);
+  // XP gim DITENTUKAN SERVER: tetap GAME_XP, sekali per gim. Skor yang
+  // diklaim klien (body.xp) hanya disimpan untuk tampilan, TIDAK memengaruhi XP
+  // (skor gim tidak bisa diverifikasi server, jadi tak boleh menentukan XP).
+  const xpDelta = alreadyAwarded > 0 ? 0 : GAME_XP;
   data.xp = Number(data.xp || 0) + xpDelta;
+  const clientBest = Math.max(0, Math.min(GAME_XP_MAX, Number(body.xp || 0)));
   data.gameScores[gameId] = {
-    bestXp,
-    xpAwarded: Math.max(alreadyAwarded, bestXp),
+    bestXp: Math.max(Number(previous?.bestXp || 0), clientBest),
+    xpAwarded: alreadyAwarded > 0 ? alreadyAwarded : GAME_XP,
     attempts: Number(previous?.attempts || 0) + 1,
     updatedAt: new Date().toISOString(),
   };
   if (!data.completedGames.includes(gameId)) data.completedGames.push(gameId);
-  if (bestXp > 0) {
-    addBadge(data, { id: `game-${gameId}`, emoji: "🎮", label: `Tantangan ${gameId}`, color: "var(--ai-400)" });
-  }
-  return { xpDelta, bestXp };
+  addBadge(data, { id: `game-${gameId}`, emoji: "🎮", label: `Tantangan ${gameId}`, color: "var(--ai-400)" });
+  return { xpDelta };
 }
 
 function applyLab(data: any, body: any) {

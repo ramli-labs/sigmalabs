@@ -207,6 +207,7 @@ const Navbar = ({ variant = "light" }) => {
           </Link>
           <button
             title="Keluar"
+            aria-label="Keluar dari akun"
             onClick={async () => {
               await window.SIGMA_AUTH.signOutSupabase();
               navigate("/login");

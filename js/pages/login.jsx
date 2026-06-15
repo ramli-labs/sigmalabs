@@ -92,11 +92,13 @@ const LoginPage = () => {
                   onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
                   onKeyDown={onKey}
                   placeholder="email@sekolah.sch.id"
+                  aria-label="Email"
                   autoComplete="email"/>
                 <input className="input" type="password" value={authForm.password}
                   onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
                   onKeyDown={onKey}
                   placeholder="Password"
+                  aria-label="Password"
                   autoComplete="current-password"/>
                 <button className="btn btn-primary" type="button" onClick={submitEmail}
                   style={{ justifyContent: "center" }}>
